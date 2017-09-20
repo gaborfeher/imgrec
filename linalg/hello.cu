@@ -2,6 +2,9 @@
 
 #include <cuda_runtime.h>
 
+#include "DeviceMatrix.h"
+#include "HostMatrix.h"
+
 
 __global__ void VecAdd(float* A, float* B, float* C) {
   int i = threadIdx.x;
@@ -9,6 +12,13 @@ __global__ void VecAdd(float* A, float* B, float* C) {
 }
 
 int main() {
+  HostMatrix ha(2, 2, (float[]){5, 2, 3, 4});
+  ha.Print();
+  DeviceMatrix da(ha);
+  HostMatrix ha2(da);
+  ha2.Print();
+
+
   std::cout << "hello, world!" << std::endl;
 
 
