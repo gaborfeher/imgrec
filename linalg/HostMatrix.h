@@ -3,9 +3,11 @@
 
 #include <memory>
 
+#include "BaseMatrix.h"
+
 class DeviceMatrix;
 
-class HostMatrix {
+class HostMatrix : public BaseMatrix {
 public:
   // Makes a copy of data:
   HostMatrix(int rows, int cols, float* data);
@@ -14,12 +16,6 @@ public:
 
   // Shallow-copy is supported by the compiler-generated
   // copy constructor and assignment operator.
-public:  // TODO
-  int rows_;
-  int cols_;
-  int size_;
-  std::shared_ptr<float> data_;
-
 };
 
 #endif // _HOST_MATRIX_H_

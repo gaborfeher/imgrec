@@ -1,15 +1,13 @@
 #include "DeviceMatrix.h"
 
-#include "HostMatrix.h"
+#include <iostream>
 
 #include <cuda_runtime.h>
 
-#include <iostream>
+#include "HostMatrix.h"
 
 DeviceMatrix::DeviceMatrix(const HostMatrix& src) :
-    rows_(src.rows_),
-    cols_(src.cols_),
-    size_(src.size_) {
+    BaseMatrix(src.rows_, src.cols_) {
   float* data;
   cudaMalloc(&data, size_ * sizeof(float));
   data_.reset(data, cudaFree);

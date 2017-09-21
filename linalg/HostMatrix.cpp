@@ -1,26 +1,22 @@
-#include <iostream>
-
 #include "HostMatrix.h"
+
+#include <iostream>
 
 #include <cuda_runtime.h>
 
 #include "DeviceMatrix.h"
 
 HostMatrix::HostMatrix(int rows, int cols, float* data) :
-    rows_(rows),
-    cols_(cols),
-    size_(rows * cols),
-    data_(new float[size_], std::default_delete<float[]>() ) {
+    BaseMatrix(rows, cols) {
+  data_.reset(new float[size_], std::default_delete<float[]>() );
   for (int i = 0; i < size_; ++i) {
     data_.get()[i] = data[i];
   }
 }
 
 HostMatrix::HostMatrix(const DeviceMatrix& src) :
-    rows_(src.rows_),
-    cols_(src.cols_),
-    size_(src.size_),
-    data_(new float[size_], std::default_delete<float[]>() ) {
+    BaseMatrix(src.rows_, src.cols_) {
+  data_.reset(new float[size_], std::default_delete<float[]>() );
   cudaMemcpy(
       data_.get(),
       src.data_.get(),
