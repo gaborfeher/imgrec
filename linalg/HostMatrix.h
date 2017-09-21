@@ -12,14 +12,13 @@ public:
   explicit HostMatrix(const DeviceMatrix& src);
   void Print();
 
-  // Disable copy and move.
-  HostMatrix(const HostMatrix&) = delete;
-  HostMatrix& operator=(const HostMatrix&) = delete;
+  // Shallow-copy is supported by the compiler-generated
+  // copy constructor and assignment operator.
 public:  // TODO
   int rows_;
   int cols_;
   int size_;
-  std::unique_ptr<float[]> data_;
+  std::shared_ptr<float> data_;
 
 };
 
