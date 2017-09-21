@@ -1,16 +1,7 @@
 #include <iostream>
 
-#include <cuda_runtime.h>
-
 #include "DeviceMatrix.h"
 #include "HostMatrix.h"
-
-/*
-__global__ void VecAdd(float* A, float* B, float* C) {
-  int i = threadIdx.x;
-  C[i] = A[i] + B[i];
-}
-*/
 
 int main() {
   HostMatrix a_host(2, 2, (float[]){5, 2, 3, 4});
