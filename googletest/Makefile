@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+BIN_DIR=../bin/googletest
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
 downloaded_deps/googletest.tar.gz :
 	mkdir -p downloaded_deps
 	cd downloaded_deps && \
@@ -14,7 +19,7 @@ downloaded_deps/googletest : downloaded_deps/googletest.tar.gz
 
 clean:
 	rm -Rf downloaded_deps
-	rm -Rf *.o *.a
+	rm -Rf $(BIN_DIR)
 
 CXX = clang++
 GTEST_DIR = downloaded_deps/googletest/googletest/
@@ -42,17 +47,19 @@ GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 # implementation details, the dependencies specified below are
 # conservative and not optimized.  This is fine as Google Test
 # compiles fast and for ordinary users its source rarely changes.
-gtest-all.o : downloaded_deps/googletest $(GTEST_SRCS_)
+$(BIN_DIR)/gtest-all.o : $(BIN_DIR) downloaded_deps/googletest $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
-            $(GTEST_DIR)/src/gtest-all.cc
+            $(GTEST_DIR)/src/gtest-all.cc \
+			-o $@
 
-gtest_main.o : downloaded_deps/googletest $(GTEST_SRCS_)
+$(BIN_DIR)/gtest_main.o : $(BIN_DIR) downloaded_deps/googletest $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
-            $(GTEST_DIR)/src/gtest_main.cc
+            $(GTEST_DIR)/src/gtest_main.cc \
+			-o $@
 
-gtest.a : gtest-all.o
+$(BIN_DIR)/gtest.a : $(BIN_DIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-gtest_main.a : gtest-all.o gtest_main.o
+$(BIN_DIR)/gtest_main.a : $(BIN_DIR)/gtest-all.o $(BIN_DIR)/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
