@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "BaseMatrix.h"
+#include "base_matrix.h"
 
 class HostMatrix;
 

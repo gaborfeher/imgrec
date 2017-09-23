@@ -1,10 +1,10 @@
-#include "HostMatrix.h"
+#include "host_matrix.h"
 
 #include <iostream>
 
 #include <cuda_runtime.h>
 
-#include "DeviceMatrix.h"
+#include "device_matrix.h"
 
 HostMatrix::HostMatrix(int rows, int cols, float* data) :
     BaseMatrix(rows, cols) {

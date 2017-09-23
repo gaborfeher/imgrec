@@ -1,11 +1,11 @@
-#include "DeviceMatrix.h"
+#include "device_matrix.h"
 
 #include <cassert>  // TODO: release-mode assert
 #include <iostream>
 
 #include <cuda_runtime.h>
 
-#include "HostMatrix.h"
+#include "host_matrix.h"
 
 std::shared_ptr<float> AllocateData(int size) {
   float* data;

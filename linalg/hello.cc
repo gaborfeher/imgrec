@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "DeviceMatrix.h"
-#include "HostMatrix.h"
+#include "device_matrix.h"
+#include "host_matrix.h"
 
 int main() {
   HostMatrix a_host(2, 2, (float[]){5, 2, 3, 4});

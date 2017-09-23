@@ -17,18 +17,18 @@ build_gtest :
 	$(MAKE) -C ../googletest gtest_main.a
 
 
-matrix.o: DeviceMatrix.cu HostMatrix.cpp DeviceMatrix.h HostMatrix.h
-	$(NVCC) DeviceMatrix.cu HostMatrix.cpp \
+matrix.o: device_matrix.cu host_matrix.cc device_matrix.h host_matrix.h
+	$(NVCC) device_matrix.cu host_matrix.cc \
 		--lib \
 		--output-file=matrix.o \
 		-Wno-deprecated-gpu-targets \
 		--compiler-bindir=$(CXX) \
 		--std=c++11
 
-hello: hello.cpp matrix.o
-	$(CXX) hello.cpp matrix.o -ohello  --std=c++11 -L/usr/local/cuda-8.0/lib64 -lcudart
+hello: hello.cc matrix.o
+	$(CXX) hello.cc matrix.o -ohello  --std=c++11 -L/usr/local/cuda-8.0/lib64 -lcudart
 
-matrix_unittest.o: matrix_unittest.cc DeviceMatrix.h HostMatrix.h build_gtest
+matrix_unittest.o: matrix_unittest.cc device_matrix.h host_matrix.h build_gtest
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c matrix_unittest.cc
 
 matrix_unittest: matrix_unittest.o matrix.o ../googletest/gtest_main.a
