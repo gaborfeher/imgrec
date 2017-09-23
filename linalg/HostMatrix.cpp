@@ -24,7 +24,7 @@ HostMatrix::HostMatrix(const DeviceMatrix& src) :
       cudaMemcpyDeviceToHost);
 }
 
-void HostMatrix::Print() {
+void HostMatrix::Print() const {
   std::cout << "size= " << size_ << std::endl;
   for (int i = 0; i < rows_; ++i) {
     for (int j = 0; j < cols_; ++j) {
@@ -34,5 +34,13 @@ void HostMatrix::Print() {
   }
 }
 
-
+std::vector<float> HostMatrix::GetVector() const {
+  std::vector<float> v;
+  for (int i = 0; i < rows_; ++i) {
+    for (int j = 0; j < cols_; ++j) {
+      v.push_back(data_.get()[i * cols_ + j]);
+    }
+  }
+  return v;
+}
 

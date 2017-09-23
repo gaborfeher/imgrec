@@ -6,7 +6,7 @@ GTEST_DIR = ../googletest/downloaded_deps/googletest/googletest/
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
 CPPFLAGS += -isystem $(GTEST_DIR)/include
-CXXFLAGS += -g -Wall -Wextra -pthread
+CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11
 
 .PHONY: get_gtest clean
 
@@ -31,8 +31,8 @@ hello: hello.cpp matrix.o
 matrix_unittest.o: matrix_unittest.cc DeviceMatrix.h HostMatrix.h build_gtest
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c matrix_unittest.cc
 
-matrix_unittest: matrix_unittest.o ../googletest/gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+matrix_unittest: matrix_unittest.o matrix.o ../googletest/gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -L/usr/local/cuda-8.0/lib64 -lcudart $^ -o $@
 
 clean:
 	rm -f ./hello ./matrix_unittest *.o
