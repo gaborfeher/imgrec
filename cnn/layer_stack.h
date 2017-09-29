@@ -4,8 +4,9 @@
 class LayerStack : public Layer {
  public:
   void AddLayer(std::shared_ptr<Layer> layer);
-  virtual void forward(const DeviceMatrix& input);
-  virtual void backward(const DeviceMatrox& output_gradients);
+  virtual void Forward(const DeviceMatrix& input);
+  virtual void Backward(const DeviceMatrox& output_gradients);
+  virtual void ApplyGradient(float learn_rate);
 
   virtual DeviceMatrix output() { return layers_.last().output(); }
   virtual DeviceMatrix input_gradients() { return layers_.first().input_gradients(); }

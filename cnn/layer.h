@@ -7,8 +7,9 @@ class Layer {
  public:
   virtual ~Layer() {}
 
-  virtual void forward(const DeviceMatrix& input) = 0;
-  virtual void backward(const DeviceMatrix& ouotput_gradients) = 0;
+  virtual void Forward(const DeviceMatrix& input) = 0;
+  virtual void Backward(const DeviceMatrix& ouotput_gradients) = 0;
+  virtual void ApplyGradient(float learn_rate) = 0;
 
   virtual DeviceMatrix output() { return output_; }
   virtual DeviceMatrix input_gradients() { return input_gradients_; }

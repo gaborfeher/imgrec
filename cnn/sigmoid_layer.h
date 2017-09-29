@@ -7,8 +7,9 @@
 class SigmoidLayer : public Layer {
  public:
   SigmoidLayer(int size);
-  virtual void forward(const DeviceMatrix& input);
-  virtual void backward(const DeviceMatrix& output_gradients);
+  virtual void Forward(const DeviceMatrix& input);
+  virtual void Backward(const DeviceMatrix& output_gradients);
+  virtual void ApplyGradient(float learn_rate);
 
  private:
   int size_;
