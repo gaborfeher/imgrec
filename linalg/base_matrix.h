@@ -1,5 +1,7 @@
-#ifndef _BASE_MATRIX_H_
-#define _BASE_MATRIX_H_
+#ifndef _LINALG_BASE_MATRIX_H_
+#define _LINALG_BASE_MATRIX_H_
+
+#include <memory>
 
 class BaseMatrix {
 protected:
@@ -22,4 +24,4 @@ protected:
   friend class DeviceMatrix;
 };
 
-#endif  // _BASE_MATRIX_H_
+#endif  // _LINALG_BASE_MATRIX_H_

@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "device_matrix.h"
-#include "host_matrix.h"
+#include "linalg/device_matrix.h"
+#include "linalg/host_matrix.h"
 
 int main() {
   HostMatrix a_host(2, 2, (float[]){5, 2, 3, 4});

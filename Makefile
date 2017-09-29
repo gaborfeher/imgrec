@@ -2,7 +2,7 @@ GTEST_DIR = googletest/downloaded_deps/googletest/googletest/
 MAIN_GTEST_HEADER = $(GTEST_DIR)/include/gtest/gtest.h
 NVCC = /usr/local/cuda-8.0/bin/nvcc
 CXX = clang++
-CPPFLAGS += -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem $(GTEST_DIR)/include -I .
 CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11
 
 .PHONY: build_gtest clean
@@ -24,6 +24,7 @@ bin/googletest/gtest_main.a : $(MAIN_GTEST_HEADER)
 bin/linalg/matrix.o: linalg/device_matrix.cu linalg/host_matrix.cc linalg/device_matrix.h linalg/host_matrix.h
 	mkdir -p bin/linalg
 	$(NVCC) $(filter %.cu %.cc,$^) \
+		--include-path=. \
 		--lib \
 		--output-file=$@ \
 		-Wno-deprecated-gpu-targets \
@@ -31,7 +32,7 @@ bin/linalg/matrix.o: linalg/device_matrix.cu linalg/host_matrix.cc linalg/device
 		--std=c++11
 
 bin/linalg/hello: linalg/hello.cc bin/linalg/matrix.o
-	$(CXX) $^ -o $@  --std=c++11 -L/usr/local/cuda-8.0/lib64 -lcudart
+	$(CXX) $(CPPFLAGS) $^ -o $@  --std=c++11 -L/usr/local/cuda-8.0/lib64 -lcudart
 
 
 bin/linalg/matrix_unittest.o: linalg/matrix_unittest.cc linalg/device_matrix.h linalg/host_matrix.h $(MAIN_GTEST_HEADER)

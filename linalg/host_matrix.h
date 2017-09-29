@@ -1,10 +1,10 @@
-#ifndef _HOST_MATRIX_H_
-#define _HOST_MATRIX_H_
+#ifndef _LINALG_HOST_MATRIX_H_
+#define _LINALG_HOST_MATRIX_H_
 
 #include <memory>
 #include <vector>
 
-#include "base_matrix.h"
+#include "linalg/base_matrix.h"
 
 class DeviceMatrix;
 
@@ -20,4 +20,4 @@ public:
   // copy constructor and assignment operator.
 };
 
-#endif // _HOST_MATRIX_H_
+#endif // _LINALG_HOST_MATRIX_H_

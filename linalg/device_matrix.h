@@ -1,9 +1,9 @@
-#ifndef _DEVICE_MATRIX_H_
-#define _DEVICE_MATRIX_H_
+#ifndef _LINALG_DEVICE_MATRIX_H_
+#define _LINALG_DEVICE_MATRIX_H_
 
 #include <memory>
 
-#include "base_matrix.h"
+#include "linalg/base_matrix.h"
 
 class HostMatrix;
 
@@ -20,4 +20,4 @@ private:
   DeviceMatrix(int rows, int cols);
 };
 
-#endif // _DEVICE_MATRIX_H_
+#endif // _LINALG_DEVICE_MATRIX_H_

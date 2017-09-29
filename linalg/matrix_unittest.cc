@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "host_matrix.h"
-#include "device_matrix.h"
+#include "linalg/host_matrix.h"
+#include "linalg/device_matrix.h"
 
 TEST(MatrixTest, AddSmall) {
   HostMatrix a_host(2, 2, (float[]){5, 2, 3, 4});
