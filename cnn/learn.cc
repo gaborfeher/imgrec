@@ -1,4 +1,4 @@
-#include <stdio>
+#include <iostream>
 
 #include "cnn/error_layer.h"
 #include "cnn/fully_connected_layer.h"

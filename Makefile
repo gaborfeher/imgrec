@@ -48,3 +48,5 @@ matrix_unittest: bin/linalg/matrix_unittest
 hello: bin/linalg/hello
 	$<
 
+bin/cnn/learn: cnn/*.cc cnn/*.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(filter %.cu %.cc,$^) -o $@

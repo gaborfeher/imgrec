@@ -4,6 +4,10 @@
 #include <memory>
 
 class BaseMatrix {
+public:
+  int rows() const { return rows_; }
+  int cols() const { return cols_; }
+
 protected:
   BaseMatrix(int rows, int cols) :
       rows_(rows),

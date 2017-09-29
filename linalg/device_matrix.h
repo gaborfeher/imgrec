@@ -9,15 +9,30 @@ class HostMatrix;
 
 class DeviceMatrix : public BaseMatrix {
 public:
+  DeviceMatrix(int rows, int cols);
   explicit DeviceMatrix(const HostMatrix& src);
 
-  DeviceMatrix Add(const DeviceMatrix& other);
+  DeviceMatrix Add(const DeviceMatrix& other) const;
+
+  DeviceMatrix Multiply(float) const {
+    // TODO
+    return DeviceMatrix(1, 1);
+  }
+
+  // Returns L2 norm in 1x1 matrix (for now)
+  DeviceMatrix L2() const {
+    // TODO
+    return DeviceMatrix(1, 1);
+  }
+
+  DeviceMatrix T() const {
+    // TODO
+    return DeviceMatrix(1, 1);
+  }
 
   // Shallow-copy is supported by the compiler-generated
   // copy constructor and assignment operator.
 
-private:
-  DeviceMatrix(int rows, int cols);
 };
 
 #endif // _LINALG_DEVICE_MATRIX_H_

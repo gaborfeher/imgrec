@@ -2,7 +2,7 @@
 #define _CNN_ERROR_LAYER_H_
 
 #include "cnn/layer.h"
-#include "cnn/device_matrix.h"
+#include "linalg/device_matrix.h"
 
 class ErrorLayer : public Layer {
  public:

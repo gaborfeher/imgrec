@@ -5,6 +5,7 @@
 
 class Layer {
  public:
+  Layer(int input_rows, int input_cols, int output_rows, int output_cols);
   virtual ~Layer() {}
 
   virtual void Forward(const DeviceMatrix& input) = 0;
@@ -14,7 +15,7 @@ class Layer {
   virtual DeviceMatrix output() { return output_; }
   virtual DeviceMatrix input_gradients() { return input_gradients_; }
 
- private:
+ protected:
   DeviceMatrix input_;
   DeviceMatrix output_;
   DeviceMatrix input_gradients_;

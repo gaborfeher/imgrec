@@ -12,8 +12,8 @@ class FullyConnectedLayer : public Layer {
   virtual void ApplyGradient(float learn_rate);
 
  private:
-  int input_size_,
-  int output_size_,
+  int input_size_;
+  int output_size_;
   DeviceMatrix weights_;
   DeviceMatrix weights_gradients_;
   
