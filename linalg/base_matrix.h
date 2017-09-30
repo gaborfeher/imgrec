@@ -2,6 +2,7 @@
 #define _LINALG_BASE_MATRIX_H_
 
 #include <memory>
+#include <iostream>
 
 class BaseMatrix {
 public:
@@ -16,6 +17,7 @@ protected:
   }
 
   virtual ~BaseMatrix() {
+    std::cout << "destruct base matrix" << std::endl;
   }
 
   int rows_;

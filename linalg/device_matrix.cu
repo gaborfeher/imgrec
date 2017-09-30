@@ -33,7 +33,7 @@ __global__ void VecAdd(float* A, float* B, float* C) {
   C[i] = A[i] + B[i];
 }
 
-DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) {
+DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
   assert(rows_ == other.rows_ && cols_ == other.cols_);
   DeviceMatrix result(rows_, cols_);
   VecAdd<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());

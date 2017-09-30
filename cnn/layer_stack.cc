@@ -1,27 +1,32 @@
 #include "cnn/layer_stack.h"
 
-LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
+LayerStack::LayerStack() :
+    Layer(1, 1, 1, 1)  // Just dummy sizes, not used.
+{
+}
+
+void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);
 }
 
-LayerStack::Forward(const DeviceMatrix& input) {
+void LayerStack::Forward(const DeviceMatrix& input) {
   DeviceMatrix last_input = input;
   for (std::shared_ptr<Layer> layer : layers_) {
-    layer.forward(last_input);
-    last_input = layer.output();
+    layer->Forward(last_input);
+    last_input = layer->output();
   }
 }
 
-LayerStack::Backward(const DeviceMatrix& output_gradients) {
+void LayerStack::Backward(const DeviceMatrix& output_gradients) {
   DeviceMatrix last_output_gradients = output_gradients;
-  for (std::shared_ptr<Layer> layer : layers_.reversed()) {
-    layer.backward(last_output_gradients);
-    last_output_gradients = layer.input_gradients();
+  for (int i = layers_.size() - 1; i >= 0; i--) {
+    layers_[i]->Backward(last_output_gradients);
+    last_output_gradients = layers_[i]->input_gradients();
   }
 }
 
-LayerStack::ApplyGradient(float learn_rate) {
+void LayerStack::ApplyGradient(float learn_rate) {
   for (std::shared_ptr<Layer> layer : layers_) {
-    layer.ApplyGradient(learn_rate);
+    layer->ApplyGradient(learn_rate);
   }
 }

@@ -4,8 +4,11 @@
 #include <vector>
 #include <memory>
 
+#include "cnn/layer.h"
+
 class LayerStack : public Layer {
  public:
+  LayerStack();
   void AddLayer(std::shared_ptr<Layer> layer);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients);

@@ -1,6 +1,7 @@
 #include "cnn/sigmoid_layer.h"
 
-SigmoidLayer::SigmoidLayer(int size) : size_(size) {}
+SigmoidLayer::SigmoidLayer(int size) :
+    Layer(size, 1, size, 1) {}
 
 void SigmoidLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
@@ -11,4 +12,4 @@ void SigmoidLayer::Backward(const DeviceMatrix& output_gradients) {
   input_gradients_ = output_gradients.ApplySigmoidGradients();
 }
 
-void SigmoidLayer::ApplyGradient(float learn_rate) {}
+void SigmoidLayer::ApplyGradient(float) {}

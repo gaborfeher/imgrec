@@ -45,18 +45,19 @@ int main() {
   DeviceMatrix test_y(DeviceMatrix(test_y_host).T());
 
   LayerStack stack;
-  stack.AddLayer(new FullyConnectedLayer(2, 1));
-  stack.AddLayer(new SigmoidLayer);
-  stack.AddLayer(new ErrorLayer(trainging_y_host));
+  stack.AddLayer(std::make_shared<FullyConnectedLayer>(2, 1, 1, 1));
+  stack.AddLayer(std::make_shared<SigmoidLayer>(1));
+  stack.AddLayer(std::make_shared<ErrorLayer>(training_y));
 
   for (int i = 0; i < 100; ++i) {
     stack.Forward(training_x);
-    HostMatrix(stack.output()).Dump();
-    DeviceMatrix dummy;
+    HostMatrix(stack.output()).Print();
+    // TODO: clean up this dummy business (understand backprop better)
+    DeviceMatrix dummy(HostMatrix(1, 1, (float[]) {1}));
     stack.Backward(dummy);
     stack.ApplyGradient(0.1);
   }
 
   stack.Forward(test_x);
-  HostMatrix(stack.output()).Dump();
+  HostMatrix(stack.output()).Print();
 }

@@ -48,5 +48,8 @@ matrix_unittest: bin/linalg/matrix_unittest
 hello: bin/linalg/hello
 	$<
 
-bin/cnn/learn: cnn/*.cc cnn/*.h
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(filter %.cu %.cc,$^) -o $@
+bin/cnn/learn: cnn/*.cc cnn/*.h bin/linalg/matrix.o
+	mkdir -p bin/cnn
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(filter %.cu %.cc %.o,$^) \
+		-o $@ \
+		-L/usr/local/cuda-8.0/lib64 -lcudart
