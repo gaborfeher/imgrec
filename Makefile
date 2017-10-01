@@ -6,12 +6,13 @@ CXX = clang++
 CPPFLAGS += -isystem $(GTEST_DIR)/include -I .
 CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11 -L$(CUDA_LIB)
 
-.PHONY: build_gtest clean
+.PHONY: clean clean_all
 
 clean:
 	rm -Rf bin
-	$(MAKE) -C googletest clean
 
+clean_all: clean
+	$(MAKE) -C googletest clean
 
 # The header file is used as a marker for the whole gtest build.
 $(MAIN_GTEST_HEADER) :
