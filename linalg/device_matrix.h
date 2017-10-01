@@ -20,10 +20,7 @@ public:
   DeviceMatrix Multiply(float) const;
 
   // Returns L2 norm in 1x1 matrix (for now)
-  DeviceMatrix L2() const {
-    // TODO
-    return DeviceMatrix(1, 1);
-  }
+  DeviceMatrix L2() const;
 
   DeviceMatrix T() const;
 

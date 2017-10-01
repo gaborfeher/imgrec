@@ -148,3 +148,16 @@ DeviceMatrix DeviceMatrix::ApplySigmoidGradients() const {
   return result;
 }
 
+__global__ void VecL2(float* A, int len, float* B) {
+  float result = 0.0;
+  for (int i = 0; i < len; ++i) {
+    result += A[i] * A[i];
+  }
+  B[0] = sqrt(result);
+}
+
+DeviceMatrix DeviceMatrix::L2() const {
+  DeviceMatrix result(1, 1);
+  VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
+  return result;
+}

@@ -73,3 +73,12 @@ TEST(SmallMatrixTest, SigmoidGradients) {
   EXPECT_EQ(1, as.rows());
   EXPECT_EQ(2, as.cols());
 }
+
+
+TEST(SmallMatrixTest, L2) {
+  DeviceMatrix a(2, 2, (float[]){1, 1, 2, 0.5});
+  DeviceMatrix al(a.L2());
+  EXPECT_FLOAT_EQ(2.5, al.GetVector()[0]);
+  EXPECT_EQ(1, al.rows());
+  EXPECT_EQ(1, al.cols());
+}
