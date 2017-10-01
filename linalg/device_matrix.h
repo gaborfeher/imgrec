@@ -27,10 +27,7 @@ public:
 
   DeviceMatrix T() const;
 
-  DeviceMatrix Dot(const DeviceMatrix&) const {
-    // TODO
-    return DeviceMatrix(1, 1);
-  }
+  DeviceMatrix Dot(const DeviceMatrix&) const;
 
   DeviceMatrix ApplySigmoid() const {
     // TODO

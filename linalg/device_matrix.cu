@@ -97,3 +97,30 @@ DeviceMatrix DeviceMatrix::Multiply(float m) const {
   VecMultiply<<<1, size_>>>(data_.get(), m, result.data_.get());
   return result;
 }
+
+__global__ void MatrixDotProd(
+    float* A, int a_rows, int a_cols,
+    float* B, int b_rows, int b_cols,
+    float* C, int c_rows, int c_cols) {
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+  float sum = 0.0;
+  for (int k = 0; k < a_cols; ++k) {
+    sum += A[i * a_cols + k] * B[k * b_cols + j];
+  }
+  C[i * c_cols + j] = sum;
+}
+
+DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
+  assert(cols_ == other.rows_);
+  int c_rows = rows_;
+  int c_cols = other.cols_;
+  DeviceMatrix result(c_rows, c_cols);
+  dim3 grid(1, 1);
+  dim3 threads(c_rows, c_cols);
+  MatrixDotProd<<<grid, threads>>>(
+      data_.get(), rows_, cols_,
+      other.data_.get(), other.rows_, other.cols_,
+      result.data_.get(), result.rows_, result.cols_);
+  return result;
+}

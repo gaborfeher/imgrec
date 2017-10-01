@@ -28,10 +28,30 @@ TEST(SmallMatrixTest, Transpose) {
 
 TEST(SmallMatrixTest, Multiply) {
   DeviceMatrix a(2, 3, (float[]){1, 2, 3, 4, 5, 6});
-  DeviceMatrix at(a.Multiply(2));
+  DeviceMatrix am(a.Multiply(2));
   EXPECT_EQ(
       (std::vector<float> {2, 4, 6, 8, 10, 12}),
-      at.GetVector());
-  EXPECT_EQ(2, at.rows());
-  EXPECT_EQ(3, at.cols());
+      am.GetVector());
+  EXPECT_EQ(2, am.rows());
+  EXPECT_EQ(3, am.cols());
+}
+
+TEST(SmallMatrixTest, DotProduct) {
+  DeviceMatrix a(2, 3, (float[]){
+      1, 2, 3,
+      4, 5, 6});
+  DeviceMatrix b(3, 4, (float[]){
+      1,  2,  3,  4,
+      5,  6,  7,  8,
+      9, 10, 11, 12});
+
+  DeviceMatrix c(a.Dot(b));
+  EXPECT_EQ(
+      (std::vector<float> {
+          38, 44,  50,  56,
+          83, 98, 113, 128
+      }),
+      c.GetVector());
+  EXPECT_EQ(2, c.rows());
+  EXPECT_EQ(4, c.cols());
 }
