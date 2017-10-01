@@ -40,3 +40,17 @@ DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
   return result;
 }
 
+__global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
+  int a_index = threadIdx.x * cols_ + threadIdx.y;
+  int t_index = threadIdx.y * rows_ + threadIdx.x;
+  T[t_index] = A[a_index];
+}
+
+DeviceMatrix DeviceMatrix::T() const {
+  DeviceMatrix result(cols_, rows_);
+
+  dim3 grid(1, 1); 
+  dim3 threads(rows_, cols_);
+  MatrixTranspose<<<grid, threads>>>(data_.get(), rows_, cols_, result.data_.get());
+  return result;
+}

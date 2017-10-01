@@ -25,10 +25,7 @@ public:
     return DeviceMatrix(1, 1);
   }
 
-  DeviceMatrix T() const {
-    // TODO
-    return DeviceMatrix(1, 1);
-  }
+  DeviceMatrix T() const;
 
   DeviceMatrix Dot(const DeviceMatrix&) const {
     // TODO
