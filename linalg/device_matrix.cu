@@ -5,27 +5,59 @@
 
 #include <cuda_runtime.h>
 
-#include "linalg/host_matrix.h"
-
 std::shared_ptr<float> AllocateData(int size) {
   float* data;
   cudaMalloc(&data, size * sizeof(float));
   return std::shared_ptr<float>(data, cudaFree);
 }
 
-DeviceMatrix::DeviceMatrix(const HostMatrix& src) :
-    BaseMatrix(src.rows_, src.cols_) {
+DeviceMatrix::DeviceMatrix(int rows, int cols, float* data) :
+    BaseMatrix(rows, cols) {
   data_ = AllocateData(size_);
   cudaMemcpy(
       data_.get(),
-      src.data_.get(),
+      data,
       size_ * sizeof(float),
       cudaMemcpyHostToDevice);
 }
 
+
 DeviceMatrix::DeviceMatrix(int rows, int cols) :
     BaseMatrix(rows, cols) {
   data_ = AllocateData(size_);
+}
+
+std::shared_ptr<float> DeviceMatrix::get_host_data() const {
+  std::shared_ptr<float> host_data;
+  host_data.reset(new float[size_], std::default_delete<float[]>() );
+  cudaMemcpy(
+      host_data.get(),
+      data_.get(),
+      size_ * sizeof(float),
+      cudaMemcpyDeviceToHost);
+  return host_data;
+}
+
+std::vector<float> DeviceMatrix::GetVector() const {
+  std::shared_ptr<float> host_data(get_host_data());
+  std::vector<float> v;
+  for (int i = 0; i < rows_; ++i) {
+    for (int j = 0; j < cols_; ++j) {
+      v.push_back(host_data.get()[i * cols_ + j]);
+    }
+  }
+  return v;
+}
+
+void DeviceMatrix::Print() const {
+  std::shared_ptr<float> host_data(get_host_data());
+  std::cout << "size= " << size_ << std::endl;
+  for (int i = 0; i < rows_; ++i) {
+    for (int j = 0; j < cols_; ++j) {
+      std::cout << host_data.get()[i * cols_ + j] << " ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 __global__ void VecAdd(float* A, float* B, float* C) {
