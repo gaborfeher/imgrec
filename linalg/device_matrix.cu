@@ -81,8 +81,19 @@ __global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
 DeviceMatrix DeviceMatrix::T() const {
   DeviceMatrix result(cols_, rows_);
 
-  dim3 grid(1, 1); 
+  dim3 grid(1, 1);
   dim3 threads(rows_, cols_);
   MatrixTranspose<<<grid, threads>>>(data_.get(), rows_, cols_, result.data_.get());
+  return result;
+}
+
+__global__ void VecMultiply(float* A, float m, float* B) {
+  int i = threadIdx.x;
+  B[i] = A[i] * m;
+}
+
+DeviceMatrix DeviceMatrix::Multiply(float m) const {
+  DeviceMatrix result(rows_, cols_);
+  VecMultiply<<<1, size_>>>(data_.get(), m, result.data_.get());
   return result;
 }

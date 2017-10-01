@@ -25,3 +25,13 @@ TEST(SmallMatrixTest, Transpose) {
   EXPECT_EQ(3, at.rows());
   EXPECT_EQ(2, at.cols());
 }
+
+TEST(SmallMatrixTest, Multiply) {
+  DeviceMatrix a(2, 3, (float[]){1, 2, 3, 4, 5, 6});
+  DeviceMatrix at(a.Multiply(2));
+  EXPECT_EQ(
+      (std::vector<float> {2, 4, 6, 8, 10, 12}),
+      at.GetVector());
+  EXPECT_EQ(2, at.rows());
+  EXPECT_EQ(3, at.cols());
+}
