@@ -29,15 +29,9 @@ public:
 
   DeviceMatrix Dot(const DeviceMatrix&) const;
 
-  DeviceMatrix ApplySigmoid() const {
-    // TODO
-    return DeviceMatrix(1, 1);
-  }
+  DeviceMatrix ApplySigmoid() const;
 
-  DeviceMatrix ApplySigmoidGradients() const {
-    // TODO
-    return DeviceMatrix(1, 1);
-  }
+  DeviceMatrix ApplySigmoidGradients() const;
   
 
   // Shallow-copy is supported by the compiler-generated

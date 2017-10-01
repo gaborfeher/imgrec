@@ -55,3 +55,21 @@ TEST(SmallMatrixTest, DotProduct) {
   EXPECT_EQ(2, c.rows());
   EXPECT_EQ(4, c.cols());
 }
+
+TEST(SmallMatrixTest, Sigmoid) {
+  DeviceMatrix a(1, 2, (float[]){0, 1});
+  DeviceMatrix as(a.ApplySigmoid());
+  EXPECT_FLOAT_EQ(0.5, as.GetVector()[0]);
+  EXPECT_NEAR(0.73105, as.GetVector()[1], 0.00001);
+  EXPECT_EQ(1, as.rows());
+  EXPECT_EQ(2, as.cols());
+}
+
+TEST(SmallMatrixTest, SigmoidGradients) {
+  DeviceMatrix a(1, 2, (float[]){0, 1});
+  DeviceMatrix as(a.ApplySigmoidGradients());
+  EXPECT_FLOAT_EQ(0.25, as.GetVector()[0]);
+  EXPECT_NEAR(0.19661, as.GetVector()[1], 0.00001);
+  EXPECT_EQ(1, as.rows());
+  EXPECT_EQ(2, as.cols());
+}

@@ -124,3 +124,27 @@ DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
       result.data_.get(), result.rows_, result.cols_);
   return result;
 }
+
+__global__ void VecSigmoid(float* A, float* B) {
+  int i = threadIdx.x;
+  B[i] = 1.0 / (1.0 + exp(-A[i]));
+}
+
+DeviceMatrix DeviceMatrix::ApplySigmoid() const {
+  DeviceMatrix result(rows_, cols_);
+  VecSigmoid<<<1, size_>>>(data_.get(), result.data_.get());
+  return result;
+}
+
+__global__ void VecSigmoidGradients(float* A, float* B) {
+  int i = threadIdx.x;
+  float sigma = 1.0 / (1.0 + exp(-A[i]));
+  B[i] = sigma * (1.0 - sigma);
+}
+
+DeviceMatrix DeviceMatrix::ApplySigmoidGradients() const {
+  DeviceMatrix result(rows_, cols_);
+  VecSigmoidGradients<<<1, size_>>>(data_.get(), result.data_.get());
+  return result;
+}
+
