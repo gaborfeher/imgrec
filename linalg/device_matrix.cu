@@ -5,7 +5,10 @@
 
 #include <cuda_runtime.h>
 
-DeviceMatrix::DeviceMatrix() : BaseMatrix(0, 0) {}
+DeviceMatrix::DeviceMatrix() :
+    rows_(0),
+    cols_(0),
+    size_(0) {}
 
 std::shared_ptr<float> AllocateData(int size) {
   float* data;
@@ -24,12 +27,16 @@ std::shared_ptr<float> ImportData(float size, float* host_data) {
 }
 
 DeviceMatrix::DeviceMatrix(int rows, int cols, float* data) :
-    BaseMatrix(rows, cols) {
+    rows_(rows),
+    cols_(cols),
+    size_(rows * cols) {
   data_ = ImportData(size_, data);
 }
 
 DeviceMatrix::DeviceMatrix(int rows, int cols) :
-    BaseMatrix(rows, cols) {
+    rows_(rows),
+    cols_(cols),
+    size_(rows * cols) {
   data_ = AllocateData(size_);
   Fill(0);
 }

@@ -23,7 +23,7 @@ bin/googletest/gtest_main.a : $(MAIN_GTEST_HEADER)
 	$(MAKE) -C googletest ../$@
 
 
-bin/linalg/matrix.o: linalg/device_matrix.cu linalg/device_matrix.h linalg/base_matrix.h
+bin/linalg/matrix.o: linalg/device_matrix.cu linalg/device_matrix.h
 	mkdir -p bin/linalg
 	$(NVCC) $(filter %.cu %.cc,$^) \
 		--include-path=. \
@@ -36,7 +36,7 @@ bin/linalg/matrix.o: linalg/device_matrix.cu linalg/device_matrix.h linalg/base_
 bin/linalg/hello: linalg/hello.cc bin/linalg/matrix.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lcudart $^ -o $@
 
-bin/linalg/matrix_unittest.o: linalg/matrix_unittest.cc linalg/device_matrix.h linalg/base_matrix.h $(MAIN_GTEST_HEADER)
+bin/linalg/matrix_unittest.o: linalg/matrix_unittest.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/linalg
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 

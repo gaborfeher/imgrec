@@ -4,13 +4,14 @@
 #include <memory>
 #include <vector>
 
-#include "linalg/base_matrix.h"
-
-class DeviceMatrix : public BaseMatrix {
-public:
+class DeviceMatrix {
+ public:
   DeviceMatrix();  // "NULL" matrix
   DeviceMatrix(int rows, int cols);  // rows x cols un-initialized values
   DeviceMatrix(int rows, int cols, float* data);
+
+  int rows() const { return rows_; }
+  int cols() const { return cols_; }
 
   std::shared_ptr<float> get_host_data() const;
   std::vector<float> GetVector() const;
@@ -35,6 +36,11 @@ public:
   // Shallow-copy is supported by the compiler-generated
   // copy constructor and assignment operator.
 
+ private:
+  int rows_;
+  int cols_;
+  int size_;
+  std::shared_ptr<float> data_;
 };
 
 #endif // _LINALG_DEVICE_MATRIX_H_
