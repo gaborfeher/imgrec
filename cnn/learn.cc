@@ -46,18 +46,22 @@ int main() {
   LayerStack stack;
   stack.AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
   stack.AddLayer(std::make_shared<SigmoidLayer>());
-  stack.AddLayer(std::make_shared<ErrorLayer>(training_y));
+  std::shared_ptr<ErrorLayer> error_layer = std::make_shared<ErrorLayer>();
+  stack.AddLayer(error_layer);
 
   for (int i = 0; i < 100; ++i) {
+    error_layer->SetExpectedValue(training_y);
     stack.Forward(training_x);
     stack.output().AssertDimensions(1, 1);
-    std::cout << "Error= " << stack.output().GetVector()[0] << std::endl;
+    std::cout << "Training Error= " << stack.output().GetVector()[0] << std::endl;
     // TODO: clean up this dummy business (understand backprop better)
     DeviceMatrix dummy;
     stack.Backward(dummy);
     stack.ApplyGradient(0.1);
   }
 
+  error_layer->SetExpectedValue(test_y);
   stack.Forward(test_x);
-  stack.output().Print();
+  stack.output().AssertDimensions(1, 1);
+  std::cout << "Test Error= " << stack.output().GetVector()[0] << std::endl;
 }

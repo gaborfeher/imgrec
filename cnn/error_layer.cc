@@ -1,7 +1,10 @@
 #include "cnn/error_layer.h"
 
-ErrorLayer::ErrorLayer(const DeviceMatrix& expected_value) :
-    expected_value_(expected_value) {}
+ErrorLayer::ErrorLayer() {}
+
+void ErrorLayer::SetExpectedValue(const DeviceMatrix& expected_value) {
+  expected_value_ = expected_value;
+}
 
 void ErrorLayer::Forward(const DeviceMatrix& input) {
   expected_value_.AssertSameDimensions(input);

@@ -6,7 +6,8 @@
 
 class ErrorLayer : public Layer {
  public:
-  ErrorLayer(const DeviceMatrix& expected_value);
+  ErrorLayer();
+  void SetExpectedValue(const DeviceMatrix& expected_value);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
   virtual void ApplyGradient(float learn_rate);
