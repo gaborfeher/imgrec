@@ -74,7 +74,6 @@ TEST(SmallMatrixTest, SigmoidGradients) {
   EXPECT_EQ(2, as.cols());
 }
 
-
 TEST(SmallMatrixTest, L2) {
   DeviceMatrix a(2, 2, (float[]){1, 1, 2, 0.5});
   DeviceMatrix al(a.L2());
@@ -82,3 +81,29 @@ TEST(SmallMatrixTest, L2) {
   EXPECT_EQ(1, al.rows());
   EXPECT_EQ(1, al.cols());
 }
+
+TEST(SmallMatrixTest, Fill) {
+  DeviceMatrix a(2, 2, (float[]){1, 1, 2, 0.5});
+  a.Fill(4.2);
+  EXPECT_EQ(
+      (std::vector<float> {
+        4.2, 4.2,
+        4.2, 4.2
+      }),
+      a.GetVector());
+  EXPECT_EQ(2, a.rows());
+  EXPECT_EQ(2, a.cols());
+}
+
+TEST(SmallMatrixTest, ZeroInit) {
+  DeviceMatrix a(2, 2);
+  EXPECT_EQ(
+      (std::vector<float> {
+          0.0, 0.0,
+          0.0, 0.0
+      }),
+      a.GetVector());
+  EXPECT_EQ(2, a.rows());
+  EXPECT_EQ(2, a.cols());
+}
+

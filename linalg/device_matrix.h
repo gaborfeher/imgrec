@@ -17,19 +17,15 @@ public:
   void Print() const;
 
   DeviceMatrix Add(const DeviceMatrix& other) const;
-
   DeviceMatrix Multiply(float) const;
-
   // Returns L2 norm in 1x1 matrix (for now)
   DeviceMatrix L2() const;
-
   DeviceMatrix T() const;
-
   DeviceMatrix Dot(const DeviceMatrix&) const;
-
   DeviceMatrix ApplySigmoid() const;
-
   DeviceMatrix ApplySigmoidGradients() const;
+
+  void Fill(float value);
   
   void AssertSameDimensions(const DeviceMatrix& other) const;
   void AssertRows(int rows) const;

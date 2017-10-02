@@ -13,20 +13,25 @@ std::shared_ptr<float> AllocateData(int size) {
   return std::shared_ptr<float>(data, cudaFree);
 }
 
-DeviceMatrix::DeviceMatrix(int rows, int cols, float* data) :
-    BaseMatrix(rows, cols) {
-  data_ = AllocateData(size_);
+std::shared_ptr<float> ImportData(float size, float* host_data) {
+  std::shared_ptr<float> device_data(AllocateData(size));
   cudaMemcpy(
-      data_.get(),
-      data,
-      size_ * sizeof(float),
+      device_data.get(),
+      host_data,
+      size * sizeof(float),
       cudaMemcpyHostToDevice);
+  return device_data;
 }
 
+DeviceMatrix::DeviceMatrix(int rows, int cols, float* data) :
+    BaseMatrix(rows, cols) {
+  data_ = ImportData(size_, data);
+}
 
 DeviceMatrix::DeviceMatrix(int rows, int cols) :
     BaseMatrix(rows, cols) {
   data_ = AllocateData(size_);
+  Fill(0);
 }
 
 std::shared_ptr<float> DeviceMatrix::get_host_data() const {
@@ -171,3 +176,13 @@ DeviceMatrix DeviceMatrix::L2() const {
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
   return result;
 }
+
+__global__ void VecFill(float value, float* A) {
+  int i = threadIdx.x;
+  A[i] = value;
+}
+
+void DeviceMatrix::Fill(float value) {
+  VecFill<<<1, size_>>>(value, data_.get());
+}
+
