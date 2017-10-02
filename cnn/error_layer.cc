@@ -12,8 +12,10 @@ void ErrorLayer::Forward(const DeviceMatrix& input) {
   output_ = input.Add(expected_value_.Multiply(-1)).L2();
 }
 
-void ErrorLayer::Backward(const DeviceMatrix&) {
-  // TODO: use output_gradient?
+void ErrorLayer::Backward(const DeviceMatrix& output_gradient) {
+  // output_gradient is not used, we assume that this is the last
+  // layer.
+  output_gradient.AssertDimensions(0, 0);
   input_gradients_ = input_.Add(expected_value_.Multiply(-1)).Multiply(2);
 }
 

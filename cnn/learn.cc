@@ -54,7 +54,6 @@ int main() {
     stack.Forward(training_x);
     stack.output().AssertDimensions(1, 1);
     std::cout << "Training Error= " << stack.output().GetVector()[0] << std::endl;
-    // TODO: clean up this dummy business (understand backprop better)
     DeviceMatrix dummy;
     stack.Backward(dummy);
     stack.ApplyGradient(10);
