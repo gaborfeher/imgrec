@@ -26,7 +26,8 @@ public:
   DeviceMatrix ApplySigmoidGradients() const;
 
   void Fill(float value);
-  
+
+  void AssertDimensions(int rows, int cols) const;
   void AssertSameDimensions(const DeviceMatrix& other) const;
   void AssertRows(int rows) const;
 

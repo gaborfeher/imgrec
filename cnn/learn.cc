@@ -50,7 +50,8 @@ int main() {
 
   for (int i = 0; i < 100; ++i) {
     stack.Forward(training_x);
-    stack.output().Print();
+    stack.output().AssertDimensions(1, 1);
+    std::cout << "Error= " << stack.output().GetVector()[0] << std::endl;
     // TODO: clean up this dummy business (understand backprop better)
     DeviceMatrix dummy;
     stack.Backward(dummy);
