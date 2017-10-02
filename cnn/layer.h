@@ -5,7 +5,7 @@
 
 class Layer {
  public:
-  Layer(int input_rows, int input_cols, int output_rows, int output_cols);
+  Layer();
   virtual ~Layer() {}
 
   virtual void Forward(const DeviceMatrix& input) = 0;

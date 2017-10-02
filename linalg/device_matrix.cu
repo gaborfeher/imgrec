@@ -5,6 +5,8 @@
 
 #include <cuda_runtime.h>
 
+DeviceMatrix::DeviceMatrix() : BaseMatrix(0, 0) {}
+
 std::shared_ptr<float> AllocateData(int size) {
   float* data;
   cudaMalloc(&data, size * sizeof(float));
@@ -60,13 +62,21 @@ void DeviceMatrix::Print() const {
   }
 }
 
+void DeviceMatrix::AssertSameDimensions(const DeviceMatrix& other) const {
+  assert(rows_ == other.rows_ && cols_ == other.cols_);
+}
+
+void DeviceMatrix::AssertRows(int rows) const {
+  assert(rows_ == rows);
+}
+
 __global__ void VecAdd(float* A, float* B, float* C) {
   int i = threadIdx.x;
   C[i] = A[i] + B[i];
 }
 
 DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
+  AssertSameDimensions(other);
   DeviceMatrix result(rows_, cols_);
   VecAdd<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());
   return result;

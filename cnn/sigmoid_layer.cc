@@ -1,7 +1,6 @@
 #include "cnn/sigmoid_layer.h"
 
-SigmoidLayer::SigmoidLayer(int size) :
-    Layer(size, 1, size, 1) {}
+SigmoidLayer::SigmoidLayer() {}
 
 void SigmoidLayer::Forward(const DeviceMatrix& input) {
   input_ = input;

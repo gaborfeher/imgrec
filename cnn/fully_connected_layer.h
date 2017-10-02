@@ -6,12 +6,14 @@
 
 class FullyConnectedLayer : public Layer {
  public:
-  FullyConnectedLayer(int input_rows, int input_cols, int output_rows, int output_cols);
+  FullyConnectedLayer(int input_size, int output_size);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
   virtual void ApplyGradient(float learn_rate);
 
  private:
+  int input_size_;
+  int output_size_;
   DeviceMatrix weights_;
   DeviceMatrix weights_gradients_;
   

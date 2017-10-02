@@ -1,9 +1,6 @@
 #include "cnn/layer_stack.h"
 
-LayerStack::LayerStack() :
-    Layer(1, 1, 1, 1)  // Just dummy sizes, not used.
-{
-}
+LayerStack::LayerStack() {}
 
 void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);

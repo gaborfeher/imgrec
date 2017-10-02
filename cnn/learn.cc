@@ -7,7 +7,7 @@
 #include "linalg/device_matrix.h"
 
 int main() {
-  std::cout << "hello, world";
+  std::cout << "hello, world" << std::endl;
 
   DeviceMatrix training_x(
       DeviceMatrix(8, 2, (float[]) {
@@ -44,15 +44,15 @@ int main() {
       }).T());
 
   LayerStack stack;
-  stack.AddLayer(std::make_shared<FullyConnectedLayer>(2, 1, 1, 1));
-  stack.AddLayer(std::make_shared<SigmoidLayer>(1));
+  stack.AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
+  stack.AddLayer(std::make_shared<SigmoidLayer>());
   stack.AddLayer(std::make_shared<ErrorLayer>(training_y));
 
   for (int i = 0; i < 100; ++i) {
     stack.Forward(training_x);
     stack.output().Print();
     // TODO: clean up this dummy business (understand backprop better)
-    DeviceMatrix dummy(1, 1, (float[]) {1});
+    DeviceMatrix dummy;
     stack.Backward(dummy);
     stack.ApplyGradient(0.1);
   }

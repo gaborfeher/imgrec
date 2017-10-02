@@ -8,7 +8,8 @@
 
 class DeviceMatrix : public BaseMatrix {
 public:
-  DeviceMatrix(int rows, int cols);
+  DeviceMatrix();  // "NULL" matrix
+  DeviceMatrix(int rows, int cols);  // rows x cols un-initialized values
   DeviceMatrix(int rows, int cols, float* data);
 
   std::shared_ptr<float> get_host_data() const;
@@ -30,6 +31,8 @@ public:
 
   DeviceMatrix ApplySigmoidGradients() const;
   
+  void AssertSameDimensions(const DeviceMatrix& other) const;
+  void AssertRows(int rows) const;
 
   // Shallow-copy is supported by the compiler-generated
   // copy constructor and assignment operator.
