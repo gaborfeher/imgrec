@@ -10,15 +10,15 @@ int main() {
   std::cout << "hello, world" << std::endl;
 
   DeviceMatrix training_x(
-      DeviceMatrix(8, 2, (float[]) {
-          -1, 2,
-          0, 1,
-          1, 0,
-          2, -1,
-          -2, 1,
-          -1, 0,
-          0, -1,
-          1, -2,
+      DeviceMatrix(8, 3, (float[]) {
+          -1,  2, 1,
+           0,  1, 1,
+           1,  0, 1,
+           2, -1, 1,
+          -2,  1, 1,
+          -1,  0, 1,
+           0, -1, 1,
+           1, -2, 1,
         }).T());
   DeviceMatrix training_y(
       DeviceMatrix(8, 1, (float[]) {
@@ -33,9 +33,9 @@ int main() {
       }).T());
 
   DeviceMatrix test_x(
-      DeviceMatrix(2, 2, (float[]) {
-          -1, -1,
-          1, 1,
+      DeviceMatrix(2, 3, (float[]) {
+          -1, -1, 1,
+           1,  1, 1,
       }).T());
   DeviceMatrix test_y(
       DeviceMatrix(2, 1, (float[]) {
@@ -44,7 +44,7 @@ int main() {
       }).T());
 
   LayerStack stack;
-  stack.AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
+  stack.AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
   stack.AddLayer(std::make_shared<SigmoidLayer>());
   std::shared_ptr<ErrorLayer> error_layer = std::make_shared<ErrorLayer>();
   stack.AddLayer(error_layer);
