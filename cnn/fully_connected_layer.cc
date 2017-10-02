@@ -15,8 +15,8 @@ void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
 
 void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradients) {
   output_gradients.AssertRows(output_size_);
-  input_gradients_ = output_gradients.Dot(input_.T());
-  weights_gradients_ = weights_.T().Dot(output_gradients);
+  weights_gradients_ = output_gradients.Dot(input_.T());
+  input_gradients_ = weights_.T().Dot(output_gradients);
 }
 
 void FullyConnectedLayer::ApplyGradient(float learn_rate) {
