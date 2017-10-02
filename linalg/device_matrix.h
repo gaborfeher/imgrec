@@ -8,10 +8,13 @@ class DeviceMatrix {
  public:
   DeviceMatrix();  // "NULL" matrix
   DeviceMatrix(int rows, int cols);  // rows x cols un-initialized values
+  DeviceMatrix(int rows, int cols, int depth);
   DeviceMatrix(int rows, int cols, float* data);
+  DeviceMatrix(int rows, int cols, int depth, float* data);
 
   int rows() const { return rows_; }
   int cols() const { return cols_; }
+  int depth() const { return depth_; }
 
   std::shared_ptr<float> get_host_data() const;
   std::vector<float> GetVector() const;
@@ -26,6 +29,11 @@ class DeviceMatrix {
   DeviceMatrix Dot(const DeviceMatrix&) const;
   DeviceMatrix ApplySigmoid() const;
   DeviceMatrix ApplySigmoidGradients() const;
+  DeviceMatrix AddPadding(int padding) const;
+
+  // depth of filters must be a multiple of depht of this matrix,
+  // and it contains that many filters.
+  DeviceMatrix Convolution(const DeviceMatrix& filters, int stride) const;
 
   void Fill(float value);
 
@@ -37,8 +45,11 @@ class DeviceMatrix {
   // copy constructor and assignment operator.
 
  private:
+  int Index(int i, int j, int k) const;
+
   int rows_;
   int cols_;
+  int depth_;
   int size_;
   std::shared_ptr<float> data_;
 };

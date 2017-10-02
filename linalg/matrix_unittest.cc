@@ -116,3 +116,98 @@ TEST(SmallMatrixTest, ZeroInit) {
   EXPECT_EQ(2, a.cols());
 }
 
+TEST(SmallMatrixTest, Padding) {
+  DeviceMatrix a(3, 4, 2, (float[]) {
+      1, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6});
+  EXPECT_EQ(3, a.rows());
+  EXPECT_EQ(4, a.cols());
+  EXPECT_EQ(2, a.depth());
+  DeviceMatrix ap(a.AddPadding(2));
+  EXPECT_EQ(7, ap.rows());
+  EXPECT_EQ(8, ap.cols());
+  EXPECT_EQ(2, ap.depth());
+  EXPECT_EQ(
+      (std::vector<float> {
+          0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 1, 1, 2, 2, 0, 0,
+          0, 0, 3, 3, 4, 4, 0, 0,
+          0, 0, 5, 5, 6, 6, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0,
+
+          0, 0,   0,   0,   0,   0, 0, 0,
+          0, 0,   0,   0,   0,   0, 0, 0,
+          0, 0, 1.1, 1.1, 2.2, 2.2, 0, 0,
+          0, 0, 3.3, 3.3, 4.4, 4.4, 0, 0,
+          0, 0, 5.5, 5.5, 6.6, 6.6, 0, 0,
+          0, 0,   0,   0,   0,   0, 0, 0,
+          0, 0,   0,   0,   0,   0, 0, 0,
+      }),
+      ap.GetVector());
+}
+
+TEST(SmallMatrixTest, Convolution) {
+  // A 3x4 matrix with 3 "color channels"
+  DeviceMatrix a(3, 4, 3, (float[]) {
+      1, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6,
+
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1});
+  EXPECT_EQ(3, a.rows());
+  EXPECT_EQ(4, a.cols());
+  EXPECT_EQ(3, a.depth());
+  // Two 2x3x3 filters in a matrix:
+  DeviceMatrix c(2, 3, 3 + 3, (float[]) {
+    // Filter1:
+    1, 1, 1,
+    1, 1, 1,
+
+    1, 1, 1,
+    1, 1, 1,
+
+    1, 1, 1,
+    1, 1, 1,
+
+    // Filter2:
+    1, 0.5, 0,
+    0, 1, 0.5,
+
+    -1, -1, -1,
+    0, 0, 0,
+
+    0, 0, 0,
+    2, 2, 2,
+  });
+
+  DeviceMatrix ac(a.Convolution(c, 1));
+  EXPECT_EQ(2, ac.rows());
+  EXPECT_EQ(2, ac.cols());
+  EXPECT_EQ(2, ac.depth());
+  std::vector<float> expected_vector {
+      // Result of the first filter:
+      14 + 15.4 + 6, 16 + 17.6 + 6,
+      26 + 28.6 + 6, 28 + 30.8 + 6,
+      // Result of the second filter:
+      6.5 - 4.4 + 6, 8 - 5.5 + 6,
+      12.5 - 11 + 6, 14 - 12.1 + 6
+  };
+  std::vector<float> computed_vector = ac.GetVector();
+  EXPECT_EQ(expected_vector.size(), computed_vector.size());
+  for (size_t i = 0; i < expected_vector.size(); ++i) {
+    EXPECT_FLOAT_EQ(expected_vector[i], computed_vector[i]);
+  }
+}

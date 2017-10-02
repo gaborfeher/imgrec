@@ -5,9 +5,20 @@
 
 #include <cuda_runtime.h>
 
+__device__ int Dim3toDim1(
+    int i, int j, int k,
+    int rows, int cols, int depth) {
+  return k * rows * cols + i * cols + j;
+}
+
+int DeviceMatrix::Index(int i, int j, int k) const {
+  return k * rows_ * cols_ + i * cols_ + j;
+}
+
 DeviceMatrix::DeviceMatrix() :
     rows_(0),
     cols_(0),
+    depth_(0),
     size_(0) {}
 
 std::shared_ptr<float> AllocateData(int size) {
@@ -29,14 +40,33 @@ std::shared_ptr<float> ImportData(float size, float* host_data) {
 DeviceMatrix::DeviceMatrix(int rows, int cols, float* data) :
     rows_(rows),
     cols_(cols),
+    depth_(1),
     size_(rows * cols) {
+  data_ = ImportData(size_, data);
+}
+
+DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, float* data) :
+    rows_(rows),
+    cols_(cols),
+    depth_(depth),
+    size_(rows * cols * depth) {
   data_ = ImportData(size_, data);
 }
 
 DeviceMatrix::DeviceMatrix(int rows, int cols) :
     rows_(rows),
     cols_(cols),
+    depth_(1),
     size_(rows * cols) {
+  data_ = AllocateData(size_);
+  Fill(0);
+}
+
+DeviceMatrix::DeviceMatrix(int rows, int cols, int depth) :
+    rows_(rows),
+    cols_(cols),
+    depth_(depth),
+    size_(rows * cols * depth) {
   data_ = AllocateData(size_);
   Fill(0);
 }
@@ -55,9 +85,11 @@ std::shared_ptr<float> DeviceMatrix::get_host_data() const {
 std::vector<float> DeviceMatrix::GetVector() const {
   std::shared_ptr<float> host_data(get_host_data());
   std::vector<float> v;
-  for (int i = 0; i < rows_; ++i) {
-    for (int j = 0; j < cols_; ++j) {
-      v.push_back(host_data.get()[i * cols_ + j]);
+  for (int k = 0; k < depth_; ++k) {
+    for (int i = 0; i < rows_; ++i) {
+      for (int j = 0; j < cols_; ++j) {
+        v.push_back(host_data.get()[Index(i, j, k)]);
+      }
     }
   }
   return v;
@@ -66,9 +98,12 @@ std::vector<float> DeviceMatrix::GetVector() const {
 void DeviceMatrix::Print() const {
   std::shared_ptr<float> host_data(get_host_data());
   std::cout << "size= " << size_ << std::endl;
-  for (int i = 0; i < rows_; ++i) {
-    for (int j = 0; j < cols_; ++j) {
-      std::cout << host_data.get()[i * cols_ + j] << " ";
+  for (int k = 0; k < depth_; ++k) {
+    for (int i = 0; i < rows_; ++i) {
+      for (int j = 0; j < cols_; ++j) {
+        std::cout << host_data.get()[Index(i, j, k)] << " ";
+      }
+      std::cout << std::endl;
     }
     std::cout << std::endl;
   }
@@ -117,6 +152,7 @@ __global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
 }
 
 DeviceMatrix DeviceMatrix::T() const {
+  assert(depth_ == 1);
   DeviceMatrix result(cols_, rows_);
 
   dim3 grid(1, 1);
@@ -150,7 +186,7 @@ __global__ void MatrixDotProd(
 }
 
 DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
-  assert(cols_ == other.rows_);
+  assert(cols_ == other.rows_  && depth_ == 1);
   int c_rows = rows_;
   int c_cols = other.cols_;
   DeviceMatrix result(c_rows, c_cols);
@@ -209,3 +245,87 @@ void DeviceMatrix::Fill(float value) {
   VecFill<<<1, size_>>>(value, data_.get());
 }
 
+__global__ void MatrixPadding(
+    float* A,
+    int rows, int cols, int depth, int padding,
+    float* B) {
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+  int k = threadIdx.z;
+
+  int b_index = Dim3toDim1(
+      i + padding, j + padding, k,
+      rows + 2 * padding, cols + 2 * padding, depth);
+  int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
+  B[b_index] = A[a_index];
+}
+
+DeviceMatrix DeviceMatrix::AddPadding(int padding) const {
+  if (padding <= 0) {
+    return *this;
+  }
+  
+  DeviceMatrix result(
+      rows_ + 2 * padding,
+      cols_ + 2 * padding,
+      depth_);  // filled with zeros
+
+  dim3 grid(1, 1, 1);
+  dim3 threads(rows_, cols_, depth_);
+  MatrixPadding<<<grid, threads>>>(
+      data_.get(), rows_, cols_, depth_, padding,
+      result.data_.get());
+  return result;
+}
+
+__global__ void MatrixConvolution(
+    float* A, int a_rows, int a_cols, int a_depth,
+    float* filters, int f_rows, int f_cols, int f_depth,
+    float* B, int b_rows, int b_cols, int b_depth) {
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+  int k = threadIdx.z;  // destination depth-level = id of filter to apply
+
+  float sum = 0.0;
+  for (int fk = 0; fk < a_depth; ++fk) {
+    for (int fi = 0; fi < f_rows; ++fi) {
+      for (int fj = 0; fj < f_cols; ++fj) {
+        int filter_index = Dim3toDim1(
+            fi,
+            fj,
+            fk + k * a_depth,  // fk: level in cur. filter, k: cur. filter id
+            f_rows, f_cols, f_depth);
+        int a_index = Dim3toDim1(
+            i + fi,
+            j + fj,
+            fk,  // level in cur.filter = level in A
+            a_rows, a_cols, a_depth);
+
+        sum += filters[filter_index] * A[a_index];
+      }
+    }
+  }
+  B[Dim3toDim1(i, j, k, b_rows, b_cols, b_depth)] = sum;
+}
+
+DeviceMatrix DeviceMatrix::Convolution(
+    const DeviceMatrix& filters,
+    int stride) const {
+  int row_slots = rows_ - filters.rows() + 1;
+  int col_slots = cols_ - filters.cols() + 1;
+  assert(row_slots % stride == 0 && col_slots % stride == 0);
+  assert(filters.depth() % depth_ == 0);
+  assert(stride == 1);  // TODO
+  DeviceMatrix result(
+      row_slots / stride,
+      col_slots / stride,
+      filters.depth() / depth_);
+  dim3 grid(1, 1, 1);
+  dim3 threads(result.rows(), result.cols(), result.depth());
+  MatrixConvolution<<<grid, threads>>>(
+      data_.get(), rows_, cols_, depth_,
+      filters.data_.get(), filters.rows(), filters.cols(), filters.depth(),
+      result.data_.get(), result.rows(), result.cols(), result.depth());
+
+  return result;
+}
