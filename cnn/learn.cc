@@ -57,7 +57,7 @@ int main() {
     // TODO: clean up this dummy business (understand backprop better)
     DeviceMatrix dummy;
     stack.Backward(dummy);
-    stack.ApplyGradient(0.1);
+    stack.ApplyGradient(10);
   }
 
   error_layer->SetExpectedValue(test_y);

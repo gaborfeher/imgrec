@@ -8,7 +8,7 @@ void SigmoidLayer::Forward(const DeviceMatrix& input) {
 }
 
 void SigmoidLayer::Backward(const DeviceMatrix& output_gradients) {
-  input_gradients_ = output_gradients.ApplySigmoidGradients();
+  input_gradients_ = input_.ApplySigmoidGradients().ElementwiseMultiply(output_gradients);
 }
 
 void SigmoidLayer::ApplyGradient(float) {}

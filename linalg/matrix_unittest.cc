@@ -16,6 +16,15 @@ TEST(SmallMatrixTest, Add) {
   EXPECT_EQ(2, c.cols());
 }
 
+TEST(SmallMatrixTest, ElementwiseMultiply) {
+  DeviceMatrix a(2, 2, (float[]){5, 2, 3, 4});
+  DeviceMatrix b(2, 2, (float[]){1, 1, 2, 2});
+  DeviceMatrix c(a.ElementwiseMultiply(b));
+  EXPECT_EQ((std::vector<float> {5, 2, 6, 8}), c.GetVector());
+  EXPECT_EQ(2, c.rows());
+  EXPECT_EQ(2, c.cols());
+}
+
 TEST(SmallMatrixTest, Transpose) {
   DeviceMatrix a(2, 3, (float[]){1, 2, 3, 4, 5, 6});
   DeviceMatrix at(a.T());

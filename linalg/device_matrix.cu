@@ -91,6 +91,18 @@ DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
   return result;
 }
 
+__global__ void VecMult(float* A, float* B, float* C) {
+  int i = threadIdx.x;
+  C[i] = A[i] * B[i];
+}
+
+DeviceMatrix DeviceMatrix::ElementwiseMultiply(const DeviceMatrix& other) const {
+  AssertSameDimensions(other);
+  DeviceMatrix result(rows_, cols_);
+  VecMult<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());
+  return result;
+}
+
 __global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
   int a_index = threadIdx.x * cols_ + threadIdx.y;
   int t_index = threadIdx.y * rows_ + threadIdx.x;
