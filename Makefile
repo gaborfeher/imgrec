@@ -57,7 +57,7 @@ bin/cnn/learn_unittest.o: cnn/learn_unittest.cc $(MAIN_GTEST_HEADER)
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
-bin/cnn/learn: cnn/learn.cc cnn/*.h bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o
+bin/cnn/learn: cnn/learn.cc cnn/*.h bin/cnn/convolutional_layer.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(filter %.cu %.cc %.o,$^) \
 		-o $@ \
@@ -70,5 +70,5 @@ bin/cnn/learn_unittest: bin/cnn/learn_unittest.o bin/cnn/fully_connected_layer.o
 learn_unittest: bin/cnn/learn_unittest
 	$<
 
-learn: bin/cnn/lean
+learn: bin/cnn/learn
 	$<

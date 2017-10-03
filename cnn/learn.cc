@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include "cnn/convolutional_layer.h"
+#include "cnn/fully_connected_layer.h"
 #include "cnn/error_layer.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/layer_stack.h"
@@ -43,7 +45,9 @@ int main() {
       }).T());
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
+  stack->AddLayer(std::make_shared<ConvolutionalLayer>(
+        5, 3, 3,
+        1, 3, 1));
   stack->AddLayer(std::make_shared<SigmoidLayer>());
   Model model(
       stack,

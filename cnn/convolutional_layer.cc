@@ -1,10 +1,14 @@
 #include "cnn/convolutional_layer.h"
 
 ConvolutionalLayer::ConvolutionalLayer(
-    int padding, int layers_per_image, int stride) : 
+    int num_filters, int filter_width, int filter_height,
+    int padding, int layers_per_image, int stride) :
         padding_(padding),
         layers_per_image_(layers_per_image),
-        stride_(stride) {}
+        stride_(stride),
+        filters_(filter_width, filter_height, num_filters),
+        filters_gradients_(filter_width, filter_height, num_filters)
+{}
 
 void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
