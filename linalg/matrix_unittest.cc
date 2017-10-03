@@ -177,24 +177,38 @@ TEST(SmallMatrixTest, Padding) {
 }
 
 TEST(SmallMatrixTest, Convolution) {
-  // A 3x4 matrix with 3 "color channels"
-  DeviceMatrix a(3, 4, 3, (float[]) {
+  // Two 3x4 images with 3 "color channels" each:
+  DeviceMatrix a(3, 4, 3 * 2, (float[]) {
+      // Image1, layer1:
       1, 1, 2, 2,
       3, 3, 4, 4,
       5, 5, 6, 6,
-
+      // Image1, layer2:
       1.1, 1.1, 2.2, 2.2,
       3.3, 3.3, 4.4, 4.4,
       5.5, 5.5, 6.6, 6.6,
-
+      // Image1, layer3:
       1, 1, 1, 1,
       1, 1, 1, 1,
-      1, 1, 1, 1});
+      1, 1, 1, 1,
+      // Image2, layer1:
+      0, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+      // Image2, layer2:
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6,
+      // Image2, layer3:
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      0, 1, 1, 1
+  });
   EXPECT_EQ(3, a.rows());
   EXPECT_EQ(4, a.cols());
-  EXPECT_EQ(3, a.depth());
+  EXPECT_EQ(6, a.depth());
   // Two 2x3x3 filters in a matrix:
-  DeviceMatrix c(2, 3, 3 + 3, (float[]) {
+  DeviceMatrix c(2, 3, 3 * 2, (float[]) {
     // Filter1:
     1, 1, 1,
     1, 1, 1,
@@ -216,17 +230,23 @@ TEST(SmallMatrixTest, Convolution) {
     2, 2, 2,
   });
 
-  DeviceMatrix ac(a.Convolution(c, 1));
+  DeviceMatrix ac(a.Convolution(c, 3, 1));
   EXPECT_EQ(2, ac.rows());
   EXPECT_EQ(2, ac.cols());
-  EXPECT_EQ(2, ac.depth());
+  EXPECT_EQ(4, ac.depth());
   std::vector<float> expected_vector {
-      // Result of the first filter:
+      // Result of the 1st filter on 1st image:
       14 + 15.4 + 6, 16 + 17.6 + 6,
       26 + 28.6 + 6, 28 + 30.8 + 6,
-      // Result of the second filter:
+      // Result of the 2nd filter on 1st image:
       6.5 - 4.4 + 6, 8 - 5.5 + 6,
-      12.5 - 11 + 6, 14 - 12.1 + 6
+      12.5 - 11 + 6, 14 - 12.1 + 6,
+      // Result of the 1st filter on 2nd image:
+      14 + 15.4 + 6 - 1, 16 + 17.6 + 6,
+      26 + 28.6 + 6 - 1, 28 + 30.8 + 6,
+      // Result of the 2nd filter on 2nd image:
+      6.5 - 4.4 + 6 - 1, 8 - 5.5 + 6,
+      12.5 - 11 + 6 - 2, 14 - 12.1 + 6,
   };
   std::vector<float> computed_vector = ac.GetVector();
   EXPECT_EQ(expected_vector.size(), computed_vector.size());

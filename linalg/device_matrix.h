@@ -34,7 +34,10 @@ class DeviceMatrix {
 
   // depth of filters must be a multiple of depht of this matrix,
   // and it contains that many filters.
-  DeviceMatrix Convolution(const DeviceMatrix& filters, int stride) const;
+  DeviceMatrix Convolution(
+      const DeviceMatrix& filters,
+      int layers_per_image,
+      int stride) const;
 
   void Fill(float value);
 

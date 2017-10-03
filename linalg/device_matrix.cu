@@ -304,6 +304,7 @@ DeviceMatrix DeviceMatrix::AddPadding(int padding) const {
 }
 
 __global__ void MatrixConvolution(
+    int layers_per_image,
     float* A, int a_rows, int a_cols, int a_depth,
     float* filters, int f_rows, int f_cols, int f_depth,
     float* B, int b_rows, int b_cols, int b_depth) {
@@ -311,19 +312,33 @@ __global__ void MatrixConvolution(
   int j = threadIdx.y;
   int k = threadIdx.z;  // destination depth-level = id of filter to apply
 
+  // layout of resulting matrix (list of layers):
+  //
+  // 1st image with 1st filter
+  // 1st image with 2nd filter
+  // ...
+  // 2nd image with 1st filter
+  // 2nd image with 2nd filter
+  // ...
+
+  int num_filters = f_depth / layers_per_image;
+  int filter_id = k % num_filters;
+  int image_id = k / num_filters;
+
+
   float sum = 0.0;
-  for (int fk = 0; fk < a_depth; ++fk) {
+  for (int fk = 0; fk < layers_per_image; ++fk) {
     for (int fi = 0; fi < f_rows; ++fi) {
       for (int fj = 0; fj < f_cols; ++fj) {
         int filter_index = Dim3toDim1(
             fi,
             fj,
-            fk + k * a_depth,  // fk: level in cur. filter, k: cur. filter id
+            fk + filter_id * layers_per_image,  // fk: level in cur. filter
             f_rows, f_cols, f_depth);
         int a_index = Dim3toDim1(
             i + fi,
             j + fj,
-            fk,  // level in cur.filter = level in A
+            fk + image_id * layers_per_image,  // fk: level in cur. image
             a_rows, a_cols, a_depth);
 
         sum += filters[filter_index] * A[a_index];
@@ -335,19 +350,24 @@ __global__ void MatrixConvolution(
 
 DeviceMatrix DeviceMatrix::Convolution(
     const DeviceMatrix& filters,
+    int layers_per_image,
     int stride) const {
   int row_slots = rows_ - filters.rows() + 1;
   int col_slots = cols_ - filters.cols() + 1;
   assert(row_slots % stride == 0 && col_slots % stride == 0);
-  assert(filters.depth() % depth_ == 0);
+
+  assert(filters.depth() % layers_per_image == 0);
+  assert(depth() % layers_per_image == 0);
+
   assert(stride == 1);  // TODO
   DeviceMatrix result(
       row_slots / stride,
       col_slots / stride,
-      filters.depth() / depth_);
+      filters.depth() / layers_per_image * depth() / layers_per_image);
   dim3 grid(1, 1, 1);
   dim3 threads(result.rows(), result.cols(), result.depth());
   MatrixConvolution<<<grid, threads>>>(
+      layers_per_image,
       data_.get(), rows_, cols_, depth_,
       filters.data_.get(), filters.rows(), filters.cols(), filters.depth(),
       result.data_.get(), result.rows(), result.cols(), result.depth());
