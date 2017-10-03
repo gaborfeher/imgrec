@@ -161,6 +161,31 @@ DeviceMatrix DeviceMatrix::T() const {
   return result;
 }
 
+__global__ void MatrixRot180(
+    float* A,
+    int rows_, int cols_, int depth_,
+    float* R) {
+  int a_index = Dim3toDim1(
+      threadIdx.x, threadIdx.y, threadIdx.z,
+      rows_, cols_, depth_);
+  int r_index = Dim3toDim1(
+      rows_ - threadIdx.x - 1, cols_ - threadIdx.y - 1, threadIdx.z,
+      rows_, cols_, depth_);
+  R[r_index] = A[a_index];
+}
+
+DeviceMatrix DeviceMatrix::Rot180() const {
+  DeviceMatrix result(cols_, rows_, depth_);
+
+  dim3 grid(1, 1, 1);
+  dim3 threads(rows_, cols_, depth_);
+  MatrixRot180<<<grid, threads>>>(
+      data_.get(),
+      rows_, cols_, depth_,
+      result.data_.get());
+  return result;
+}
+
 __global__ void VecMultiply(float* A, float m, float* B) {
   int i = threadIdx.x;
   B[i] = A[i] * m;

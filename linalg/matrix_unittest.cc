@@ -35,6 +35,29 @@ TEST(SmallMatrixTest, Transpose) {
   EXPECT_EQ(2, at.cols());
 }
 
+TEST(SmallMatrixTest, Rot180) {
+  DeviceMatrix a(2, 3, 2, (float[]){
+      1, 2, 3,
+      4, 5, 6,
+
+      -0.5, 1, 0,
+      -0.5, 1, 0
+  });
+  DeviceMatrix ar(a.Rot180());
+  EXPECT_EQ(
+      (std::vector<float> {
+          6, 5, 4,
+          3, 2, 1,
+
+          0, 1, -0.5,
+          0, 1, -0.5
+      }),
+      ar.GetVector());
+  EXPECT_EQ(3, ar.rows());
+  EXPECT_EQ(2, ar.cols());
+  EXPECT_EQ(2, ar.depth());
+}
+
 TEST(SmallMatrixTest, Multiply) {
   DeviceMatrix a(2, 3, (float[]){1, 2, 3, 4, 5, 6});
   DeviceMatrix am(a.Multiply(2));
