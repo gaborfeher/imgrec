@@ -234,7 +234,7 @@ __global__ void VecSigmoid(float* A, float* B) {
 }
 
 DeviceMatrix DeviceMatrix::ApplySigmoid() const {
-  DeviceMatrix result(rows_, cols_);
+  DeviceMatrix result(rows_, cols_, depth_);
   VecSigmoid<<<1, size_>>>(data_.get(), result.data_.get());
   return result;
 }
@@ -246,7 +246,7 @@ __global__ void VecSigmoidGradients(float* A, float* B) {
 }
 
 DeviceMatrix DeviceMatrix::ApplySigmoidGradients() const {
-  DeviceMatrix result(rows_, cols_);
+  DeviceMatrix result(rows_, cols_, depth_);
   VecSigmoidGradients<<<1, size_>>>(data_.get(), result.data_.get());
   return result;
 }

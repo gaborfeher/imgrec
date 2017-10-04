@@ -7,7 +7,6 @@ ReshapeLayer::ReshapeLayer(int unit_rows, int unit_cols, int unit_depth) :
     unit_depth_(unit_depth) {}
 
 void ReshapeLayer::Forward(const DeviceMatrix& input) {
-  input.Print();
   output_ = input.ReshapeToColumns(unit_depth_);
 }
 
