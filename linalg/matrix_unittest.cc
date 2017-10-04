@@ -53,8 +53,8 @@ TEST(SmallMatrixTest, Rot180) {
           0, 1, -0.5
       }),
       ar.GetVector());
-  EXPECT_EQ(3, ar.rows());
-  EXPECT_EQ(2, ar.cols());
+  EXPECT_EQ(2, ar.rows());
+  EXPECT_EQ(3, ar.cols());
   EXPECT_EQ(2, ar.depth());
 }
 

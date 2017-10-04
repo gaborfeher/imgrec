@@ -179,7 +179,7 @@ __global__ void MatrixRot180(
 }
 
 DeviceMatrix DeviceMatrix::Rot180() const {
-  DeviceMatrix result(cols_, rows_, depth_);
+  DeviceMatrix result(rows_, cols_, depth_);
 
   dim3 grid(1, 1, 1);
   dim3 threads(rows_, cols_, depth_);
