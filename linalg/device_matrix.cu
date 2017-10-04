@@ -97,7 +97,11 @@ std::vector<float> DeviceMatrix::GetVector() const {
 
 void DeviceMatrix::Print() const {
   std::shared_ptr<float> host_data(get_host_data());
-  std::cout << "size= " << size_ << std::endl;
+  std::cout << "Matrix " 
+      << rows_ << "x"
+      << cols_ << "x"
+      << depth_
+      << " (" << size_ << ")" << std::endl;
   for (int k = 0; k < depth_; ++k) {
     for (int i = 0; i < rows_; ++i) {
       for (int j = 0; j < cols_; ++j) {
@@ -373,4 +377,24 @@ DeviceMatrix DeviceMatrix::Convolution(
       result.data_.get(), result.rows(), result.cols(), result.depth());
 
   return result;
+}
+
+DeviceMatrix DeviceMatrix::ReshapeToColumns(int unit_depth) const {
+  assert(depth_ % unit_depth == 0);
+  DeviceMatrix rows(*this);
+  rows.cols_ = rows_ * cols_ * unit_depth;
+  rows.rows_ = depth_ / unit_depth;
+  rows.depth_ = 1;
+  return rows.T();
+}
+
+DeviceMatrix DeviceMatrix::ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const {
+
+  assert(unit_rows * unit_cols * unit_depth == rows_);
+
+  DeviceMatrix rows(this->T());
+  rows.depth_ = rows.rows_ * rows.cols_ / (unit_rows * unit_cols);
+  rows.rows_ = unit_rows;
+  rows.cols_ = unit_cols;
+  return rows;
 }

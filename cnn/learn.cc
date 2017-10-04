@@ -6,6 +6,7 @@
 #include "cnn/fully_connected_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/model.h"
+#include "cnn/reshape_layer.h"
 #include "cnn/sigmoid_layer.h"
 #include "linalg/device_matrix.h"
 
@@ -104,7 +105,7 @@ int main() {
   // Output is supposed to be a bunch of row-vectors of length
   // 4.
   stack->AddLayer(std::make_shared<SigmoidLayer>());
-  // TODO: transpose output!
+  stack->AddLayer(std::make_shared<ReshapeLayer>(3, 6, 2));
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(4, 2));
   stack->AddLayer(std::make_shared<SigmoidLayer>());
   Model model(

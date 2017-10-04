@@ -31,6 +31,8 @@ class DeviceMatrix {
   DeviceMatrix ApplySigmoid() const;
   DeviceMatrix ApplySigmoidGradients() const;
   DeviceMatrix AddPadding(int padding) const;
+  DeviceMatrix ReshapeToColumns(int unit_depth) const;
+  DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
 
   // depth of filters must be a multiple of depht of this matrix,
   // and it contains that many filters.

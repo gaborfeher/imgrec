@@ -254,3 +254,46 @@ TEST(SmallMatrixTest, Convolution) {
     EXPECT_FLOAT_EQ(expected_vector[i], computed_vector[i]);
   }
 }
+
+TEST(SmallMatrixTest, Reshape) {
+  DeviceMatrix m(2, 3, 4, (float[]) {
+    1, 2, 3,
+    4, 5, 6,
+
+    7, 8, 9,
+    10, 11, 12,
+
+    13, 14, 15,
+    16, 17, 18,
+
+    19, 20, 21,
+    22, 23, 24,
+  });
+
+  DeviceMatrix r(m.ReshapeToColumns(2));
+  EXPECT_EQ(12, r.rows());
+  EXPECT_EQ(2, r.cols());
+  EXPECT_EQ(1, r.depth());
+  EXPECT_EQ(
+      (std::vector<float> {
+          1, 13,
+          2, 14,
+          3, 15,
+          4, 16,
+          5, 17,
+          6, 18,
+          7, 19,
+          8, 20,
+          9, 21,
+          10, 22,
+          11, 23,
+          12, 24,
+      }),
+      r.GetVector());
+  DeviceMatrix rr(r.ReshapeFromColumns(2, 3, 2));
+  EXPECT_EQ(m.rows(), rr.rows());
+  EXPECT_EQ(m.cols(), rr.cols());
+  EXPECT_EQ(m.depth(), rr.depth());
+  EXPECT_EQ(m.GetVector(), rr.GetVector());
+  
+}
