@@ -87,7 +87,7 @@ int main() {
       1, 0, 1, 0, 0, 1,
   });
   DeviceMatrix training_y(
-      DeviceMatrix(8, 2, (float[]) {
+      DeviceMatrix(8, 2, 1, (float[]) {
           1, 1,
           1, 1,
           1, 0,

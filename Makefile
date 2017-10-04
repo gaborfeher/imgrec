@@ -53,7 +53,7 @@ bin/cnn/%.o: cnn/%.cc cnn/%.h
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
-bin/cnn/learn_unittest.o: cnn/learn_unittest.cc $(MAIN_GTEST_HEADER)
+bin/cnn/learn_unittest.o: cnn/learn_unittest.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 

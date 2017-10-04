@@ -11,7 +11,7 @@
 
 TEST(LearnTest, SmallFC) {
   DeviceMatrix training_x(
-      DeviceMatrix(8, 3, (float[]) {
+      DeviceMatrix(8, 3, 1, (float[]) {
           -1,  2, 1,
            0,  1, 1,
            1,  0, 1,
@@ -22,7 +22,7 @@ TEST(LearnTest, SmallFC) {
            1, -2, 1,
         }).T());
   DeviceMatrix training_y(
-      DeviceMatrix(8, 1, (float[]) {
+      DeviceMatrix(8, 1, 1, (float[]) {
           0,
           0,
           0,
@@ -34,12 +34,12 @@ TEST(LearnTest, SmallFC) {
       }).T());
 
   DeviceMatrix test_x(
-      DeviceMatrix(2, 3, (float[]) {
+      DeviceMatrix(2, 3, 1, (float[]) {
           -1, -1, 1,
            1,  1, 1,
       }).T());
   DeviceMatrix test_y(
-      DeviceMatrix(2, 1, (float[]) {
+      DeviceMatrix(2, 1, 1, (float[]) {
           1,
           0,
       }).T());

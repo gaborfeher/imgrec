@@ -7,9 +7,7 @@
 class DeviceMatrix {
  public:
   DeviceMatrix();  // "NULL" matrix
-  DeviceMatrix(int rows, int cols);  // rows x cols un-initialized values
-  DeviceMatrix(int rows, int cols, int depth);
-  DeviceMatrix(int rows, int cols, float* data);
+  DeviceMatrix(int rows, int cols, int depth);  // rows x cols x depth un-initialized values
   DeviceMatrix(int rows, int cols, int depth, float* data);
 
   int rows() const { return rows_; }

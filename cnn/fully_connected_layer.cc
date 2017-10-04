@@ -3,8 +3,8 @@
 FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
     input_size_(input_size),
     output_size_(output_size),
-    weights_(output_size, input_size),
-    weights_gradients_(output_size, input_size) {
+    weights_(output_size, input_size, 1),
+    weights_gradients_(output_size, input_size, 1) {
 }
 
 void FullyConnectedLayer::Forward(const DeviceMatrix& input) {

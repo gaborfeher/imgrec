@@ -37,29 +37,12 @@ std::shared_ptr<float> ImportData(float size, float* host_data) {
   return device_data;
 }
 
-DeviceMatrix::DeviceMatrix(int rows, int cols, float* data) :
-    rows_(rows),
-    cols_(cols),
-    depth_(1),
-    size_(rows * cols) {
-  data_ = ImportData(size_, data);
-}
-
 DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, float* data) :
     rows_(rows),
     cols_(cols),
     depth_(depth),
     size_(rows * cols * depth) {
   data_ = ImportData(size_, data);
-}
-
-DeviceMatrix::DeviceMatrix(int rows, int cols) :
-    rows_(rows),
-    cols_(cols),
-    depth_(1),
-    size_(rows * cols) {
-  data_ = AllocateData(size_);
-  Fill(0);
 }
 
 DeviceMatrix::DeviceMatrix(int rows, int cols, int depth) :
@@ -218,7 +201,7 @@ DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
   assert(cols_ == other.rows_  && depth_ == 1);
   int c_rows = rows_;
   int c_cols = other.cols_;
-  DeviceMatrix result(c_rows, c_cols);
+  DeviceMatrix result(c_rows, c_cols, 1);
   dim3 grid(1, 1);
   dim3 threads(c_rows, c_cols);
   MatrixDotProd<<<grid, threads>>>(
@@ -260,7 +243,7 @@ __global__ void VecL2(float* A, int len, float* B) {
 }
 
 DeviceMatrix DeviceMatrix::L2() const {
-  DeviceMatrix result(1, 1);
+  DeviceMatrix result(1, 1, 1);
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
   return result;
 }
