@@ -196,7 +196,7 @@ __global__ void VecMultiply(float* A, float m, float* B) {
 }
 
 DeviceMatrix DeviceMatrix::Multiply(float m) const {
-  DeviceMatrix result(rows_, cols_);
+  DeviceMatrix result(rows_, cols_, depth_);
   VecMultiply<<<1, size_>>>(data_.get(), m, result.data_.get());
   return result;
 }
