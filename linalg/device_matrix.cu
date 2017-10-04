@@ -132,7 +132,7 @@ __global__ void VecAdd(float* A, float* B, float* C) {
 
 DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
   AssertSameDimensions(other);
-  DeviceMatrix result(rows_, cols_);
+  DeviceMatrix result(rows_, cols_, depth_);
   VecAdd<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());
   return result;
 }
@@ -144,7 +144,7 @@ __global__ void VecMult(float* A, float* B, float* C) {
 
 DeviceMatrix DeviceMatrix::ElementwiseMultiply(const DeviceMatrix& other) const {
   AssertSameDimensions(other);
-  DeviceMatrix result(rows_, cols_);
+  DeviceMatrix result(rows_, cols_, depth_);
   VecMult<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());
   return result;
 }
@@ -157,7 +157,7 @@ __global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
 
 DeviceMatrix DeviceMatrix::T() const {
   assert(depth_ == 1);
-  DeviceMatrix result(cols_, rows_);
+  DeviceMatrix result(cols_, rows_, depth_);
 
   dim3 grid(1, 1);
   dim3 threads(rows_, cols_);
