@@ -112,7 +112,7 @@ int main() {
       stack,
       std::make_shared<ErrorLayer>());
 
-  model.Train(training_x, training_y, 100, 5);
+  model.Train(training_x, training_y, 5, 1);
 
 
   //model.Evaluate(test_x, test_y);

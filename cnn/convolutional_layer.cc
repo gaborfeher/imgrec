@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "cnn/convolutional_layer.h"
 
 ConvolutionalLayer::ConvolutionalLayer(
@@ -22,12 +24,26 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   // (I have no idea if doing convolution in batches breaks that
   // or not.)
   // http://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/
+
+  // (22) TODO is f encoded in delta for me?
+  // We add up gradients coming from the different filters.
   input_gradients_ = output_gradients
       .AddPadding(padding_)
-      .Convolution(filters_.Rot180(), layers_per_image_, stride_);  // (22) TODO is f encoded in delta for me?
+      .Convolution(
+          filters_.Rot180(),
+          filters_.depth(),  // Treat it like there is one big filter for each image. This should add up the computed gradients per image.
+          stride_);
+
+  int num_filters = filters_.depth() / layers_per_image_;
+  // (14)
   filters_gradients_ = input_
       .Rot180()
-      .Convolution(output_gradients, layers_per_image_, 1);  // (14)
+      .Convolution(
+          output_gradients.ReorderLayers(layers_per_image_, num_filters),  // all outputs for filter1; all outputs for filter2; etc.  // TODO: avoid ReorderLayers by doing it on the fly in Convolution?
+          input_.depth() / num_filters,  // Treat it like input_ is one big image, and output_gradients_ has #filters filters. TODO (this was just a guess)
+          1  // TODO
+      );
+
 }
 
 void ConvolutionalLayer::ApplyGradient(float learn_rate) {
