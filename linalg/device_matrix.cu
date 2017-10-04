@@ -398,3 +398,23 @@ DeviceMatrix DeviceMatrix::ReshapeFromColumns(int unit_rows, int unit_cols, int 
   rows.cols_ = unit_cols;
   return rows;
 }
+
+DeviceMatrix DeviceMatrix::ReorderLayers(int unit_depth, int units_per_block) const {
+  assert(depth_ % (unit_depth * units_per_block) == 0);
+  DeviceMatrix result(rows_, cols_, depth_);
+  int unit_size = unit_depth * rows_ * cols_;
+  int num_units = depth_ / unit_depth;
+  int num_blocks = num_units / units_per_block;
+  for (int src = 0; src < num_units; ++src) {
+    int block_id = src / units_per_block;
+    int unit_id = src % units_per_block;
+    int dst = unit_id * num_blocks + block_id;
+    cudaMemcpy(
+        result.data_.get() + dst * unit_size,
+        data_.get() + src * unit_size,
+        unit_size * sizeof(float),
+        cudaMemcpyDeviceToDevice);
+  }
+
+  return result;
+}

@@ -295,5 +295,71 @@ TEST(SmallMatrixTest, Reshape) {
   EXPECT_EQ(m.cols(), rr.cols());
   EXPECT_EQ(m.depth(), rr.depth());
   EXPECT_EQ(m.GetVector(), rr.GetVector());
-  
+}
+
+TEST(SmallMatrixTest, ReorderLayers) {
+  DeviceMatrix m(2, 3, 8, (float[]) {
+    // unit1, block 1
+    1, 2, 3,
+    4, 5, 6,
+
+    7, 8, 9,
+    10, 11, 12,
+
+    // unit2, block1
+    13, 14, 15,
+    16, 17, 18,
+
+    19, 20, 21,
+    22, 23, 24,
+
+    // unit3, block2
+    25, 26, 27,
+    28, 29, 30,
+
+    31, 32, 33,
+    34, 35, 36,
+
+    // unit4, block2
+    37, 38, 39,
+    40, 41, 42,
+
+    43, 44, 45,
+    46, 47, 48,
+  });
+  DeviceMatrix rl(m.ReorderLayers(2, 2));
+  EXPECT_EQ(2, rl.rows());
+  EXPECT_EQ(3, rl.cols());
+  EXPECT_EQ(8, rl.depth());
+  EXPECT_EQ(
+      (std::vector<float> {
+          // unit1, block 1
+          1, 2, 3,
+          4, 5, 6,
+
+          7, 8, 9,
+          10, 11, 12,
+
+          // unit3, block2
+          25, 26, 27,
+          28, 29, 30,
+
+          31, 32, 33,
+          34, 35, 36,
+
+          // unit2, block1
+          13, 14, 15,
+          16, 17, 18,
+
+          19, 20, 21,
+          22, 23, 24,
+
+          // unit4, block2
+          37, 38, 39,
+          40, 41, 42,
+
+          43, 44, 45,
+          46, 47, 48,
+      }),
+      rl.GetVector());
 }
