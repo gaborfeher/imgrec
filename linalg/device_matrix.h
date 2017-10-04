@@ -43,7 +43,7 @@ class DeviceMatrix {
 
   void Fill(float value);
 
-  void AssertDimensions(int rows, int cols) const;
+  void AssertDimensions(int rows, int cols, int depth) const;
   void AssertSameDimensions(const DeviceMatrix& other) const;
   void AssertRows(int rows) const;
 

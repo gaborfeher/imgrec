@@ -18,7 +18,7 @@ void Model::Train(const DeviceMatrix& training_x, const DeviceMatrix& training_y
   for (int i = 0; i < iterations; ++i) {
     error_->SetExpectedValue(training_y);
     combined_->Forward(training_x);
-    error_->output().AssertDimensions(1, 1);
+    error_->output().AssertDimensions(1, 1, 1);
     std::cout << "Training Error= " << error_->output().GetVector()[0] << std::endl;
     DeviceMatrix dummy;
     combined_->Backward(dummy);
@@ -29,6 +29,6 @@ void Model::Train(const DeviceMatrix& training_x, const DeviceMatrix& training_y
 void Model::Evaluate(const DeviceMatrix& test_x, const DeviceMatrix& test_y) {
   error_->SetExpectedValue(test_y);
   combined_->Forward(test_x);
-  error_->output().AssertDimensions(1, 1);
+  error_->output().AssertDimensions(1, 1, 1);
   std::cout << "Test Error= " << error_->output().GetVector()[0] << std::endl;
 }

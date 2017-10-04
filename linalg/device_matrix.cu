@@ -113,12 +113,12 @@ void DeviceMatrix::Print() const {
   }
 }
 
-void DeviceMatrix::AssertDimensions(int rows, int cols) const {
-  assert(rows_ == rows && cols_ == cols);
+void DeviceMatrix::AssertDimensions(int rows, int cols, int depth) const {
+  assert(rows_ == rows && cols_ == cols && depth_ == depth);
 }
 
 void DeviceMatrix::AssertSameDimensions(const DeviceMatrix& other) const {
-  assert(rows_ == other.rows_ && cols_ == other.cols_);
+  assert(rows_ == other.rows_ && cols_ == other.cols_ && depth_ == other.depth_);
 }
 
 void DeviceMatrix::AssertRows(int rows) const {
