@@ -105,8 +105,8 @@ int main() {
   // Output is supposed to be a bunch of row-vectors of length
   // 4.
   stack->AddLayer(std::make_shared<SigmoidLayer>());
-  stack->AddLayer(std::make_shared<ReshapeLayer>(3, 6, 2));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(4, 2));
+  stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
   stack->AddLayer(std::make_shared<SigmoidLayer>());
   Model model(
       stack,
