@@ -2,6 +2,7 @@
 #define _CNN_FULLY_CONNECTED_LAYER_H_
 
 #include "cnn/layer.h"
+#include "gtest/gtest_prod.h"
 #include "linalg/device_matrix.h"
 
 class FullyConnectedLayer : public Layer {
@@ -12,6 +13,8 @@ class FullyConnectedLayer : public Layer {
   virtual void ApplyGradient(float learn_rate);
 
  private:
+  FRIEND_TEST(LearnTest, FullyConnectedGradient);
+
   int input_size_;
   int output_size_;
   DeviceMatrix weights_;

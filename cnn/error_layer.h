@@ -12,6 +12,8 @@ class ErrorLayer : public Layer {
   virtual void Backward(const DeviceMatrix& output_gradients); 
   virtual void ApplyGradient(float learn_rate);
 
+  float GetError() const;
+
  private:
   DeviceMatrix expected_value_;
 };

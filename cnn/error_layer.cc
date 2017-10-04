@@ -21,3 +21,9 @@ void ErrorLayer::Backward(const DeviceMatrix& output_gradient) {
 
 void ErrorLayer::ApplyGradient(float) {
 }
+
+float ErrorLayer::GetError() const {
+  output_.AssertDimensions(1, 1, 1);
+  return output_.GetVector()[0];
+}
+

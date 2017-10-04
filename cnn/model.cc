@@ -14,21 +14,27 @@ Model::Model(std::shared_ptr<Layer> model, std::shared_ptr<ErrorLayer> error) :
   combined_->AddLayer(error_);
 }
 
-void Model::Train(const DeviceMatrix& training_x, const DeviceMatrix& training_y, int iterations, float rate) {
+void Model::Train(
+    const DeviceMatrix& training_x,
+    const DeviceMatrix& training_y,
+    int iterations,
+    float rate,
+    std::vector<float>* error_hist) {
   for (int i = 0; i < iterations; ++i) {
     error_->SetExpectedValue(training_y);
     combined_->Forward(training_x);
-    error_->output().AssertDimensions(1, 1, 1);
-    std::cout << "Training Error= " << error_->output().GetVector()[0] << std::endl;
+    error_hist->push_back(error_->GetError());
     DeviceMatrix dummy;
     combined_->Backward(dummy);
     combined_->ApplyGradient(rate);
   }
 }
 
-void Model::Evaluate(const DeviceMatrix& test_x, const DeviceMatrix& test_y) {
+void Model::Evaluate(
+    const DeviceMatrix& test_x,
+    const DeviceMatrix& test_y,
+    float* error) {
   error_->SetExpectedValue(test_y);
   combined_->Forward(test_x);
-  error_->output().AssertDimensions(1, 1, 1);
-  std::cout << "Test Error= " << error_->output().GetVector()[0] << std::endl;
+  *error = error_->GetError();
 }
