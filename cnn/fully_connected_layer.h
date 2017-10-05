@@ -13,13 +13,13 @@ class FullyConnectedLayer : public Layer {
   virtual void ApplyGradient(float learn_rate);
 
  private:
-  FRIEND_TEST(LearnTest, FullyConnectedGradient);
+  FRIEND_TEST(LearnTest, FullyConnectedLayerWeightGradient);
+  FRIEND_TEST(LearnTest, FullyConnectedLayerInputGradient);
 
   int input_size_;
   int output_size_;
   DeviceMatrix weights_;
   DeviceMatrix weights_gradients_;
-  
 };
 
 
