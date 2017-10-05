@@ -2,15 +2,18 @@
 #include <iostream>
 #include <vector>
 
+#include "cnn/convolutional_layer.h"
 #include "cnn/error_layer.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/layer_stack.h"
+#include "cnn/reshape_layer.h"
 #include "cnn/model.h"
 #include "cnn/sigmoid_layer.h"
 #include "linalg/device_matrix.h"
 
 #include "gtest/gtest.h"
 
+// For fully connected
 void CreateTestCase1(
     DeviceMatrix* training_x,
     DeviceMatrix* training_y,
@@ -48,6 +51,99 @@ void CreateTestCase1(
       1,
       0,
   }).T();
+}
+
+// For convolutional
+void CreateTestCase2(
+    DeviceMatrix* training_x,
+    DeviceMatrix* training_y) {
+
+  // We want to teach the convolutional layer to detect two patterns:
+  // Patern1 (layer1+layer2):
+  // 100 001
+  // 010 010
+  // 001 100
+  // Pattern2 (layer1+layer2):
+  // 010 111
+  // 111 101
+  // 010 111
+  //
+  *training_x = DeviceMatrix(3, 6, 8 * 2, (float[]) {
+      // Image 1: pattern1 and pattern2 side by side
+      1, 0, 0, 0, 1, 0,  // layer1
+      0, 1, 0, 1, 1, 1,
+      0, 0, 1, 0, 1, 0,
+      0, 0, 1, 1, 1, 1,  // layer2
+      0, 1, 0, 1, 0, 1,
+      1, 0, 0, 1, 1, 1,
+
+      // Image 2: pattern2 and pattern1 side by side
+      0, 1, 0, 1, 0, 0, // layer1
+      1, 1, 1, 0, 1, 0,
+      0, 1, 0, 0, 0, 1,
+      1, 1, 1, 0, 0, 1, // layer2
+      1, 0, 1, 0, 1, 0,
+      1, 1, 1, 1, 0, 0,
+
+      // Image 3: pattern1 starting at the 3rd column
+      0, 0, 1, 0, 0, 0,  // layer1
+      1, 1, 0, 1, 0, 0,
+      0, 1, 0, 0, 1, 1,
+      1, 1, 0, 0, 1, 0,  // layer2
+      0, 0, 0, 1, 0, 0,
+      1, 0, 1, 0, 0, 1,
+
+      // Image 4: pattern2 starting at the 2nd column
+      0, 0, 1, 0, 0, 0,  // layer1
+      1, 1, 1, 1, 0, 0,
+      0, 0, 1, 0, 1, 1,
+      1, 1, 1, 1, 1, 0,  // layer2
+      0, 1, 0, 1, 0, 0,
+      1, 1, 1, 1, 0, 1,
+
+      // Image 5: pattern1 starting at the 4th column
+      0, 0, 1, 1, 0, 0,  // layer1
+      1, 1, 1, 0, 1, 0,
+      0, 0, 1, 0, 0, 1,
+      1, 1, 1, 0, 0, 1,  // layer2
+      0, 1, 0, 0, 1, 0,
+      1, 1, 1, 1, 0, 0,
+
+      // Image 6: pattern2 starting at the 1st column
+      0, 1, 0, 0, 0, 0,  // layer1
+      1, 1, 1, 1, 0, 0,
+      0, 1, 0, 0, 1, 1,
+      1, 1, 1, 1, 1, 0,  // layer2
+      1, 0, 1, 1, 0, 0,
+      1, 1, 1, 1, 0, 1,
+
+      // Image 7: garbage
+      0, 1, 0, 0, 0, 0,  // layer1
+      1, 0, 0, 1, 0, 0,
+      0, 1, 0, 0, 1, 1,
+      1, 1, 1, 1, 1, 0,  // layer2
+      1, 1, 0, 1, 0, 0,
+      1, 1, 1, 1, 0, 1,
+
+      // Image 8: garbage
+      0, 0, 1, 0, 0, 0,  // layer1
+      1, 1, 1, 1, 0, 0,
+      1, 1, 1, 0, 1, 1,
+      1, 1, 1, 1, 1, 1,  // layer2
+      0, 0, 1, 0, 0, 0,
+      1, 0, 1, 0, 0, 1,
+  });
+  *training_y =
+      DeviceMatrix(8, 2, 1, (float[]) {
+          1, 1,
+          1, 1,
+          1, 0,
+          0, 1,
+          1, 0,
+          0, 1,
+          0, 0,
+          0, 0,
+      }).T();
 }
 
 TEST(LearnTest, FullyConnectedTrain) {
@@ -174,4 +270,64 @@ TEST(LearnTest, FullyConnectedGradient) {
   for (int i = 0; i < 3; ++i) {
     EXPECT_NEAR(a_grad[i], n_grad[i], 0.05);
   }
+}
+
+TEST(LearnTest, ConvolutionalGradient) {
+  DeviceMatrix training_x;
+  DeviceMatrix training_y;
+  CreateTestCase2(&training_x, &training_y);
+
+  // We will check the gradient of filters at this point:
+  DeviceMatrix filters(3, 3, 4, (float[]) {
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+      
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+  });
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  std::shared_ptr<ConvolutionalLayer> conv_layer =
+      std::make_shared<ConvolutionalLayer>(
+          2, 3, 3,
+          0, 2, 1);
+  stack->AddLayer(conv_layer);
+  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
+  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  std::shared_ptr<ErrorLayer> error_layer =
+      std::make_shared<ErrorLayer>();
+  stack->AddLayer(error_layer);
+  error_layer->SetExpectedValue(training_y);
+  conv_layer->filters_ = filters;
+
+  // Compute gradient the analytical way:
+  stack->Forward(training_x);
+  stack->Backward(DeviceMatrix());
+  conv_layer->filters_.Print();
+  conv_layer->filters_gradients_.Print();
+  std::cout << "ERROR= " << error_layer->GetError() << std::endl;
+  std::cout << "ERROR= " << error_layer->GetError() << std::endl;
+
+  // Approximate gradient the numerical way:
+  DeviceMatrix n_grad_m = ComputeNumericGradients(
+      filters,
+      [&conv_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
+        conv_layer->filters_ = x;
+        stack->Forward(training_x);
+        return error_layer->GetError();
+      });
+  std::cout << "NUM GRADS:" << std::endl;
+  n_grad_m.Print();
 }

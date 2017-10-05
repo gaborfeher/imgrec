@@ -1,6 +1,8 @@
 #ifndef _CNN_CONVOLUTIONAL_LAYER_H_
 #define _CNN_CONVOLUTIONAL_LAYER_H_
 
+#include "gtest/gtest_prod.h"
+
 #include "cnn/layer.h"
 #include "linalg/device_matrix.h"
 
@@ -18,6 +20,8 @@ class ConvolutionalLayer : public Layer {
   virtual void ApplyGradient(float learn_rate);
 
  private:
+  FRIEND_TEST(LearnTest, ConvolutionalGradient);
+
   int padding_;
   int layers_per_image_;
   int stride_;

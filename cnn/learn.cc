@@ -112,8 +112,11 @@ int main() {
       stack,
       std::make_shared<ErrorLayer>());
 
-  model.Train(training_x, training_y, 5, 1);
-
+  std::vector<float> error_hist;
+  model.Train(training_x, training_y, 5, 1, &error_hist);
+  for (int i = 0; i < error_hist.size(); ++i) {
+    std::cout << "err= " << error_hist[i] << std::endl;
+  }
 
   //model.Evaluate(test_x, test_y);
 

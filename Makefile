@@ -63,7 +63,7 @@ bin/cnn/learn: cnn/learn.cc cnn/*.h bin/cnn/convolutional_layer.o bin/cnn/fully_
 		-o $@ \
 		-L/usr/local/cuda-8.0/lib64 -lcudart
 
-bin/cnn/learn_unittest: bin/cnn/learn_unittest.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/googletest/gtest_main.a
+bin/cnn/learn_unittest: bin/cnn/learn_unittest.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/convolutional_layer.o bin/cnn/reshape_layer.o bin/googletest/gtest_main.a
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart  $(filter %.cu %.cc %.o %.a,$^) -o $@
 
