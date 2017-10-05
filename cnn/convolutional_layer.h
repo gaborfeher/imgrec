@@ -16,11 +16,12 @@ class ConvolutionalLayer : public Layer {
       int layers_per_image,
       int stride);
   virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradients); 
+  virtual void Backward(const DeviceMatrix& output_gradients);
   virtual void ApplyGradient(float learn_rate);
 
  private:
   FRIEND_TEST(LearnTest, ConvolutionalGradient);
+  FRIEND_TEST(LearnTest, StackInputGradientForConvolutionalTest);
 
   int padding_;
   int layers_per_image_;

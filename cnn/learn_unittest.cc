@@ -366,19 +366,82 @@ TEST(LearnTest, ConvolutionalGradient) {
   // Compute gradient the analytical way:
   stack->Forward(training_x);
   stack->Backward(DeviceMatrix());
-  conv_layer->filters_.Print();
-  conv_layer->filters_gradients_.Print();
-  std::cout << "ERROR= " << error_layer->GetError() << std::endl;
-  std::cout << "ERROR= " << error_layer->GetError() << std::endl;
+  DeviceMatrix a_grad = conv_layer->filters_gradients_;
 
   // Approximate gradient the numerical way:
-  DeviceMatrix n_grad_m = ComputeNumericGradients(
+  DeviceMatrix n_grad = ComputeNumericGradients(
       filters,
       [&conv_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
         conv_layer->filters_ = x;
         stack->Forward(training_x);
         return error_layer->GetError();
       });
-  std::cout << "NUM GRADS:" << std::endl;
-  n_grad_m.Print();
+  ExpectMatrixEquals(a_grad, n_grad, 0.01);
 }
+
+/*
+TEST(LearnTest, StackInputGradientForConvolutionalTest) {
+  DeviceMatrix training_x;
+  DeviceMatrix training_y;
+  CreateTestCase2(&training_x, &training_y);
+
+  // We will check the gradient of filters at this point:
+  DeviceMatrix filters(3, 3, 4, (float[]) {
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+      
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+
+    1, -0.5, 1,
+    0.5, 0.5, -1,
+    -1, -1, -0.5,
+  });
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  std::shared_ptr<ConvolutionalLayer> conv_layer =
+      std::make_shared<ConvolutionalLayer>(
+          2, 3, 3,
+          0, 2, 1);
+  conv_layer->filters_ = filters;
+  conv_layer->Forward(training_x);
+  DeviceMatrix s1_input = conv_layer->output();
+  // Data preparation done.
+
+  std::shared_ptr<SigmoidLayer> s1 =
+      std::make_shared<SigmoidLayer>();
+  stack->AddLayer(s1);
+  stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
+  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  std::shared_ptr<ErrorLayer> error_layer =
+      std::make_shared<ErrorLayer>();
+  stack->AddLayer(error_layer);
+  error_layer->SetExpectedValue(training_y);
+//  error_layer->SetExpectedValue(DeviceMatrix(2, 8, 1));
+
+  // Compute gradient the analytical way:
+  stack->Forward(s1_input);
+  stack->Backward(DeviceMatrix());
+  s1->input_gradients().Print();
+  DeviceMatrix a_grad = s1->input_gradients();
+
+  // Approximate gradient the numerical way:
+  DeviceMatrix n_grad = ComputeNumericGradients(
+      s1_input,
+      [&stack, error_layer] (const DeviceMatrix& x) -> float {
+        stack->Forward(x);
+        return error_layer->GetError();
+      });
+  std::cout << "NUM GRADS:" << std::endl;
+  n_grad.Print();
+  ExpectMatrixEquals(a_grad, n_grad, 0.01);
+
+}
+*/
