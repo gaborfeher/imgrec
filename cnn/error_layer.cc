@@ -16,7 +16,13 @@ void ErrorLayer::Backward(const DeviceMatrix& output_gradient) {
   // output_gradient is not used, we assume that this is the last
   // layer.
   output_gradient.AssertDimensions(0, 0, 0);
-  input_gradients_ = input_.Add(expected_value_.Multiply(-1)).Multiply(2);
+  float output = GetError();
+  float multiplier = 0.0f;
+  if (output != 0.0f) {
+    multiplier = 1.0f / output;
+  }
+  
+  input_gradients_ = input_.Add(expected_value_.Multiply(-1)).Multiply(multiplier);
 }
 
 void ErrorLayer::ApplyGradient(float) {

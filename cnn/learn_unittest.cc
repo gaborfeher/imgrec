@@ -1,3 +1,4 @@
+#include <functional>
 #include <iostream>
 #include <vector>
 
@@ -73,6 +74,67 @@ TEST(LearnTest, FullyConnectedTrain) {
   EXPECT_LT(test_error, 0.0001);
 }
 
+DeviceMatrix ComputeNumericGradients(
+    const DeviceMatrix& x0,
+    std::function< float (const DeviceMatrix&) > runner
+) {
+
+  DeviceMatrix result(x0.rows(), x0.cols(), x0.depth());
+
+  float error0 = runner(x0);
+  float delta = 0.0001f;
+  for (int k = 0; k < x0.depth(); k++) {
+    for (int i = 0; i < x0.rows(); i++) {
+      for (int j = 0; j < x0.cols(); j++) {
+        DeviceMatrix x1(x0.DeepCopy());
+        x1.SetValue(i, j, k, x1.GetValue(i, j, k) + delta);
+        float error1 = runner(x1);
+        result.SetValue(i, j, k, (error1 - error0) / delta );
+      }
+    }
+  }
+
+  return result;
+}
+
+TEST(LearnTest, L2ErrorLayerGradientAt0) {
+  ErrorLayer error_layer;
+  error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
+
+  // Get gradients with a forward+backward pass (expecting zero gradients here):
+  error_layer.Forward(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
+  error_layer.Backward(DeviceMatrix());
+  std::vector<float> grad = error_layer.input_gradients().GetVector();
+  EXPECT_FLOAT_EQ(0.0f, grad[0]);
+  EXPECT_FLOAT_EQ(0.0f, grad[1]);
+  EXPECT_FLOAT_EQ(0.0f, grad[2]);
+}
+
+TEST(LearnTest, L2ErrorLayerGradient) {
+  ErrorLayer error_layer;
+  error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
+
+  // Get gradients with a forward+backward pass:
+  error_layer.Forward(DeviceMatrix(1, 3, 1, (float[]) {1.0f, 4.0f, 0.0f}));
+  error_layer.Backward(DeviceMatrix());
+  std::vector<float> a_grad = error_layer.input_gradients().GetVector();
+
+  // Approximate gradients numerically (at the same position as before):
+  DeviceMatrix num_gradients(ComputeNumericGradients(
+      DeviceMatrix(1, 3, 1, (float[]) {1.0f, 4.0f, 0.0f}),
+      [&error_layer] (const DeviceMatrix& x) -> float {
+        error_layer.Forward(x);
+        return error_layer.GetError();
+      }
+  ));
+  std::vector<float> n_grad(num_gradients.GetVector());
+
+  // Compare analytically and numerically computed gradients:
+  for (int i = 0; i < 3; ++i) {
+    EXPECT_NEAR(a_grad[i], n_grad[i], 0.001);
+  }
+}
+
 TEST(LearnTest, FullyConnectedGradient) {
   DeviceMatrix training_x;
   DeviceMatrix training_y;
@@ -84,50 +146,32 @@ TEST(LearnTest, FullyConnectedGradient) {
   std::shared_ptr<FullyConnectedLayer> fc_layer =
       std::make_shared<FullyConnectedLayer>(3, 1);
   stack->AddLayer(fc_layer);
-  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  // stack->AddLayer(std::make_shared<SigmoidLayer>());
   std::shared_ptr<ErrorLayer> error_layer =
       std::make_shared<ErrorLayer>();
   stack->AddLayer(error_layer);
 
   error_layer->SetExpectedValue(training_y);
-  // Set the weights of the fully connected layer. We want to
-  // verify gradients at this point.
-  fc_layer->weights_ =
-      DeviceMatrix(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
 
   // Compute gradient the analytical way:
+  fc_layer->weights_ =
+      DeviceMatrix(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
   stack->Forward(training_x);
-  float error0 = error_layer->GetError();
   DeviceMatrix dummy;
   stack->Backward(dummy);
+  std::vector<float> a_grad = fc_layer->weights_gradients_.GetVector();
 
-  fc_layer->weights_.Print();
-  fc_layer->weights_gradients_.Print();
-
-  // Compute gradient the numerical way:
-  float delta = 0.01f;
-
-  fc_layer->weights_ =
-      DeviceMatrix(1, 3, 1, (float[]) { 4.2f + delta, -3.0f, 1.7f});
-  stack->Forward(training_x);
-  float error1 = error_layer->GetError();
+  // Approximate gradient the numerical way:
+  std::vector<float> n_grad = ComputeNumericGradients(
+      DeviceMatrix(1, 3, 1, (float[]) { 4.2, -3.0, 1.7}),
+      [&fc_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
+        fc_layer->weights_ = x;
+        stack->Forward(training_x);
+        return error_layer->GetError();
+      }).GetVector();
   
-  fc_layer->weights_ =
-      DeviceMatrix(1, 3, 1, (float[]) { 4.2f, -3.0f + delta, 1.7f});
-  stack->Forward(training_x);
-  float error2 = error_layer->GetError();
-
-  fc_layer->weights_ =
-      DeviceMatrix(1, 3, 1, (float[]) { 4.2f, -3.0f, 1.7f + delta});
-  stack->Forward(training_x);
-  float error3 = error_layer->GetError();
-
-  float x = 3.96f;
-  std::vector<float> gradient {
-      (error1 - error0) / delta * x,
-      (error2 - error0) / delta * x,
-      (error3 - error0) / delta * x
-  };
-
-  std::cout << gradient[0] << " " << gradient[1] << " " << gradient[2] << std::endl;
+  // Compare analytically and numerically computed gradients:
+  for (int i = 0; i < 3; ++i) {
+    EXPECT_NEAR(a_grad[i], n_grad[i], 0.05);
+  }
 }
