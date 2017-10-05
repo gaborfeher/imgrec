@@ -28,7 +28,7 @@ class DeviceMatrix {
   DeviceMatrix Dot(const DeviceMatrix&) const;
   DeviceMatrix ApplySigmoid() const;
   DeviceMatrix ApplySigmoidGradients() const;
-  DeviceMatrix AddPadding(int padding) const;
+  DeviceMatrix AddPadding(int row_padding, int col_padding) const;
   DeviceMatrix ReshapeToColumns(int unit_depth) const;
   DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
   // Assumas that there are images of depth unit_depth in blocks of

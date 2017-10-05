@@ -259,33 +259,35 @@ void DeviceMatrix::Fill(float value) {
 
 __global__ void MatrixPadding(
     float* A,
-    int rows, int cols, int depth, int padding,
+    int rows, int cols, int depth,
+    int row_padding, int col_padding,
     float* B) {
   int i = threadIdx.x;
   int j = threadIdx.y;
   int k = threadIdx.z;
 
   int b_index = Dim3toDim1(
-      i + padding, j + padding, k,
-      rows + 2 * padding, cols + 2 * padding, depth);
+      i + row_padding, j + col_padding, k,
+      rows + 2 * row_padding, cols + 2 * col_padding, depth);
   int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
   B[b_index] = A[a_index];
 }
 
-DeviceMatrix DeviceMatrix::AddPadding(int padding) const {
-  if (padding <= 0) {
+DeviceMatrix DeviceMatrix::AddPadding(int row_padding, int col_padding) const {
+  if (row_padding <= 0 && col_padding <= 0) {
     return *this;
   }
   
   DeviceMatrix result(
-      rows_ + 2 * padding,
-      cols_ + 2 * padding,
+      rows_ + 2 * row_padding,
+      cols_ + 2 * col_padding,
       depth_);  // filled with zeros
 
   dim3 grid(1, 1, 1);
   dim3 threads(rows_, cols_, depth_);
   MatrixPadding<<<grid, threads>>>(
-      data_.get(), rows_, cols_, depth_, padding,
+      data_.get(), rows_, cols_, depth_,
+      row_padding, col_padding,
       result.data_.get());
   return result;
 }

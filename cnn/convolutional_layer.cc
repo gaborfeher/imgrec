@@ -15,7 +15,7 @@ ConvolutionalLayer::ConvolutionalLayer(
 void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
   output_ = input
-      .AddPadding(padding_)
+      .AddPadding(padding_, padding_)
       .Convolution(filters_, layers_per_image_, stride_);
 }
 
@@ -28,7 +28,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   // (22) TODO is f encoded in delta for me?
   // We add up gradients coming from the different filters.
   input_gradients_ = output_gradients
-      .AddPadding(padding_)
+      .AddPadding(padding_, padding_)
       .Convolution(
           filters_.Rot180(),
           filters_.depth(),  // Treat it like there is one big filter for each image. This should add up the computed gradients per image.
