@@ -5,6 +5,7 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
     output_size_(output_size),
     weights_(output_size, input_size, 1),
     weights_gradients_(output_size, input_size, 1) {
+  weights_.Fill(0.1f);  // TODO: fix, use Xavier-initialization
 }
 
 void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
