@@ -401,3 +401,32 @@ DeviceMatrix DeviceMatrix::ReorderLayers(int unit_depth, int units_per_block) co
 
   return result;
 }
+
+DeviceMatrix DeviceMatrix::DeepCopy() const {
+  DeviceMatrix result(rows_, cols_, depth_);
+  cudaMemcpy(
+      result.data_.get(),
+      data_.get(),
+      size_ * sizeof(float),
+      cudaMemcpyDeviceToDevice);
+  return result;
+}
+
+float DeviceMatrix::GetValue(int row, int col, int depth) const {
+  float result;
+  cudaMemcpy(
+      &result,
+      data_.get() + Index(row, col, depth),
+      sizeof(float),
+      cudaMemcpyDeviceToHost);
+  return result;
+}
+
+void DeviceMatrix::SetValue(int row, int col, int depth, float value) {
+  cudaMemcpy(
+      data_.get() + Index(row, col, depth),
+      &value,
+      sizeof(float),
+      cudaMemcpyHostToDevice);
+}
+

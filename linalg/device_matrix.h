@@ -46,6 +46,10 @@ class DeviceMatrix {
 
   void Fill(float value);
 
+  DeviceMatrix DeepCopy() const;
+  float GetValue(int row, int col, int depth) const;
+  void SetValue(int row, int col, int depth, float value);
+
   void AssertDimensions(int rows, int cols, int depth) const;
   void AssertSameDimensions(const DeviceMatrix& other) const;
   void AssertRows(int rows) const;

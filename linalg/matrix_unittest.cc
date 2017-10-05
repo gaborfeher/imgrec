@@ -363,3 +363,39 @@ TEST(SmallMatrixTest, ReorderLayers) {
       }),
       rl.GetVector());
 }
+
+
+TEST(SmallMatrixTest, CopyGetSet) {
+  DeviceMatrix a(2, 3, 2, (float[]){
+      1, 2, 3,
+      4, 5, 6,
+
+      7, 8, 9,
+      10, 11, 12,
+  });
+  DeviceMatrix b(a.DeepCopy());
+  EXPECT_EQ(8, a.GetValue(0, 1, 1));
+  EXPECT_EQ(8, b.GetValue(0, 1, 1));
+  b.SetValue(0, 1, 1, 42);
+  EXPECT_EQ(8, a.GetValue(0, 1, 1));
+  EXPECT_EQ(42, b.GetValue(0, 1, 1));
+
+  EXPECT_EQ(
+      (std::vector<float> {
+          1, 2, 3,
+          4, 5, 6,
+
+          7, 8, 9,
+          10, 11, 12,
+      }),
+      a.GetVector());
+  EXPECT_EQ(
+      (std::vector<float> {
+          1, 2, 3,
+          4, 5, 6,
+
+          7, 42, 9,
+          10, 11, 12,
+      }),
+      b.GetVector());
+}
