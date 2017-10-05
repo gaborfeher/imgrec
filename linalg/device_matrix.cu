@@ -268,12 +268,15 @@ __global__ void MatrixPadding(
 
   int b_index = Dim3toDim1(
       i + row_padding, j + col_padding, k,
-      rows + 2 * row_padding, cols + 2 * col_padding, depth);
+      rows + 2 * row_padding,
+      cols + 2 * col_padding,
+      depth);
   int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
   B[b_index] = A[a_index];
 }
 
-DeviceMatrix DeviceMatrix::AddPadding(int row_padding, int col_padding) const {
+DeviceMatrix DeviceMatrix::AddPadding(
+    int row_padding, int col_padding) const {
   if (row_padding <= 0 && col_padding <= 0) {
     return *this;
   }

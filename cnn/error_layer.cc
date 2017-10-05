@@ -21,7 +21,7 @@ void ErrorLayer::Backward(const DeviceMatrix& output_gradient) {
   if (output != 0.0f) {
     multiplier = 1.0f / output;
   }
-  
+
   input_gradients_ = input_.Add(expected_value_.Multiply(-1)).Multiply(multiplier);
 }
 

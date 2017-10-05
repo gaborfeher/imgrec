@@ -21,7 +21,7 @@ class ConvolutionalLayer : public Layer {
 
  private:
   FRIEND_TEST(LearnTest, ConvolutionalGradient);
-  FRIEND_TEST(LearnTest, StackInputGradientForConvolutionalTest);
+  friend class ConvolutionLearnTest;
 
   int padding_;
   int layers_per_image_;
