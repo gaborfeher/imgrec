@@ -663,6 +663,71 @@ TEST_F(ConvolutionLearnTest, Gradient_TwoImagesXThreeLayers_Big) {
           0, 3, 1));
 }
 
+TEST_F(ConvolutionLearnTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
+  DeviceMatrix training_x(4, 5, 6, (float[]) {
+      -1,  1, -2,  1,  0,  // Img1. layer 1
+       2, -0,  0, -1, -2,
+      -3,  2,  0, -1,  2,
+       0, -2,  3,  1,  0,
+       1, -1,  0,  2,  0,  // Img1. layer 2
+       1,  0,  1, -2,  1,
+       1, -1,  2,  0,  0,
+       0, -2,  3,  0,  1,
+       0,  0, -5,  1, -1,  // Img1. layer 3
+       2, -3,  0,  1, -1,
+      -1, -1, -3,  0, -2,
+      -2,  0, -2,  0,  2,
+
+       1, -1,  0,  2,  0,  // Img2. layer 1
+       1,  0,  1, -2,  1,
+       1, -1,  2,  0,  0,
+       0, -2,  3,  0,  1,
+       0,  0, -2,  1, -1,  // Img2. layer 2
+       2, -3,  0,  1, -1,
+      -1, -1, -3,  0, -2,
+      -2,  0, -2,  0,  2,
+      -1,  1, -2,  1,  0,  // Img2. layer 3
+       2, -0,  0, -1, -2,
+      -3,  2,  0, -1,  2,
+       0, -2,  3,  1,  0,
+  });
+  DeviceMatrix training_y(3, 3, 4, (float[]) {
+        2.0,  -3.0,  1.0,  // Img1. filter1. output
+        4.0,   5.0,  2.0,
+       -4.0,   2.0,  7.0,
+       -3.0,   1.0,  2.0, // Img1. filter2. output
+        5.0,   2.0,  4.0,
+        2.0,   7.0, -4.0,
+        8.0,   3.0,  7.0,  // Img2. filter1. output
+        4.0,  -5.0,  1.0,
+        8.0,   9.0,  2.0,
+        3.0,   7.0,  8.0, // Img2. filter2. output
+       -5.0,   1.0,  4.0,
+        9.0,   2.0,  8.0,
+  });
+  DeviceMatrix filters(2, 3, 6, (float[]) {
+      3, -2, -1,  // Filter1 Layer1
+      1, -1,  1,
+      2, -1, -2,  // Filter1 Layer2
+      0,  1,  0,
+      1,  2, -1,  // Filter1 Layer3
+     -2,  1, -2,
+     -1,  3, -2,  // Filter2 Layer1
+      1,  1, -1,
+     -2,  2, -1,  // Filter2 Layer2
+      0,  0,  1,
+     -1,  1,  2,  // Filter2 Layer3
+     -2, -2,  1,
+  });
+
+  SimpleConvolutionGradientTest(
+      training_x,
+      training_y,
+      filters,
+      std::make_shared<ConvolutionalLayer>(
+          2, 3, 2,
+          0, 3, 1));
+}
 /*
 TEST(LearnTest, StackInputGradientForConvolutionalTest) {
   DeviceMatrix training_x;
