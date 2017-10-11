@@ -542,6 +542,36 @@ TEST_F(ConvolutionLearnTest, Gradient3) {
           0, 1, 1));
 }
 
+TEST_F(ConvolutionLearnTest, Gradient1_TwoLayers) {
+  DeviceMatrix training_x(3, 3, 2, (float[]) {
+      -1, 1, -2,  // Layer1
+      2, -0.5, 0,
+      -3, 2, 0,
+      2, 3, -1,  // Layer2
+      0, 1, -2,
+      -3, 0, 1,
+  });
+  DeviceMatrix training_y(1, 1, 1, (float[]) {
+      42.0
+  });
+  DeviceMatrix filters(3, 3, 2, (float[]) {
+      3, -2, 1,  // Layer1
+      0, -0.5, 0.5,
+      -1, 0.5, 0,
+      0.5, 0.5, -2,  // Layer2
+      -1, 3, 0,
+      0, -2, 1
+  });
+
+  SimpleConvolutionGradientTest(
+      training_x,
+      training_y,
+      filters,
+      std::make_shared<ConvolutionalLayer>(
+          1, 3, 3,
+          0, 2, 1));
+}
+
 /*
 TEST(LearnTest, StackInputGradientForConvolutionalTest) {
   DeviceMatrix training_x;
