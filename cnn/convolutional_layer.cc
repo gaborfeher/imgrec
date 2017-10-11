@@ -30,7 +30,9 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
           filters_.Rot180(),
-          1,  // (Assuming batch of 1 image.) Each filter layer is considered a separate filter, which will create an input_gradients_ layer.
+          1,  // Each filter layer is considered a separate filter.
+              // These will explode each layer of output_gradients into
+              // num_layers input layers.
           stride_);
 
   int num_filters = filters_.depth() / layers_per_image_;
@@ -38,8 +40,8 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   filters_gradients_ = output_gradients
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
-          input_,
-          1,  // (Assuming batch of 1 image.) Each filter layer is conisdered a separate filter, which will create a filter_gradients_ layer.
+          input_.ReorderLayers(1, layers_per_image_),  // After this, each input image becomes a stack of layers corresponding the filterlayers.
+          output_gradients.depth(),  // Each output image is conisdered a separate filter, which will create a filter_gradients_ layer.
           1
       ).Rot180();
 }
