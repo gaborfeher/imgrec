@@ -387,7 +387,10 @@ DeviceMatrix DeviceMatrix::ReshapeFromColumns(int unit_rows, int unit_cols, int 
   return rows;
 }
 
-DeviceMatrix DeviceMatrix::ReorderLayers(int unit_depth, int units_per_block) const {
+DeviceMatrix DeviceMatrix::ReorderLayers(int layers_per_image) const {
+  int unit_depth = 1;
+  int units_per_block = layers_per_image;
+
   assert(depth_ % (unit_depth * units_per_block) == 0);
   DeviceMatrix result(rows_, cols_, depth_);
   int unit_size = unit_depth * rows_ * cols_;

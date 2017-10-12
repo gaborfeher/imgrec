@@ -31,11 +31,13 @@ class DeviceMatrix {
   DeviceMatrix AddPadding(int row_padding, int col_padding) const;
   DeviceMatrix ReshapeToColumns(int unit_depth) const;
   DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
-  // Assumas that there are images of depth unit_depth in blocks of
-  // size units_per_block. Reorders the images so that it first
-  // takes all the first images of each block, then second images
-  // of each block, etc.
-  DeviceMatrix ReorderLayers(int unit_depth, int units_per_block) const;
+  // Assuming that the matrix has n images, k layers each,
+  // roerders the layers to have k images with n layers each.
+  // The first new image will consist of the first layers of each
+  // original image (in the same order), the second img will
+  // consist of the second image of each layer, etc.
+  // TODO: integrate this into Convolution to get rid of copies
+  DeviceMatrix ReorderLayers(int layers_per_image) const;
 
   // depth of filters must be a multiple of depht of this matrix,
   // and it contains that many filters.

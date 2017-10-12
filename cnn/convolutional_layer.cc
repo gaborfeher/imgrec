@@ -46,7 +46,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
           filters_
-              .ReorderLayers(1, layers_per_image_)
+              .ReorderLayers(layers_per_image_)
               .Rot180(),
           num_filters,
           1);
@@ -64,10 +64,10 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
 
   // (14)
   filters_gradients_ = output_gradients
-      .ReorderLayers(1, num_filters)
+      .ReorderLayers(num_filters)
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
-          input_.ReorderLayers(1, layers_per_image_),
+          input_.ReorderLayers(layers_per_image_),
           num_input_images,
           1
       ).Rot180();
