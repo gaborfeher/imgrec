@@ -1,5 +1,6 @@
 //#include <functional>
 #include <iostream>
+#include <random>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -497,6 +498,104 @@ void CreateTestCase1(
       }).T();
 }
 
+void Copy3x3VectorBlock(
+    const std::vector<float>& src, int src_pos,
+    std::vector<float>* dst, int dst_pos) {
+  for (int layer = 0; layer < 2; ++layer) {
+    for (int row = 0; row < 3; ++row) {
+      for (int col = 0; col < 3; ++col) {
+        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = src[layer * 6 * 3 + row * 6 + col + src_pos];
+      }
+    }
+  }
+}
+
+void CreateTestCase2(
+    int num_samples,
+    DeviceMatrix* training_x,
+    DeviceMatrix* training_y,
+    DeviceMatrix* filters) {
+
+  // We want to teach the convolutional layer to detect two patterns.
+  // (Same as CreateTestCase1, but with more data.)
+  // Patern1 (layer1+layer2):
+  // 100 001
+  // 010 010
+  // 001 100
+  // Pattern2 (layer1+layer2):
+  // 010 111
+  // 111 101
+  // 010 111
+  //
+
+  int num_samples_generated = 2;
+  std::vector<float> x {
+      // Image 1: pattern1 and pattern2 side by side
+      1, 0, 0, 0, 1, 0,  // layer1
+      0, 1, 0, 1, 1, 1,
+      0, 0, 1, 0, 1, 0,
+      0, 0, 1, 1, 1, 1,  // layer2
+      0, 1, 0, 1, 0, 1,
+      1, 0, 0, 1, 1, 1,
+
+      // Image 2: pattern2 and pattern1 side by side
+      0, 1, 0, 1, 0, 0, // layer1
+      1, 1, 1, 0, 1, 0,
+      0, 1, 0, 0, 0, 1,
+      1, 1, 1, 0, 0, 1, // layer2
+      1, 0, 1, 0, 1, 0,
+      1, 1, 1, 1, 0, 0,
+  };
+  std::vector<float> y {
+          1, 1,
+          1, 1,
+  };
+
+  std::mt19937 rnd(42);
+  std::uniform_int_distribution<> dist01(0, 1);
+  std::uniform_int_distribution<> dist3(0, 2);
+  std::uniform_int_distribution<> dist4(0, 3);
+  while (num_samples_generated < num_samples) {
+    std::vector<float> x0;
+    for (int i = 0; i < 6 * 6; ++i) {
+      x0.push_back(dist01(rnd));
+    }
+    std::vector<float> y0 { 0, 0 };
+
+    int mode = dist3(rnd);
+    if (mode == 1) {
+      y0[0] = 1;
+      int left_pos = dist4(rnd);
+      Copy3x3VectorBlock(x, 0, &x0, left_pos);
+    } else if (mode == 2) {
+      y0[1] = 1;
+      int left_pos = dist4(rnd);
+      Copy3x3VectorBlock(x, 3, &x0, left_pos);
+    }
+
+    x.insert(x.end(), x0.begin(), x0.end());
+    y.insert(y.end(), y0.begin(), y0.end());
+    num_samples_generated++;
+  }
+
+  *training_x = DeviceMatrix(3, 6, num_samples * 2, x);
+  *training_y = DeviceMatrix(num_samples, 2, 1, y).T();
+
+  // training_x->Print();
+  // training_y->Print();
+
+  std::vector<float> filters_v;
+  std::mt19937 rnd2(42);
+  std::uniform_real_distribution<> dist2(-1, 1);
+  for (int i = 0; i < 3 * 3 * 4; ++i) {
+    filters_v.push_back(dist2(rnd2));
+  }
+
+  // We will check the gradient of filters at this point:
+  *filters = DeviceMatrix(3, 3, 4, filters_v);
+}
+
+
 std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
@@ -588,24 +687,32 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 TEST(ConvolutionalLayerTest, TrainTest) {
   DeviceMatrix training_x;
   DeviceMatrix training_y;
-  CreateTestCase1(&training_x, &training_y);
+  DeviceMatrix filters;
+
+  // TODO: make this work with more data
+  CreateTestCase2(20, &training_x, &training_y, &filters);
+
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer =
       stack->GetLayer<ErrorLayer>(-1);
-
+  conv_layer->filters_ = filters;
   error_layer->SetExpectedValue(training_y);
 
   // 3. Test training the model:
   std::vector<float> training_error;
   Model model(stack);
   model.Train(training_x, training_y, 3000, 1, &training_error);
-  // for (float err: training_error) {
-  //   std::cout << "Training error= " << err << std::endl;
-  // }
+  /*
+  for (float err: training_error) {
+    std::cout << " " << err;
+  }
+  std::cout << std::endl;
+  */
   float test_error;
   model.Evaluate(training_x, training_y, &test_error);
   EXPECT_LT(test_error, 0.01);
+  // conv_layer->filters_.Print();
 }
 

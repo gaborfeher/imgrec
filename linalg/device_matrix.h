@@ -9,6 +9,7 @@ class DeviceMatrix {
   DeviceMatrix();  // "NULL" matrix
   DeviceMatrix(int rows, int cols, int depth);  // rows x cols x depth un-initialized values
   DeviceMatrix(int rows, int cols, int depth, float* data);
+  DeviceMatrix(int rows, int cols, int depth, const std::vector<float>& data);
 
   int rows() const { return rows_; }
   int cols() const { return cols_; }

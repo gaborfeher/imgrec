@@ -27,7 +27,7 @@ std::shared_ptr<float> AllocateData(int size) {
   return std::shared_ptr<float>(data, cudaFree);
 }
 
-std::shared_ptr<float> ImportData(float size, float* host_data) {
+std::shared_ptr<float> ImportData(float size, const float* host_data) {
   std::shared_ptr<float> device_data(AllocateData(size));
   cudaMemcpy(
       device_data.get(),
@@ -43,6 +43,15 @@ DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, float* data) :
     depth_(depth),
     size_(rows * cols * depth) {
   data_ = ImportData(size_, data);
+}
+
+DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, const std::vector<float>& data) :
+    rows_(rows),
+    cols_(cols),
+    depth_(depth),
+    size_(rows * cols * depth) {
+  assert(data.size() == size_);
+  data_ = ImportData(size_, &data[0]);
 }
 
 DeviceMatrix::DeviceMatrix(int rows, int cols, int depth) :
