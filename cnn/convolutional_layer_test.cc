@@ -12,7 +12,7 @@
 #include "cnn/layer_test_base.h"
 #include "cnn/reshape_layer.h"
 #include "cnn/model.h"
-#include "cnn/sigmoid_layer.h"
+#include "cnn/nonlinearity_layer.h"
 #include "linalg/device_matrix.h"
 
 
@@ -603,10 +603,10 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
       std::make_shared<ConvolutionalLayer>(
           2, 3, 3,
           0, 2, 1));
-  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::Sigmoid()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
-  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::Sigmoid()));
   stack->AddLayer(std::make_shared<ErrorLayer>());
   return stack;
 }

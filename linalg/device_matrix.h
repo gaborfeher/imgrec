@@ -12,7 +12,7 @@ MapperFunc Sigmoid();
 
 MapperFunc SigmoidGradient();
 
-}
+}  // namespace matrix_mappers
 
 class DeviceMatrix {
  public:
@@ -37,7 +37,7 @@ class DeviceMatrix {
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
   DeviceMatrix Dot(const DeviceMatrix&) const;
-  DeviceMatrix Map(matrix_mappers::MapperFunc map) const;
+  DeviceMatrix Map(::matrix_mappers::MapperFunc map) const;
   DeviceMatrix AddPadding(int row_padding, int col_padding) const;
   DeviceMatrix ReshapeToColumns(int unit_depth) const;
   DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;

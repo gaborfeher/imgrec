@@ -246,9 +246,9 @@ MapperFunc SigmoidGradient() {
   return &VecSigmoidGradients;
 }
 
-}  // namespace matrix_mappers
+}  // namespacce matrix_mappers
 
-DeviceMatrix DeviceMatrix::Map(matrix_mappers::MapperFunc map) const {
+DeviceMatrix DeviceMatrix::Map(::matrix_mappers::MapperFunc map) const {
   DeviceMatrix result(rows_, cols_, depth_);
   map<<<1, size_>>>(data_.get(), result.data_.get());
   return result;

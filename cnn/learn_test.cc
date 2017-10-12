@@ -9,7 +9,7 @@
 #include "cnn/layer_test_base.h"
 #include "cnn/reshape_layer.h"
 #include "cnn/model.h"
-#include "cnn/sigmoid_layer.h"
+#include "cnn/nonlinearity_layer.h"
 #include "linalg/device_matrix.h"
 
 #include "gtest/gtest.h"
@@ -65,7 +65,8 @@ TEST(LearnTest, FullyConnectedTrain) {
   std::shared_ptr<ErrorLayer> error_layer = std::make_shared<ErrorLayer>();
 
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
-  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(
+      ::activation_functions::Sigmoid()));
   stack->AddLayer(error_layer);
   Model model(stack);
 
@@ -125,7 +126,8 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
   std::shared_ptr<FullyConnectedLayer> fc_layer =
       std::make_shared<FullyConnectedLayer>(3, 1);
   stack->AddLayer(fc_layer);
-  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(
+      ::activation_functions::Sigmoid()));
   std::shared_ptr<ErrorLayer> error_layer =
       std::make_shared<ErrorLayer>();
   stack->AddLayer(error_layer);
@@ -164,7 +166,8 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
   std::shared_ptr<FullyConnectedLayer> fc_layer =
       std::make_shared<FullyConnectedLayer>(3, 1);
   stack->AddLayer(fc_layer);
-  stack->AddLayer(std::make_shared<SigmoidLayer>());
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(
+      activation_functions::Sigmoid()));
   std::shared_ptr<ErrorLayer> error_layer =
       std::make_shared<ErrorLayer>();
   stack->AddLayer(error_layer);
