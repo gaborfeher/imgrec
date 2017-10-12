@@ -36,14 +36,14 @@ bin/linalg/matrix.o: linalg/device_matrix.cu linalg/device_matrix.h
 bin/linalg/hello: linalg/hello.cc bin/linalg/matrix.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lcudart $^ -o $@
 
-bin/linalg/matrix_unittest.o: linalg/matrix_unittest.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
+bin/linalg/matrix_test.o: linalg/matrix_test.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/linalg
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
-bin/linalg/matrix_unittest: bin/linalg/matrix_unittest.o bin/linalg/matrix.o bin/googletest/gtest_main.a
+bin/linalg/matrix_test: bin/linalg/matrix_test.o bin/linalg/matrix.o bin/googletest/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart $^ -o $@
 
-matrix_unittest: bin/linalg/matrix_unittest
+matrix_test: bin/linalg/matrix_test
 	$<
 
 hello: bin/linalg/hello
@@ -53,7 +53,7 @@ bin/cnn/%.o: cnn/%.cc cnn/%.h
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
-bin/cnn/learn_unittest.o: cnn/learn_unittest.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
+bin/cnn/%_test.o: cnn/%_test.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
@@ -63,11 +63,18 @@ bin/cnn/learn: cnn/learn.cc cnn/*.h bin/cnn/convolutional_layer.o bin/cnn/fully_
 		-o $@ \
 		-L/usr/local/cuda-8.0/lib64 -lcudart
 
-bin/cnn/learn_unittest: bin/cnn/learn_unittest.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/convolutional_layer.o bin/cnn/reshape_layer.o bin/googletest/gtest_main.a
+bin/cnn/learn_test: bin/cnn/learn_test.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/layer_test_base.o bin/cnn/reshape_layer.o bin/googletest/gtest_main.a
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart  $(filter %.cu %.cc %.o %.a,$^) -o $@
 
-learn_unittest: bin/cnn/learn_unittest
+bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/error_layer.o bin/cnn/sigmoid_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/convolutional_layer.o bin/cnn/reshape_layer.o bin/cnn/layer_test_base.o bin/googletest/gtest_main.a
+	mkdir -p bin/cnn
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart  $(filter %.cu %.cc %.o %.a,$^) -o $@
+
+learn_test: bin/cnn/learn_test
+	$<
+
+convolutional_layer_test: bin/cnn/convolutional_layer_test
 	$<
 
 learn: bin/cnn/learn
