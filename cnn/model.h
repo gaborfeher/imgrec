@@ -11,7 +11,8 @@ class LayerStack;
 
 class Model {
  public:
-  Model(std::shared_ptr<Layer> model, std::shared_ptr<ErrorLayer> error);
+  // The last layer of model is assumed to be an ErrorLayer.
+  Model(std::shared_ptr<LayerStack> model);
 
   void Train(
       const DeviceMatrix& training_x,
@@ -25,9 +26,8 @@ class Model {
       float* error);
 
  private:
-  std::shared_ptr<Layer> model_;
+  std::shared_ptr<LayerStack> model_;
   std::shared_ptr<ErrorLayer> error_;
-  std::shared_ptr<LayerStack> combined_;
 };
 
 

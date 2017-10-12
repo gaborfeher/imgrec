@@ -54,99 +54,6 @@ void CreateTestCase1(
   }).T();
 }
 
-// For convolutional
-void CreateTestCase2(
-    DeviceMatrix* training_x,
-    DeviceMatrix* training_y) {
-
-  // We want to teach the convolutional layer to detect two patterns:
-  // Patern1 (layer1+layer2):
-  // 100 001
-  // 010 010
-  // 001 100
-  // Pattern2 (layer1+layer2):
-  // 010 111
-  // 111 101
-  // 010 111
-  //
-  *training_x = DeviceMatrix(3, 6, 8 * 2, (float[]) {
-      // Image 1: pattern1 and pattern2 side by side
-      1, 0, 0, 0, 1, 0,  // layer1
-      0, 1, 0, 1, 1, 1,
-      0, 0, 1, 0, 1, 0,
-      0, 0, 1, 1, 1, 1,  // layer2
-      0, 1, 0, 1, 0, 1,
-      1, 0, 0, 1, 1, 1,
-
-      // Image 2: pattern2 and pattern1 side by side
-      0, 1, 0, 1, 0, 0, // layer1
-      1, 1, 1, 0, 1, 0,
-      0, 1, 0, 0, 0, 1,
-      1, 1, 1, 0, 0, 1, // layer2
-      1, 0, 1, 0, 1, 0,
-      1, 1, 1, 1, 0, 0,
-
-      // Image 3: pattern1 starting at the 3rd column
-      0, 0, 1, 0, 0, 0,  // layer1
-      1, 1, 0, 1, 0, 0,
-      0, 1, 0, 0, 1, 1,
-      1, 1, 0, 0, 1, 0,  // layer2
-      0, 0, 0, 1, 0, 0,
-      1, 0, 1, 0, 0, 1,
-
-      // Image 4: pattern2 starting at the 2nd column
-      0, 0, 1, 0, 0, 0,  // layer1
-      1, 1, 1, 1, 0, 0,
-      0, 0, 1, 0, 1, 1,
-      1, 1, 1, 1, 1, 0,  // layer2
-      0, 1, 0, 1, 0, 0,
-      1, 1, 1, 1, 0, 1,
-
-      // Image 5: pattern1 starting at the 4th column
-      0, 0, 1, 1, 0, 0,  // layer1
-      1, 1, 1, 0, 1, 0,
-      0, 0, 1, 0, 0, 1,
-      1, 1, 1, 0, 0, 1,  // layer2
-      0, 1, 0, 0, 1, 0,
-      1, 1, 1, 1, 0, 0,
-
-      // Image 6: pattern2 starting at the 1st column
-      0, 1, 0, 0, 0, 0,  // layer1
-      1, 1, 1, 1, 0, 0,
-      0, 1, 0, 0, 1, 1,
-      1, 1, 1, 1, 1, 0,  // layer2
-      1, 0, 1, 1, 0, 0,
-      1, 1, 1, 1, 0, 1,
-
-      // Image 7: garbage
-      0, 1, 0, 0, 0, 0,  // layer1
-      1, 0, 0, 1, 0, 0,
-      0, 1, 0, 0, 1, 1,
-      1, 1, 1, 1, 1, 0,  // layer2
-      1, 1, 0, 1, 0, 0,
-      1, 1, 1, 1, 0, 1,
-
-      // Image 8: garbage
-      0, 0, 1, 0, 0, 0,  // layer1
-      1, 1, 1, 1, 0, 0,
-      1, 1, 1, 0, 1, 1,
-      1, 1, 1, 1, 1, 1,  // layer2
-      0, 0, 1, 0, 0, 0,
-      1, 0, 1, 0, 0, 1,
-  });
-  *training_y =
-      DeviceMatrix(8, 2, 1, (float[]) {
-          1, 1,
-          1, 1,
-          1, 0,
-          0, 1,
-          1, 0,
-          0, 1,
-          0, 0,
-          0, 0,
-      }).T();
-}
-
 TEST(LearnTest, FullyConnectedTrain) {
   DeviceMatrix training_x;
   DeviceMatrix training_y;
@@ -155,11 +62,12 @@ TEST(LearnTest, FullyConnectedTrain) {
   CreateTestCase1(&training_x, &training_y, &test_x, &test_y);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  std::shared_ptr<ErrorLayer> error_layer = std::make_shared<ErrorLayer>();
+
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
   stack->AddLayer(std::make_shared<SigmoidLayer>());
-  Model model(
-      stack,
-      std::make_shared<ErrorLayer>());
+  stack->AddLayer(error_layer);
+  Model model(stack);
 
   std::vector<float> training_error;
   model.Train(training_x, training_y, 100, 5, &training_error);

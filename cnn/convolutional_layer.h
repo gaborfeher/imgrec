@@ -20,6 +20,8 @@ class ConvolutionalLayer : public Layer {
   virtual void ApplyGradient(float learn_rate);
 
  private:
+  FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
+  FRIEND_TEST(ConvolutionalLayerTest, TrainTest);
   friend class ConvolutionalLayerGradientTest;
 
   int padding_;
