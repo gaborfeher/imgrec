@@ -728,6 +728,66 @@ TEST_F(ConvolutionLearnTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
           2, 3, 2,
           0, 3, 1));
 }
+
+TEST_F(ConvolutionLearnTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
+  DeviceMatrix training_x(2, 2, 2 * 4, (float[]) {
+      -1, 1,  // Img1. Layer1
+      2, -1,
+      2, 3,  // Img1. Layer2
+      0, 1,
+      0, -2,  // Img2. Layer1
+      -0.5, 1,
+      -2, 1,  // Img2. Layer2
+      -1, 0,
+      -3, 2, // Img3. Layer1
+      -3, 0,
+      3, 0,  // Img3. Layer2
+      0, -3,
+      -2, 0,  // Img4. Layer1
+      -1, -2,
+      -3, 2,  // Img4. Layer2
+      0, -1,
+
+  });
+  DeviceMatrix training_y(1, 1, 12, (float[]) {
+    3,
+    1,
+    -1,
+    1,
+    2,
+    1,
+    -3,
+    1,
+    -1,
+    1,
+    2,
+    1,
+  });
+  DeviceMatrix filters(2, 2, 6, (float[]) {
+      2, 0,  // Filter1 Layer1
+      0, -2,
+      1, -1,  // Filter1 Layer2
+      -1, 1,
+      1, 0,  // Filter2 Layer1
+      0, -1,
+      0, 1,  // Filter2 Layer2
+      -1, 1,
+      0, -2,  // Filter3 Layer1
+      -2, 0,
+      1, -1,  // Filter3 Layer2
+      0, -1,
+  });
+
+  SimpleConvolutionGradientTest(
+      training_x,
+      training_y,
+      filters,
+      std::make_shared<ConvolutionalLayer>(
+          3, 2, 2,
+          0, 2, 1));
+}
+
+
 /*
 TEST(LearnTest, StackInputGradientForConvolutionalTest) {
   DeviceMatrix training_x;
