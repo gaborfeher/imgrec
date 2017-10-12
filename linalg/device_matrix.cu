@@ -388,22 +388,18 @@ DeviceMatrix DeviceMatrix::ReshapeFromColumns(int unit_rows, int unit_cols, int 
 }
 
 DeviceMatrix DeviceMatrix::ReorderLayers(int layers_per_image) const {
-  int unit_depth = 1;
-  int units_per_block = layers_per_image;
-
-  assert(depth_ % (unit_depth * units_per_block) == 0);
+  assert(depth_ % layers_per_image == 0);
   DeviceMatrix result(rows_, cols_, depth_);
-  int unit_size = unit_depth * rows_ * cols_;
-  int num_units = depth_ / unit_depth;
-  int num_blocks = num_units / units_per_block;
-  for (int src = 0; src < num_units; ++src) {
-    int block_id = src / units_per_block;
-    int unit_id = src % units_per_block;
-    int dst = unit_id * num_blocks + block_id;
+  int layer_size = rows_ * cols_;
+  int num_images = depth_ / layers_per_image;
+  for (int src = 0; src < depth_; ++src) {
+    int image_id = src / layers_per_image;
+    int sublayer_id = src % layers_per_image;
+    int dst = sublayer_id * num_images + image_id;
     cudaMemcpy(
-        result.data_.get() + dst * unit_size,
-        data_.get() + src * unit_size,
-        unit_size * sizeof(float),
+        result.data_.get() + dst * layer_size,
+        data_.get() + src * layer_size,
+        layer_size * sizeof(float),
         cudaMemcpyDeviceToDevice);
   }
 
