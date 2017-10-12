@@ -4,6 +4,16 @@
 #include <memory>
 #include <vector>
 
+namespace matrix_mappers {
+
+typedef void (*MapperFunc)(float* A, float* B);
+
+MapperFunc Sigmoid();
+
+MapperFunc SigmoidGradient();
+
+}
+
 class DeviceMatrix {
  public:
   DeviceMatrix();  // "NULL" matrix
@@ -27,8 +37,7 @@ class DeviceMatrix {
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
   DeviceMatrix Dot(const DeviceMatrix&) const;
-  DeviceMatrix ApplySigmoid() const;
-  DeviceMatrix ApplySigmoidGradients() const;
+  DeviceMatrix Map(matrix_mappers::MapperFunc map) const;
   DeviceMatrix AddPadding(int row_padding, int col_padding) const;
   DeviceMatrix ReshapeToColumns(int unit_depth) const;
   DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;

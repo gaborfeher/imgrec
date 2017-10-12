@@ -225,11 +225,6 @@ __global__ void VecSigmoid(float* A, float* B) {
   B[i] = 1.0 / (1.0 + exp(-A[i]));
 }
 
-DeviceMatrix DeviceMatrix::ApplySigmoid() const {
-  DeviceMatrix result(rows_, cols_, depth_);
-  VecSigmoid<<<1, size_>>>(data_.get(), result.data_.get());
-  return result;
-}
 
 __global__ void VecSigmoidGradients(float* A, float* B) {
   int i = threadIdx.x;
@@ -237,9 +232,25 @@ __global__ void VecSigmoidGradients(float* A, float* B) {
   B[i] = sigma * (1.0 - sigma);
 }
 
-DeviceMatrix DeviceMatrix::ApplySigmoidGradients() const {
+namespace matrix_mappers {
+
+// We provide factory methdos instead of direct implementations
+// so that users of device_matrix.h won't need to depend on
+// CUDA stuff.
+
+MapperFunc Sigmoid() {
+  return &VecSigmoid;
+}
+
+MapperFunc SigmoidGradient() {
+  return &VecSigmoidGradients;
+}
+
+}  // namespace matrix_mappers
+
+DeviceMatrix DeviceMatrix::Map(matrix_mappers::MapperFunc map) const {
   DeviceMatrix result(rows_, cols_, depth_);
-  VecSigmoidGradients<<<1, size_>>>(data_.get(), result.data_.get());
+  map<<<1, size_>>>(data_.get(), result.data_.get());
   return result;
 }
 
