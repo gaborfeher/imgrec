@@ -502,12 +502,13 @@ void CreateTestCase1(
 }
 
 void Copy3x3VectorBlock(
-    const std::vector<float>& src, int src_pos,
+    const std::vector<float>& src,
     std::vector<float>* dst, int dst_pos) {
+  // src is 3x3, dst is 6x3
   for (int layer = 0; layer < 2; ++layer) {
     for (int row = 0; row < 3; ++row) {
       for (int col = 0; col < 3; ++col) {
-        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = src[layer * 6 * 3 + row * 6 + col + src_pos];
+        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = src[layer * 3 * 3 + row * 3 + col];
       }
     }
   }
@@ -531,16 +532,23 @@ void CreateTestCase2(
   // 010 111
   //
 
-  std::vector<float> sample {
-      // Image 1: pattern1 and pattern2 side by side
-      1, 0, 0, 0, 1, 0,  // layer1
-      0, 1, 0, 1, 1, 1,
-      0, 0, 1, 0, 1, 0,
-      0, 0, 1, 1, 1, 1,  // layer2
-      0, 1, 0, 1, 0, 1,
-      1, 0, 0, 1, 1, 1,
+  std::vector<float> sample1 {
+      1, 0, 0,  // layer1
+      0, 1, 0,
+      0, 0, 1,
+      0, 0, 1,  // layer2
+      0, 1, 0,
+      1, 0, 0,
   };
 
+  std::vector<float> sample2 {
+      0, 1, 0,  // layer1
+      1, 1, 1,
+      0, 1, 0,
+      1, 1, 1,  // layer2
+      1, 0, 1,
+      1, 1, 1,
+  };
 
   std::mt19937 rnd(random_seed);
   for (int i = 0; i < num_batches; ++i) {
@@ -561,10 +569,10 @@ void CreateTestCase2(
       int mode = dist3(rnd);
       if (mode == 1) {
         int left_pos = dist4(rnd);
-        Copy3x3VectorBlock(sample, 0, &x0, left_pos);
+        Copy3x3VectorBlock(sample1, &x0, left_pos);
       } else if (mode == 2) {
         int left_pos = dist4(rnd);
-        Copy3x3VectorBlock(sample, 3, &x0, left_pos);
+        Copy3x3VectorBlock(sample2, &x0, left_pos);
       }
 
       x.insert(x.end(), x0.begin(), x0.end());
