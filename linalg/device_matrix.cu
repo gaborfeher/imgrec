@@ -2,6 +2,7 @@
 
 #include <cassert>  // TODO: release-mode assert
 #include <iostream>
+#include <math.h>
 
 #include <cuda_runtime.h>
 
@@ -260,6 +261,11 @@ __global__ void VecLReLUGradient(float* A, float* B) {
   }
 }
 
+__global__ void VecSquare(float* A, float* B) {
+  int i = threadIdx.x;
+  B[i] = A[i] * A[i];
+}
+
 namespace matrix_mappers {
 
 // We provide factory methdos instead of direct implementations
@@ -290,12 +296,30 @@ MapperFunc LReLUGradient() {
   return &VecLReLUGradient;
 }
 
+MapperFunc Square() {
+  return &VecSquare;
+}
+
 }  // namespacce matrix_mappers
 
 DeviceMatrix DeviceMatrix::Map(::matrix_mappers::MapperFunc map) const {
   DeviceMatrix result(rows_, cols_, depth_);
   map<<<1, size_>>>(data_.get(), result.data_.get());
   return result;
+}
+
+__global__ void VecSum(float* A, int len, float* B) {
+  float result = 0.0;
+  for (int i = 0; i < len; ++i) {
+    result += A[i];
+  }
+  B[0] = result;
+}
+
+float DeviceMatrix::Sum() const {
+  DeviceMatrix result(1, 1, 1);
+  VecSum<<<1, 1>>>(data_.get(), size_, result.data_.get());
+  return result.GetValue(0, 0, 0);
 }
 
 __global__ void VecL2(float* A, int len, float* B) {
@@ -310,6 +334,101 @@ float DeviceMatrix::L2() const {
   DeviceMatrix result(1, 1, 1);
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
   return result.GetValue(0, 0, 0);
+  // TODO: use the following, but figure out while it fails the tests now:
+  // return Map(::matrix_mappers::Square()).Sum();
+}
+
+
+__global__ void VecSoftmax(float* A, int a_rows, int a_cols, float* B, float* C) {
+  int col = threadIdx.x;
+
+  // Get max value from column. Needed for numerical stability, see
+  // http://cs231n.github.io/linear-classify/#softmax
+  float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
+  for (int i = 0; i < a_rows; i++) {
+    float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
+    if (val > max_val) {
+      max_val = val;
+    }
+  }
+
+  int expected_class = static_cast<int>(B[col]);
+  float expected_class_score = -1.0;
+  float sum = 0.0f;
+  for (int i = 0; i < a_rows; ++i) {
+    float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)] - max_val;
+    if (i == expected_class) {
+      expected_class_score = val;
+    }
+    sum += exp(val);
+  }
+
+  C[col] = -expected_class_score + log(sum);
+}
+
+float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
+  assert(depth_ == 1);
+  // rows_ = number of classes
+  // cols_ = number of samples (we run the same algorithm for each sample)
+  assert(expected_class.rows_ == 1);
+  assert(expected_class.cols_ == cols_);
+  assert(expected_class.depth_ == 1);
+
+  DeviceMatrix result(1, cols_, 1);
+  VecSoftmax<<<1, cols_>>>(
+      data_.get(), rows_, cols_,
+      expected_class.data_.get(),
+      result.data_.get());
+  return result.Sum() / static_cast<float>(cols_);
+}
+
+
+__global__ void VecSoftmaxGradient(float* A, int a_rows, int a_cols, float* B, float* C) {
+  // TODO: clean up code duplication with VecSoftmax
+  int col = threadIdx.x;
+
+  float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
+  for (int i = 0; i < a_rows; i++) {
+    int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
+    float val = A[index];
+    if (val > max_val) {
+      max_val = val;
+    }
+  }
+
+  float sum = 0.0f;
+  for (int i = 0; i < a_rows; ++i) {
+    int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
+    float val = exp(A[index] - max_val);
+    C[index] = val;
+    sum += val;
+  }
+  int expected_class = static_cast<int>(B[col]);
+  for (int i = 0; i < a_rows; ++i) {
+    int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
+    C[index] = C[index] / sum;
+    if (i == expected_class) {
+      C[index] -= 1.0f;
+    }
+  }
+}
+
+DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) const {
+  // Covered in cnn/error_layer_test.cc.
+
+  assert(depth_ == 1);
+  // rows_ = number of classes
+  // cols_ = number of samples (we run the same algorithm for each sample)
+  assert(expected_class.rows_ == 1);
+  assert(expected_class.cols_ == cols_);
+  assert(expected_class.depth_ == 1);
+
+  DeviceMatrix result(rows_, cols_, 1);
+  VecSoftmaxGradient<<<1, cols_>>>(
+      data_.get(), rows_, cols_,
+      expected_class.data_.get(),
+      result.data_.get());
+  return result.Multiply(1.0f / cols_);
 }
 
 __global__ void VecFill(float value, float* A) {

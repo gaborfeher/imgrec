@@ -80,41 +80,6 @@ TEST(LearnTest, FullyConnectedTrain) {
   EXPECT_LT(test_error, 0.0001);
 }
 
-TEST(LearnTest, L2ErrorLayerGradientAt0) {
-  L2ErrorLayer error_layer;
-  error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
-
-  // Get gradients with a forward+backward pass (expecting zero gradients here):
-  error_layer.Forward(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
-  error_layer.Backward(DeviceMatrix());
-  std::vector<float> grad = error_layer.input_gradients().GetVector();
-  EXPECT_FLOAT_EQ(0.0f, grad[0]);
-  EXPECT_FLOAT_EQ(0.0f, grad[1]);
-  EXPECT_FLOAT_EQ(0.0f, grad[2]);
-}
-
-TEST(LearnTest, L2ErrorLayerGradient) {
-  L2ErrorLayer error_layer;
-  error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
-
-  // Get gradients with a forward+backward pass:
-  error_layer.Forward(DeviceMatrix(1, 3, 1, (float[]) {1.0f, 4.0f, 0.0f}));
-  error_layer.Backward(DeviceMatrix());
-  DeviceMatrix a_grad = error_layer.input_gradients();
-
-  // Approximate gradients numerically (at the same position as before):
-  DeviceMatrix n_grad = ComputeNumericGradients(
-      DeviceMatrix(1, 3, 1, (float[]) {1.0f, 4.0f, 0.0f}),
-      [&error_layer] (const DeviceMatrix& x) -> float {
-        error_layer.Forward(x);
-        return error_layer.GetError();
-      }
-  );
-
-  // Compare analytically and numerically computed gradients:
-  ExpectMatrixEquals(a_grad, n_grad, 0.001f, 5);
-}
-
 TEST(LearnTest, FullyConnectedLayerWeightGradient) {
   DeviceMatrix training_x;
   DeviceMatrix training_y;

@@ -111,6 +111,24 @@ TEST(SmallMatrixTest, L2) {
   EXPECT_FLOAT_EQ(2.5, a.L2());
 }
 
+TEST(SmallMatrixTest, Softmax1) {
+  // from http://cs231n.github.io/linear-classify/#softmax
+  DeviceMatrix wx(3, 1, 1, (float[]) {-2.85, 0.86, 0.28});
+  DeviceMatrix y(1, 1, 1, (float[]) {2.0});
+  EXPECT_NEAR(1.04, wx.Softmax(y), 0.0002);
+}
+
+TEST(SmallMatrixTest, Softmax2) {
+  // from http://cs231n.github.io/linear-classify/#softmax
+  DeviceMatrix wx(3, 2, 1, (float[]) {
+      -2.85, 2.0,
+      0.86, -1.0,
+      0.28, 1.4,
+  });
+  DeviceMatrix y(1, 2, 1, (float[]) {2.0, 1.0});
+  EXPECT_NEAR((1.0402 + 3.4691) / 2.0, wx.Softmax(y), 0.0002);
+}
+
 TEST(SmallMatrixTest, Fill) {
   DeviceMatrix a(2, 2, 1, (float[]){1, 1, 2, 0.5});
   a.Fill(4.2);

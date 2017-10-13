@@ -14,6 +14,7 @@ MapperFunc ReLU();
 MapperFunc ReLUGradient();
 MapperFunc LReLU();
 MapperFunc LReLUGradient();
+MapperFunc Square();
 
 }  // namespace matrix_mappers
 
@@ -35,7 +36,11 @@ class DeviceMatrix {
   DeviceMatrix Add(const DeviceMatrix& other) const;
   DeviceMatrix ElementwiseMultiply(const DeviceMatrix& other) const;
   DeviceMatrix Multiply(float) const;
+  float Softmax(const DeviceMatrix& expected_class) const;
+  DeviceMatrix SoftmaxGradient(const DeviceMatrix& expected_class) const;
+
   float L2() const;
+  float Sum() const;
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
   DeviceMatrix Dot(const DeviceMatrix&) const;
