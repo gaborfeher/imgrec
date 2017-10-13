@@ -10,8 +10,9 @@
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
-#include "cnn/reshape_layer.h"
 #include "cnn/model.h"
+#include "cnn/reshape_layer.h"
+#include "cnn/softmax_error_layer.h"
 #include "cnn/nonlinearity_layer.h"
 #include "linalg/device_matrix.h"
 
@@ -107,7 +108,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 1, 1));
+          0, 1, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
@@ -131,7 +133,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 2, 2,
-          0, 1, 1));
+          0, 1, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
@@ -157,7 +160,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
-          0, 1, 1));
+          0, 1, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
@@ -187,7 +191,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 2, 1));
+          0, 2, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
@@ -224,7 +229,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 2, 1));
+          0, 2, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
@@ -278,7 +284,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
-          0, 3, 1));
+          0, 3, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
@@ -344,7 +351,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
       filters,
       std::make_shared<ConvolutionalLayer>(
           2, 3, 2,
-          0, 3, 1));
+          0, 3, 1,
+          42));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
@@ -402,7 +410,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
       filters,
       std::make_shared<ConvolutionalLayer>(
           3, 2, 2,
-          0, 2, 1));
+          0, 2, 1,
+          42));
 }
 
 // For convolutional
@@ -421,20 +430,20 @@ void CreateTestCase1(
   // 010 111
   //
   *training_x = DeviceMatrix(3, 6, 8 * 2, (float[]) {
-      // Image 1: pattern1 and pattern2 side by side
+      // Image 1: pattern1 on the left, slightly damaged pattern2 on the right
       1, 0, 0, 0, 1, 0,  // layer1
-      0, 1, 0, 1, 1, 1,
+      0, 1, 0, 1, 0, 1,
       0, 0, 1, 0, 1, 0,
       0, 0, 1, 1, 1, 1,  // layer2
-      0, 1, 0, 1, 0, 1,
+      0, 1, 0, 1, 1, 1,
       1, 0, 0, 1, 1, 1,
 
-      // Image 2: pattern2 and pattern1 side by side
+      // Image 2: pattern2 on the left, slightly damaged pattern1 on the right
       0, 1, 0, 1, 0, 0, // layer1
-      1, 1, 1, 0, 1, 0,
+      1, 1, 1, 0, 1, 1,
       0, 1, 0, 0, 0, 1,
       1, 1, 1, 0, 0, 1, // layer2
-      1, 0, 1, 0, 1, 0,
+      1, 0, 1, 0, 0, 0,
       1, 1, 1, 1, 0, 0,
 
       // Image 3: pattern1 starting at the 3rd column
@@ -485,17 +494,10 @@ void CreateTestCase1(
       0, 0, 1, 0, 0, 0,
       1, 0, 1, 0, 0, 1,
   });
-  *training_y =
-      DeviceMatrix(8, 2, 1, (float[]) {
-          1, 1,
-          1, 1,
-          1, 0,
-          0, 1,
-          1, 0,
-          0, 1,
-          0, 0,
-          0, 0,
-      }).T();
+  // 1=pattern1, 2=pattern2, 0=junk
+  *training_y = DeviceMatrix(1, 8, 1, (float[]) {
+      1, 2, 1, 2, 1, 2, 0, 0,
+  });
 }
 
 void Copy3x3VectorBlock(
@@ -513,8 +515,7 @@ void Copy3x3VectorBlock(
 void CreateTestCase2(
     int num_samples,
     DeviceMatrix* training_x,
-    DeviceMatrix* training_y,
-    DeviceMatrix* filters) {
+    DeviceMatrix* training_y) {
 
   // We want to teach the convolutional layer to detect two patterns.
   // (Same as CreateTestCase1, but with more data.)
@@ -528,8 +529,7 @@ void CreateTestCase2(
   // 010 111
   //
 
-  int num_samples_generated = 2;
-  std::vector<float> x {
+  std::vector<float> sample {
       // Image 1: pattern1 and pattern2 side by side
       1, 0, 0, 0, 1, 0,  // layer1
       0, 1, 0, 1, 1, 1,
@@ -537,25 +537,16 @@ void CreateTestCase2(
       0, 0, 1, 1, 1, 1,  // layer2
       0, 1, 0, 1, 0, 1,
       1, 0, 0, 1, 1, 1,
+  };
 
-      // Image 2: pattern2 and pattern1 side by side
-      0, 1, 0, 1, 0, 0, // layer1
-      1, 1, 1, 0, 1, 0,
-      0, 1, 0, 0, 0, 1,
-      1, 1, 1, 0, 0, 1, // layer2
-      1, 0, 1, 0, 1, 0,
-      1, 1, 1, 1, 0, 0,
-  };
-  std::vector<float> y {
-          1, 1,
-          1, 1,
-  };
+  std::vector<float> x;
+  std::vector<float> y;
 
   std::mt19937 rnd(42);
   std::uniform_int_distribution<> dist01(0, 1);
   std::uniform_int_distribution<> dist3(0, 2);
   std::uniform_int_distribution<> dist4(0, 3);
-  while (num_samples_generated < num_samples) {
+  for (int i = 0; i < num_samples; ++i) {
     std::vector<float> x0;
     for (int i = 0; i < 6 * 6; ++i) {
       x0.push_back(dist01(rnd));
@@ -564,50 +555,44 @@ void CreateTestCase2(
 
     int mode = dist3(rnd);
     if (mode == 1) {
-      y0[0] = 1;
       int left_pos = dist4(rnd);
-      Copy3x3VectorBlock(x, 0, &x0, left_pos);
+      Copy3x3VectorBlock(sample, 0, &x0, left_pos);
     } else if (mode == 2) {
-      y0[1] = 1;
       int left_pos = dist4(rnd);
-      Copy3x3VectorBlock(x, 3, &x0, left_pos);
+      Copy3x3VectorBlock(sample, 3, &x0, left_pos);
     }
 
     x.insert(x.end(), x0.begin(), x0.end());
-    y.insert(y.end(), y0.begin(), y0.end());
-    num_samples_generated++;
+    y.push_back(mode);
   }
 
   *training_x = DeviceMatrix(3, 6, num_samples * 2, x);
-  *training_y = DeviceMatrix(num_samples, 2, 1, y).T();
+  *training_y = DeviceMatrix(1, num_samples, 1, y);
 
   // training_x->Print();
   // training_y->Print();
-
-  std::vector<float> filters_v;
-  std::mt19937 rnd2(42);
-  std::uniform_real_distribution<> dist2(-1, 1);
-  for (int i = 0; i < 3 * 3 * 4; ++i) {
-    filters_v.push_back(dist2(rnd2));
-  }
-
-  // We will check the gradient of filters at this point:
-  *filters = DeviceMatrix(3, 3, 4, filters_v);
 }
 
 
 std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
 
+  // The estimation of gradient of LReLU functions is bound to be
+  // broken around the zero point. Therefore we need to carefully
+  // select the neural network weights here to avoid that. (The
+  // ranomd seeds for the weights are specified in this function,
+  // and they are used to control this.)
+
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   stack->AddLayer(
       std::make_shared<ConvolutionalLayer>(
           2, 3, 3,
-          0, 2, 1));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::Sigmoid()));
+          0, 2, 1,
+          52));
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::Sigmoid()));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 3, 45));
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
+  stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
   return stack;
 }
 
@@ -619,31 +604,11 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
-  std::shared_ptr<L2ErrorLayer> error_layer =
-      stack->GetLayer<L2ErrorLayer>(-1);
-
-  // We will check the gradient of filters at this point:
-  DeviceMatrix filters(3, 3, 4, (float[]) {
-    1, -0.5, 1,
-    0.5, 0.5, -1,
-    -1, -1, -0.5,
-
-    1, -0.5, 1,
-    0.5, 0.5, -1,
-    -1, -1, -0.5,
-
-    1, -0.5, 1,
-    0.5, 0.5, -1,
-    -1, -1, -0.5,
-
-    1, -0.5, 1,
-    0.5, 0.5, -1,
-    -1, -1, -0.5,
-  });
-
+  std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(-1);
 
   error_layer->SetExpectedValue(training_y);
-  conv_layer->filters_ = filters;
+  // We will check the gradient of filters at this point:
+  DeviceMatrix filters = conv_layer->filters_;
 
   // 1. Compute gradient on the filters:
 
@@ -687,17 +652,15 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 TEST(ConvolutionalLayerTest, TrainTest) {
   DeviceMatrix training_x;
   DeviceMatrix training_y;
-  DeviceMatrix filters;
 
   // TODO: make this work with more data
-  CreateTestCase2(20, &training_x, &training_y, &filters);
+  CreateTestCase2(20, &training_x, &training_y);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
-  std::shared_ptr<L2ErrorLayer> error_layer =
-      stack->GetLayer<L2ErrorLayer>(-1);
-  conv_layer->filters_ = filters;
+  std::shared_ptr<ErrorLayer> error_layer =
+      stack->GetLayer<ErrorLayer>(-1);
   error_layer->SetExpectedValue(training_y);
 
   // 3. Test training the model:
@@ -712,7 +675,9 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   */
   float test_error;
   model.Evaluate(training_x, training_y, &test_error);
-  EXPECT_LT(test_error, 0.01);
+  EXPECT_LT(test_error, 0.001);
+  // stack->GetLayer<Layer>(-2)->output().Print();
+  // training_y.Print();
   // conv_layer->filters_.Print();
 }
 

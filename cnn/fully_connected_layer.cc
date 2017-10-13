@@ -1,11 +1,28 @@
 #include "cnn/fully_connected_layer.h"
 
-FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
+#include <random>
+#include <vector>
+
+// TODO: clean up dup
+std::vector<float> GetRandomVector(int size, int seed) {
+  std::mt19937 rnd(seed);
+  std::uniform_real_distribution<> dist(-1, 1);
+
+  // TODO: use Xavier-initialization
+  std::vector<float> result;
+  result.reserve(size);
+  for (int i = 0; i < size; ++i) {
+    result.push_back(dist(rnd));
+  }
+  return result;
+}
+
+
+FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size, int random_seed) :
     input_size_(input_size),
     output_size_(output_size),
-    weights_(output_size, input_size, 1),
+    weights_(output_size, input_size, 1, GetRandomVector(output_size * input_size, random_seed)),
     weights_gradients_(output_size, input_size, 1) {
-  weights_.Fill(0.1f);  // TODO: fix, use Xavier-initialization
 }
 
 void FullyConnectedLayer::Forward(const DeviceMatrix& input) {

@@ -1,15 +1,31 @@
 #include "cnn/convolutional_layer.h"
 
 #include <cassert>  // TODO: release-mode assert
+#include <random>
 #include <iostream>
+
+// TODO: clean up dup
+std::vector<float> GetRandomVector2(int size, int seed) {
+  std::mt19937 rnd(seed);
+  std::uniform_real_distribution<> dist(-1, 1);
+
+  // TODO: use Xavier-initialization
+  std::vector<float> result;
+  result.reserve(size);
+  for (int i = 0; i < size; ++i) {
+    result.push_back(dist(rnd));
+  }
+  return result;
+}
 
 ConvolutionalLayer::ConvolutionalLayer(
     int num_filters, int filter_rows, int filter_cols,
-    int padding, int layers_per_image, int stride) :
+    int padding, int layers_per_image, int stride,
+    int random_seed) :
         padding_(padding),
         layers_per_image_(layers_per_image),
         stride_(stride),
-        filters_(filter_rows, filter_cols, num_filters * layers_per_image),
+        filters_(filter_rows, filter_cols, num_filters * layers_per_image, GetRandomVector2(filter_rows * filter_cols * num_filters * layers_per_image, random_seed)),
         filters_gradients_(filter_rows, filter_cols, num_filters * layers_per_image)
 {
   assert(stride_ == 1);  // Backprop doesn't support other values uet.

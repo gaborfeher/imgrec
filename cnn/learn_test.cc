@@ -64,7 +64,7 @@ TEST(LearnTest, FullyConnectedTrain) {
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1, 42));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       ::activation_functions::Sigmoid()));
   stack->AddLayer(error_layer);
@@ -89,7 +89,7 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
-      std::make_shared<FullyConnectedLayer>(3, 1);
+      std::make_shared<FullyConnectedLayer>(3, 1, 42);
   stack->AddLayer(fc_layer);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       ::activation_functions::Sigmoid()));
@@ -129,7 +129,7 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
-      std::make_shared<FullyConnectedLayer>(3, 1);
+      std::make_shared<FullyConnectedLayer>(3, 1, 42);
   stack->AddLayer(fc_layer);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       activation_functions::Sigmoid()));

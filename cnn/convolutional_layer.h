@@ -14,7 +14,8 @@ class ConvolutionalLayer : public Layer {
       int filter_height,
       int padding,
       int layers_per_image,
-      int stride);
+      int stride,
+      int random_seed);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients);
   virtual void ApplyGradient(float learn_rate);

@@ -1,4 +1,5 @@
 #include "cnn/softmax_error_layer.h"
+#include <iostream>
 
 SoftmaxErrorLayer::SoftmaxErrorLayer() {}
 

@@ -240,7 +240,7 @@ __global__ void VecReLU(float* A, float* B) {
 
 __global__ void VecReLUGradient(float* A, float* B) {
   int i = threadIdx.x;
-  if (A[i] <= 0.0f) {
+  if (A[i] < 0.0f) {
     B[i] = 0.0f;
   } else {
     B[i] = 1.0f;

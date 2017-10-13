@@ -7,7 +7,7 @@
 
 class FullyConnectedLayer : public Layer {
  public:
-  FullyConnectedLayer(int input_size, int output_size);
+  FullyConnectedLayer(int input_size, int output_size, int random_seed);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
   virtual void ApplyGradient(float learn_rate);
