@@ -514,9 +514,10 @@ void Copy3x3VectorBlock(
 }
 
 void CreateTestCase2(
-    int num_samples,
-    DeviceMatrix* training_x,
-    DeviceMatrix* training_y) {
+    int num_batches,
+    int num_samples_per_batch,
+    int random_seed,
+    InMemoryDataSet* training_ds) {
 
   // We want to teach the convolutional layer to detect two patterns.
   // (Same as CreateTestCase1, but with more data.)
@@ -540,35 +541,41 @@ void CreateTestCase2(
       1, 0, 0, 1, 1, 1,
   };
 
-  std::vector<float> x;
-  std::vector<float> y;
 
-  std::mt19937 rnd(42);
-  std::uniform_int_distribution<> dist01(0, 1);
-  std::uniform_int_distribution<> dist3(0, 2);
-  std::uniform_int_distribution<> dist4(0, 3);
-  for (int i = 0; i < num_samples; ++i) {
-    std::vector<float> x0;
-    for (int i = 0; i < 6 * 6; ++i) {
-      x0.push_back(dist01(rnd));
+  std::mt19937 rnd(random_seed);
+  for (int i = 0; i < num_batches; ++i) {
+
+    std::vector<float> x;
+    std::vector<float> y;
+
+    std::uniform_int_distribution<> dist01(0, 1);
+    std::uniform_int_distribution<> dist3(0, 2);
+    std::uniform_int_distribution<> dist4(0, 3);
+    for (int i = 0; i < num_samples_per_batch; ++i) {
+      std::vector<float> x0;
+      for (int i = 0; i < 6 * 6; ++i) {
+        x0.push_back(dist01(rnd));
+      }
+      std::vector<float> y0 { 0, 0 };
+
+      int mode = dist3(rnd);
+      if (mode == 1) {
+        int left_pos = dist4(rnd);
+        Copy3x3VectorBlock(sample, 0, &x0, left_pos);
+      } else if (mode == 2) {
+        int left_pos = dist4(rnd);
+        Copy3x3VectorBlock(sample, 3, &x0, left_pos);
+      }
+
+      x.insert(x.end(), x0.begin(), x0.end());
+      y.push_back(mode);
     }
-    std::vector<float> y0 { 0, 0 };
 
-    int mode = dist3(rnd);
-    if (mode == 1) {
-      int left_pos = dist4(rnd);
-      Copy3x3VectorBlock(sample, 0, &x0, left_pos);
-    } else if (mode == 2) {
-      int left_pos = dist4(rnd);
-      Copy3x3VectorBlock(sample, 3, &x0, left_pos);
-    }
+    training_ds->AddBatch(
+        DeviceMatrix(3, 6, num_samples_per_batch * 2, x),
+        DeviceMatrix(1, num_samples_per_batch, 1, y));
 
-    x.insert(x.end(), x0.begin(), x0.end());
-    y.push_back(mode);
   }
-
-  *training_x = DeviceMatrix(3, 6, num_samples * 2, x);
-  *training_y = DeviceMatrix(1, num_samples, 1, y);
 
   // training_x->Print();
   // training_y->Print();
@@ -651,35 +658,30 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 
 
 TEST(ConvolutionalLayerTest, TrainTest) {
-  DeviceMatrix training_x;
-  DeviceMatrix training_y;
+  InMemoryDataSet training_ds;
+  InMemoryDataSet test_ds;
 
-  // TODO: make this work with more data
-  CreateTestCase2(20, &training_x, &training_y);
+  // TODO: figure out reason for limit on batch size
+  //   (floating-point precision limit or CUDA matrix size limit?)
+  CreateTestCase2(10, 20, 142, &training_ds);
+  CreateTestCase2(1, 20, 143, &test_ds);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer =
       stack->GetLayer<ErrorLayer>(-1);
-  error_layer->SetExpectedValue(training_y);
 
   // 3. Test training the model:
   std::vector<float> training_error;
   Model model(stack);
-  model.Train(
-      InMemoryDataSet(training_x, training_y),
-      3000,
-      1,
-      &training_error);
-/*
-  for (float err: training_error) {
-    std::cout << " " << err;
-  }
-  std::cout << std::endl;
-*/
+  model.Train(training_ds, 100, 0.1, &training_error);
+
   float test_error;
-  model.Evaluate(training_x, training_y, &test_error);
+  model.Evaluate(
+      test_ds.GetBatchInput(0),
+      test_ds.GetBatchOutput(0),
+      &test_error);
   EXPECT_LT(test_error, 0.001);
   // stack->GetLayer<Layer>(-2)->output().Print();
   // training_y.Print();

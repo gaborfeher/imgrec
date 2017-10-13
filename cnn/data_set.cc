@@ -2,7 +2,7 @@
 
 #include "linalg/device_matrix.h"
 
-InMemoryDataSet::InMemoryDataSet() {}
+InMemoryDataSet::InMemoryDataSet() : num_batches_(0) {}
 
 InMemoryDataSet::InMemoryDataSet(DeviceMatrix x, DeviceMatrix y) :
     num_batches_(1),

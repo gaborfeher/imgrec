@@ -25,6 +25,7 @@ void Model::Train(
       DeviceMatrix dummy;
       model_->Backward(dummy);
       model_->ApplyGradient(rate);
+      // std::cout << "epoch " << i << " batch " << j << " error= " << error_->GetError() << std::endl;
     }
   }
 }
