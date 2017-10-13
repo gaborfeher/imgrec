@@ -10,7 +10,9 @@ namespace activation_functions {
 
 typedef std::pair<::matrix_mappers::MapperFunc, ::matrix_mappers::MapperFunc> ActivationFunc;
 
-  ActivationFunc Sigmoid();
+ActivationFunc Sigmoid();
+ActivationFunc ReLU();
+ActivationFunc LReLU();
 
 }  // namespace activation_functions
 

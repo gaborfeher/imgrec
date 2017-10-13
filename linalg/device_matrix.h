@@ -9,8 +9,11 @@ namespace matrix_mappers {
 typedef void (*MapperFunc)(float* A, float* B);
 
 MapperFunc Sigmoid();
-
 MapperFunc SigmoidGradient();
+MapperFunc ReLU();
+MapperFunc ReLUGradient();
+MapperFunc LReLU();
+MapperFunc LReLUGradient();
 
 }  // namespace matrix_mappers
 

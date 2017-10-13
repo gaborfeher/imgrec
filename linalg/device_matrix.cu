@@ -226,10 +226,38 @@ __global__ void VecSigmoid(float* A, float* B) {
 }
 
 
-__global__ void VecSigmoidGradients(float* A, float* B) {
+__global__ void VecSigmoidGradient(float* A, float* B) {
   int i = threadIdx.x;
   float sigma = 1.0 / (1.0 + exp(-A[i]));
   B[i] = sigma * (1.0 - sigma);
+}
+
+__global__ void VecReLU(float* A, float* B) {
+  int i = threadIdx.x;
+  B[i] = max(0.0f, A[i]);
+}
+
+__global__ void VecReLUGradient(float* A, float* B) {
+  int i = threadIdx.x;
+  if (A[i] <= 0.0f) {
+    B[i] = 0.0f;
+  } else {
+    B[i] = 1.0f;
+  }
+}
+
+__global__ void VecLReLU(float* A, float* B) {
+  int i = threadIdx.x;
+  B[i] = max(0.01f * A[i], A[i]);
+}
+
+__global__ void VecLReLUGradient(float* A, float* B) {
+  int i = threadIdx.x;
+  if (A[i] < 0.0f) {
+    B[i] = 0.01f;
+  } else {
+    B[i] = 1.0f;
+  }
 }
 
 namespace matrix_mappers {
@@ -243,7 +271,23 @@ MapperFunc Sigmoid() {
 }
 
 MapperFunc SigmoidGradient() {
-  return &VecSigmoidGradients;
+  return &VecSigmoidGradient;
+}
+
+MapperFunc ReLU() {
+  return &VecReLU;
+}
+
+MapperFunc ReLUGradient() {
+  return &VecReLUGradient;
+}
+
+MapperFunc LReLU() {
+  return &VecLReLU;
+}
+
+MapperFunc LReLUGradient() {
+  return &VecLReLUGradient;
 }
 
 }  // namespacce matrix_mappers

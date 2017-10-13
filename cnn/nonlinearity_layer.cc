@@ -8,6 +8,18 @@ ActivationFunc Sigmoid() {
       ::matrix_mappers::SigmoidGradient());
 }
 
+ActivationFunc ReLU() {
+  return std::make_pair(
+      ::matrix_mappers::ReLU(),
+      ::matrix_mappers::ReLUGradient());
+}
+
+ActivationFunc LReLU() {
+  return std::make_pair(
+      ::matrix_mappers::LReLU(),
+      ::matrix_mappers::LReLUGradient());
+}
+
 }  // activation_functions
 
 NonlinearityLayer::NonlinearityLayer(
