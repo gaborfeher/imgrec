@@ -6,8 +6,8 @@
 #include "gtest/gtest.h"
 
 #include "cnn/convolutional_layer.h"
-#include "cnn/error_layer.h"
 #include "cnn/fully_connected_layer.h"
+#include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
 #include "cnn/reshape_layer.h"
@@ -21,7 +21,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
   void SimpleConvolutionWeightGradientTest(
       std::shared_ptr<LayerStack> stack,
       std::shared_ptr<ConvolutionalLayer> conv_layer,
-      std::shared_ptr<ErrorLayer> error_layer,
+      std::shared_ptr<L2ErrorLayer> error_layer,
       const DeviceMatrix& training_x,
       const DeviceMatrix& filters) {
 
@@ -46,7 +46,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
   void SimpleConvolutionInputGradientTest(
       std::shared_ptr<LayerStack> stack,
       std::shared_ptr<ConvolutionalLayer> conv_layer,
-      std::shared_ptr<ErrorLayer> error_layer,
+      std::shared_ptr<L2ErrorLayer> error_layer,
       const DeviceMatrix& training_x,
       const DeviceMatrix& filters) {
 
@@ -74,8 +74,8 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
       std::shared_ptr<ConvolutionalLayer> conv_layer) {
     std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
     stack->AddLayer(conv_layer);
-    std::shared_ptr<ErrorLayer> error_layer =
-        std::make_shared<ErrorLayer>();
+    std::shared_ptr<L2ErrorLayer> error_layer =
+        std::make_shared<L2ErrorLayer>();
     stack->AddLayer(error_layer);
     error_layer->SetExpectedValue(training_y);
 
@@ -607,7 +607,7 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::Sigmoid()));
-  stack->AddLayer(std::make_shared<ErrorLayer>());
+  stack->AddLayer(std::make_shared<L2ErrorLayer>());
   return stack;
 }
 
@@ -619,8 +619,8 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
-  std::shared_ptr<ErrorLayer> error_layer =
-      stack->GetLayer<ErrorLayer>(-1);
+  std::shared_ptr<L2ErrorLayer> error_layer =
+      stack->GetLayer<L2ErrorLayer>(-1);
 
   // We will check the gradient of filters at this point:
   DeviceMatrix filters(3, 3, 4, (float[]) {
@@ -695,8 +695,8 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
-  std::shared_ptr<ErrorLayer> error_layer =
-      stack->GetLayer<ErrorLayer>(-1);
+  std::shared_ptr<L2ErrorLayer> error_layer =
+      stack->GetLayer<L2ErrorLayer>(-1);
   conv_layer->filters_ = filters;
   error_layer->SetExpectedValue(training_y);
 

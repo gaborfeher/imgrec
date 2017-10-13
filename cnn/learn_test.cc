@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "cnn/convolutional_layer.h"
-#include "cnn/error_layer.h"
 #include "cnn/fully_connected_layer.h"
+#include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
 #include "cnn/reshape_layer.h"
@@ -62,7 +62,7 @@ TEST(LearnTest, FullyConnectedTrain) {
   CreateTestCase1(&training_x, &training_y, &test_x, &test_y);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  std::shared_ptr<ErrorLayer> error_layer = std::make_shared<ErrorLayer>();
+  std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
 
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
@@ -81,7 +81,7 @@ TEST(LearnTest, FullyConnectedTrain) {
 }
 
 TEST(LearnTest, L2ErrorLayerGradientAt0) {
-  ErrorLayer error_layer;
+  L2ErrorLayer error_layer;
   error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
 
   // Get gradients with a forward+backward pass (expecting zero gradients here):
@@ -94,7 +94,7 @@ TEST(LearnTest, L2ErrorLayerGradientAt0) {
 }
 
 TEST(LearnTest, L2ErrorLayerGradient) {
-  ErrorLayer error_layer;
+  L2ErrorLayer error_layer;
   error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
 
   // Get gradients with a forward+backward pass:
@@ -128,8 +128,8 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
   stack->AddLayer(fc_layer);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       ::activation_functions::Sigmoid()));
-  std::shared_ptr<ErrorLayer> error_layer =
-      std::make_shared<ErrorLayer>();
+  std::shared_ptr<L2ErrorLayer> error_layer =
+      std::make_shared<L2ErrorLayer>();
   stack->AddLayer(error_layer);
 
   error_layer->SetExpectedValue(training_y);
@@ -150,7 +150,7 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
         stack->Forward(training_x);
         return error_layer->GetError();
       });
-  
+
   // Compare analytically and numerically computed gradients:
   ExpectMatrixEquals(a_grad, n_grad, 0.05f, 5);
 }
@@ -168,8 +168,8 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
   stack->AddLayer(fc_layer);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       activation_functions::Sigmoid()));
-  std::shared_ptr<ErrorLayer> error_layer =
-      std::make_shared<ErrorLayer>();
+  std::shared_ptr<L2ErrorLayer> error_layer =
+      std::make_shared<L2ErrorLayer>();
   stack->AddLayer(error_layer);
 
   error_layer->SetExpectedValue(training_y);
