@@ -306,10 +306,10 @@ __global__ void VecL2(float* A, int len, float* B) {
   B[0] = sqrt(result);
 }
 
-DeviceMatrix DeviceMatrix::L2() const {
+float DeviceMatrix::L2() const {
   DeviceMatrix result(1, 1, 1);
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
-  return result;
+  return result.GetValue(0, 0, 0);
 }
 
 __global__ void VecFill(float value, float* A) {

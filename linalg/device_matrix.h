@@ -35,8 +35,7 @@ class DeviceMatrix {
   DeviceMatrix Add(const DeviceMatrix& other) const;
   DeviceMatrix ElementwiseMultiply(const DeviceMatrix& other) const;
   DeviceMatrix Multiply(float) const;
-  // Returns L2 norm in 1x1 matrix (for now)
-  DeviceMatrix L2() const;
+  float L2() const;
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
   DeviceMatrix Dot(const DeviceMatrix&) const;

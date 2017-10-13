@@ -11,8 +11,6 @@ class L2ErrorLayer : public ErrorLayer {
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
 
-  float GetError() const;
-
  private:
   DeviceMatrix expected_value_;
 };
