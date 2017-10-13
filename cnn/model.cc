@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "cnn/data_set.h"
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/model.h"
@@ -12,18 +13,19 @@ Model::Model(std::shared_ptr<LayerStack> model) :
 }
 
 void Model::Train(
-    const DeviceMatrix& training_x,
-    const DeviceMatrix& training_y,
-    int iterations,
+    const DataSet& data_set,
+    int epochs,
     float rate,
     std::vector<float>* error_hist) {
-  for (int i = 0; i < iterations; ++i) {
-    error_->SetExpectedValue(training_y);
-    model_->Forward(training_x);
-    error_hist->push_back(error_->GetError());
-    DeviceMatrix dummy;
-    model_->Backward(dummy);
-    model_->ApplyGradient(rate);
+  for (int i = 0; i < epochs; ++i) {
+    for (int j = 0; j < data_set.NumBatches(); ++j) {
+      error_->SetExpectedValue(data_set.GetBatchOutput(j));
+      model_->Forward(data_set.GetBatchInput(j));
+      error_hist->push_back(error_->GetError());
+      DeviceMatrix dummy;
+      model_->Backward(dummy);
+      model_->ApplyGradient(rate);
+    }
   }
 }
 

@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 
 #include "cnn/convolutional_layer.h"
+#include "cnn/data_set.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
@@ -666,13 +667,17 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   // 3. Test training the model:
   std::vector<float> training_error;
   Model model(stack);
-  model.Train(training_x, training_y, 3000, 1, &training_error);
-  /*
+  model.Train(
+      InMemoryDataSet(training_x, training_y),
+      3000,
+      1,
+      &training_error);
+/*
   for (float err: training_error) {
     std::cout << " " << err;
   }
   std::cout << std::endl;
-  */
+*/
   float test_error;
   model.Evaluate(training_x, training_y, &test_error);
   EXPECT_LT(test_error, 0.001);

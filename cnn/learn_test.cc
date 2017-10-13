@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "cnn/convolutional_layer.h"
+#include "cnn/data_set.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
@@ -71,7 +72,11 @@ TEST(LearnTest, FullyConnectedTrain) {
   Model model(stack);
 
   std::vector<float> training_error;
-  model.Train(training_x, training_y, 100, 5, &training_error);
+  model.Train(
+      InMemoryDataSet(training_x, training_y),
+      100,
+      5,
+      &training_error);
   // for (float err: training_error) {
   //   std::cout << "Training error= " << err << std::endl;
   // }

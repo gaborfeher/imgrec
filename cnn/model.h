@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+class DataSet;
 class DeviceMatrix;
 class ErrorLayer;
 class Layer;
@@ -15,9 +16,8 @@ class Model {
   Model(std::shared_ptr<LayerStack> model);
 
   void Train(
-      const DeviceMatrix& training_x,
-      const DeviceMatrix& training_y,
-      int iterations,
+      const DataSet& data_set,
+      int epochs,
       float rate,
       std::vector<float>* error_hist);
   void Evaluate(
