@@ -328,6 +328,37 @@ float DeviceMatrix::Sum() const {
   return result.GetValue(0, 0, 0);
 }
 
+
+__global__ void MatrixSumLayers(
+    float* A,
+    int a_rows, int a_cols, int a_depth,
+    int cycle,
+    float* B) {
+  int b_index = threadIdx.x;
+
+  float result = 0.0;
+  for (int i = 0; i < a_rows; ++i) {
+    for (int j = 0; j < a_cols; ++j) {
+      for (int k = b_index; k < a_depth; k += cycle) {
+        result += A[Dim3toDim1(i, j, k, a_rows, a_cols, a_depth)];
+      }
+    }
+  }
+  B[b_index] = result;
+}
+
+DeviceMatrix DeviceMatrix::SumLayers(int cycle) const {
+  assert(depth_ % cycle == 0);
+  DeviceMatrix result(1, 1, cycle);
+  MatrixSumLayers<<<1, cycle>>>(
+      data_.get(),
+      rows_, cols_, depth_,
+      cycle,
+      result.data_.get());
+  return result;
+}
+
+
 __global__ void VecL2(float* A, int len, float* B) {
   float result = 0.0;
   for (int i = 0; i < len; ++i) {

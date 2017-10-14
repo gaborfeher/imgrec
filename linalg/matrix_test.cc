@@ -534,3 +534,47 @@ TEST(SmallMatrixTest, CopyGetSet) {
       }),
       b.GetVector());
 }
+
+
+TEST(SmallMatrixTest, SumLayers) {
+  // Two 3x4 images with 3 "color channels" each:
+  DeviceMatrix a(3, 4, 6, (float[]) {
+      // layer1:
+      1, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+      // layer2:
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6,
+      // layer3:
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      // layer4:
+      0, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+      // layer5:
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6,
+      // layer6:
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      0, 1, 1, 1
+  });
+  DeviceMatrix s = a.SumLayers(3);
+  EXPECT_EQ(1, s.rows());
+  EXPECT_EQ(1, s.cols());
+  EXPECT_EQ(3, s.depth());
+  EXPECT_FLOAT_EQ(
+      42  /* layer1 */ + 41  /* layer4 */,
+      s.GetValue(0, 0, 0));
+  EXPECT_FLOAT_EQ(
+      46.2 /* layer2 */ + 46.2 /* layer5 */,
+      s.GetValue(0, 0, 1));
+  EXPECT_FLOAT_EQ(
+      12 /* layer3 */ + 11 /* layer5 */,
+      s.GetValue(0, 0, 2));
+}

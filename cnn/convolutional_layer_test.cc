@@ -114,7 +114,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
     error_layer->SetExpectedValue(training_y);
 
     FilterGradientTest(stack, conv_layer, error_layer, training_x, filters, biases);
-    // BiasGradientTest(stack, conv_layer, error_layer, training_x, filters, biases);
+    BiasGradientTest(stack, conv_layer, error_layer, training_x, filters, biases);
     InputGradientTest(stack, conv_layer, error_layer, training_x, filters, biases);
   }
 };
@@ -699,7 +699,6 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   stack->Backward(DeviceMatrix());
   a_grad = conv_layer->biases_gradient_;
 
-/*
   // 2.2. Approximate gradient the numerical way:
   n_grad = ComputeNumericGradients(
       biases,
@@ -710,7 +709,6 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
       });
 
   ExpectMatrixEquals(a_grad, n_grad, 0.001, 5);
-*/
 
   // 3. Compute gradient on the inputs:
 

@@ -45,7 +45,7 @@ void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
           biases_);
 }
 
-void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
+void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
   // This implementation is based on the following article, plus
   // additions.
   // http://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/
@@ -64,7 +64,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   int num_input_images = input_.depth() / layers_per_image_;
 
   // (22)
-  input_gradients_ = output_gradients
+  input_gradients_ = output_gradient
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
           filters_
@@ -85,7 +85,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   //     img2-layer1, img2-layer2, img2-layer3
 
   // (14)
-  filters_gradient_ = output_gradients
+  filters_gradient_ = output_gradient
       .ReorderLayers(num_filters)
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
@@ -104,6 +104,8 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   //  filters_gradients_ is:
   //     filter1-layer1, filter1-layer2, filter1-layer3
   //     filter2-layer1, filter2-layer2, filter2-layer3
+
+  biases_gradient_ = output_gradient.SumLayers(num_filters);
 }
 
 void ConvolutionalLayer::ApplyGradient(float learn_rate) {
