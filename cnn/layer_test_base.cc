@@ -1,5 +1,7 @@
 #include "cnn/layer_test_base.h"
 
+#include <limits>
+
 #include "gtest/gtest.h"
 
 #include "linalg/device_matrix.h"
@@ -21,10 +23,16 @@ void ExpectMatrixEquals(
   for (size_t i = 0; i < av.size(); ++i) {
     EXPECT_NEAR(av[i], bv[i], absolute_diff);
     if (percentage_diff >= 0.0f) {
+      float diff = std::abs(av[i] - bv[i]);
+      if (diff < std::numeric_limits<float>::epsilon()) {
+        // In this case we don't care about percentages, since
+        // the difference can be a precision issue.
+        continue;
+      }
       float magnitude = ((std::abs(av[i]) + std::abs(bv[i])) / 2.0);
       if (magnitude > 0.0f) {
         EXPECT_LT(
-            100.0f * std::abs(av[i] - bv[i]) / magnitude,
+            100.0 * diff / magnitude,
             percentage_diff)
             << "(i=" << i
             << " a= " << av[i]

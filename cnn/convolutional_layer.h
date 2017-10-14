@@ -29,7 +29,9 @@ class ConvolutionalLayer : public Layer {
   int layers_per_image_;
   int stride_;
   DeviceMatrix filters_;
-  DeviceMatrix filters_gradients_;
+  DeviceMatrix filters_gradient_;
+  DeviceMatrix biases_;
+  DeviceMatrix biases_gradient_;
 };
 
 #endif  // _CNN_CONVOLUTIONAL_LAYER_H_

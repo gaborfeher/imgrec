@@ -31,7 +31,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
     // Compute gradient the analytical way:
     stack->Forward(training_x);
     stack->Backward(DeviceMatrix());
-    DeviceMatrix a_grad = conv_layer->filters_gradients_;
+    DeviceMatrix a_grad = conv_layer->filters_gradient_;
 
     // Approximate gradient the numerical way:
     DeviceMatrix n_grad = ComputeNumericGradients(
@@ -66,7 +66,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           return error_layer->GetError();
         });
     // a_grad.Print(); n_grad.Print();
-    ExpectMatrixEquals(a_grad, n_grad, 0.05, 5);
+    ExpectMatrixEquals(a_grad, n_grad, 0.05, 8);
   }
 
   void SimpleConvolutionGradientTest(
@@ -286,7 +286,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
           0, 3, 1,
-          42));
+          63));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
@@ -353,7 +353,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
       std::make_shared<ConvolutionalLayer>(
           2, 3, 2,
           0, 3, 1,
-          42));
+          41));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
@@ -631,7 +631,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   // 1.1. Compute gradient the analytical way:
   stack->Forward(training_x);
   stack->Backward(DeviceMatrix());
-  DeviceMatrix a_grad = conv_layer->filters_gradients_;
+  DeviceMatrix a_grad = conv_layer->filters_gradient_;
 
   // 1.2. Approximate gradient the numerical way:
   DeviceMatrix n_grad = ComputeNumericGradients(
@@ -683,7 +683,7 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   // 3. Test training the model:
   std::vector<float> training_error;
   Model model(stack, true);
-  model.Train(training_ds, 100, 0.1, &training_error);
+  model.Train(training_ds, 1, 0.1, &training_error);
 
   float test_error;
   model.Evaluate(

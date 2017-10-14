@@ -26,7 +26,9 @@ ConvolutionalLayer::ConvolutionalLayer(
         layers_per_image_(layers_per_image),
         stride_(stride),
         filters_(filter_rows, filter_cols, num_filters * layers_per_image, GetRandomVector2(filter_rows * filter_cols * num_filters * layers_per_image, random_seed)),
-        filters_gradients_(filter_rows, filter_cols, num_filters * layers_per_image)
+        filters_gradient_(filter_rows, filter_cols, num_filters * layers_per_image),
+        biases_(1, 1, num_filters, GetRandomVector2(num_filters, random_seed + 1 /* TODO */)),
+        biases_gradient_(1, 1, num_filters)
 {
   assert(stride_ == 1);  // Backprop doesn't support other values uet.
   assert(padding_ == 0);  // Backprop doesn't support other values yet.
@@ -36,7 +38,11 @@ void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
   output_ = input
       .AddPadding(padding_, padding_)
-      .Convolution(filters_, layers_per_image_, stride_);
+      .Convolution(
+          filters_,
+          layers_per_image_,
+          stride_,
+          biases_);
 }
 
 void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
@@ -79,7 +85,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
   //     img2-layer1, img2-layer2, img2-layer3
 
   // (14)
-  filters_gradients_ = output_gradients
+  filters_gradient_ = output_gradients
       .ReorderLayers(num_filters)
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
@@ -101,5 +107,6 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradients) {
 }
 
 void ConvolutionalLayer::ApplyGradient(float learn_rate) {
-  filters_ = filters_.Add(filters_gradients_.Multiply(-learn_rate));
+  filters_ = filters_.Add(filters_gradient_.Multiply(-learn_rate));
+  biases_ = biases_.Add(biases_gradient_.Multiply(-learn_rate));
 }
