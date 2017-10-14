@@ -60,12 +60,17 @@ class DeviceMatrix {
   // TODO: integrate this into Convolution to get rid of copies
   DeviceMatrix ReorderLayers(int layers_per_image) const;
 
-  // depth of filters must be a multiple of depht of this matrix,
+  // depth of filters must be a multiple of depth of this matrix,
   // and it contains that many filters.
   DeviceMatrix Convolution(
       const DeviceMatrix& filters,
       int layers_per_image,
       int stride) const;
+  DeviceMatrix Convolution(
+      const DeviceMatrix& filters,
+      int layers_per_image,
+      int stride,
+      const DeviceMatrix& biases) const;
 
   void Fill(float value);
 

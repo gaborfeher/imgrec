@@ -552,7 +552,8 @@ __global__ void MatrixConvolution(
     int layers_per_image,
     float* A, int a_rows, int a_cols, int a_depth,
     float* filters, int f_rows, int f_cols, int f_depth,
-    float* B, int b_rows, int b_cols, int b_depth) {
+    float* B, int b_rows, int b_cols, int b_depth,
+    float* biases) {
   int i = threadIdx.x;
   int j = threadIdx.y;
   int k = threadIdx.z;  // destination depth-level = id of filter to apply
@@ -590,19 +591,28 @@ __global__ void MatrixConvolution(
       }
     }
   }
+  if (biases != NULL) {
+    sum += biases[filter_id];
+  }
   B[Dim3toDim1(i, j, k, b_rows, b_cols, b_depth)] = sum;
 }
 
 DeviceMatrix DeviceMatrix::Convolution(
     const DeviceMatrix& filters,
     int layers_per_image,
-    int stride) const {
+    int stride,
+    const DeviceMatrix& biases) const {
   int row_slots = rows_ - filters.rows() + 1;
   int col_slots = cols_ - filters.cols() + 1;
   assert(row_slots % stride == 0 && col_slots % stride == 0);
 
   assert(filters.depth() % layers_per_image == 0);
   assert(depth() % layers_per_image == 0);
+  float* biases_ptr = NULL;
+  if (biases.depth() > 0) {
+    assert(biases.depth() * layers_per_image == filters.depth());
+    biases_ptr = biases.data_.get();
+  }
 
   assert(stride == 1);  // TODO
   DeviceMatrix result(
@@ -615,9 +625,17 @@ DeviceMatrix DeviceMatrix::Convolution(
       layers_per_image,
       data_.get(), rows_, cols_, depth_,
       filters.data_.get(), filters.rows(), filters.cols(), filters.depth(),
-      result.data_.get(), result.rows(), result.cols(), result.depth());
+      result.data_.get(), result.rows(), result.cols(), result.depth(),
+      biases_ptr);
 
   return result;
+}
+
+DeviceMatrix DeviceMatrix::Convolution(
+    const DeviceMatrix& filters,
+    int layers_per_image,
+    int stride) const {
+  return Convolution(filters, layers_per_image, stride, DeviceMatrix());
 }
 
 DeviceMatrix DeviceMatrix::ReshapeToColumns(int unit_depth) const {
