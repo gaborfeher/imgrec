@@ -8,6 +8,13 @@
 #include "cnn/model.h"
 
 Model::Model(std::shared_ptr<LayerStack> model) :
+    logging_(false),
+    model_(model),
+    error_(model->GetLayer<ErrorLayer>(-1)) {
+}
+
+Model::Model(std::shared_ptr<LayerStack> model, bool logging) :
+    logging_(logging),
     model_(model),
     error_(model->GetLayer<ErrorLayer>(-1)) {
 }
@@ -30,7 +37,9 @@ void Model::Train(
     }
     float avg_error = total_error / data_set.NumBatches();
     error_hist->push_back(avg_error);
-    // std::cout << "epoch " << i << " error= " << avg_error << std::endl;
+    if (logging_) {
+      std::cout << "epoch " << i << " error= " << avg_error << std::endl;
+    }
   }
 }
 

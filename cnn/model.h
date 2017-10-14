@@ -14,6 +14,7 @@ class Model {
  public:
   // The last layer of model is assumed to be an ErrorLayer.
   Model(std::shared_ptr<LayerStack> model);
+  Model(std::shared_ptr<LayerStack> model, bool logging);
 
   void Train(
       const DataSet& data_set,
@@ -26,6 +27,7 @@ class Model {
       float* error);
 
  private:
+  bool logging_;
   std::shared_ptr<LayerStack> model_;
   std::shared_ptr<ErrorLayer> error_;
 };

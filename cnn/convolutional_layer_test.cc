@@ -682,7 +682,7 @@ TEST(ConvolutionalLayerTest, TrainTest) {
 
   // 3. Test training the model:
   std::vector<float> training_error;
-  Model model(stack);
+  Model model(stack, true);
   model.Train(training_ds, 100, 0.1, &training_error);
 
   float test_error;
