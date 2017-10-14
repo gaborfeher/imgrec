@@ -154,7 +154,38 @@ TEST(SmallMatrixTest, ZeroInit) {
   EXPECT_EQ(2, a.cols());
 }
 
-TEST(SmallMatrixTest, Padding) {
+TEST(SmallMatrixTest, AddPadding) {
+  DeviceMatrix a(3, 4, 2, (float[]) {
+      1, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6});
+  EXPECT_EQ(3, a.rows());
+  EXPECT_EQ(4, a.cols());
+  EXPECT_EQ(2, a.depth());
+  DeviceMatrix ap(a.AddConstRow(4.2f));
+  EXPECT_EQ(4, ap.rows());
+  EXPECT_EQ(4, ap.cols());
+  EXPECT_EQ(2, ap.depth());
+  EXPECT_EQ(
+      (std::vector<float> {
+          1, 1, 2, 2,
+          3, 3, 4, 4,
+          5, 5, 6, 6,
+          4.2, 4.2, 4.2, 4.2,
+
+          1.1, 1.1, 2.2, 2.2,
+          3.3, 3.3, 4.4, 4.4,
+          5.5, 5.5, 6.6, 6.6,
+          4.2, 4.2, 4.2, 4.2,
+      }),
+      ap.GetVector());
+}
+
+TEST(SmallMatrixTest, AddConstRow) {
   DeviceMatrix a(3, 4, 2, (float[]) {
       1, 1, 2, 2,
       3, 3, 4, 4,
@@ -189,6 +220,33 @@ TEST(SmallMatrixTest, Padding) {
           0,   0,   0,   0,   0, 0,
       }),
       ap.GetVector());
+}
+
+TEST(SmallMatrixTest, ReduceSize) {
+  DeviceMatrix a(3, 4, 2, (float[]) {
+      1, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6});
+  EXPECT_EQ(3, a.rows());
+  EXPECT_EQ(4, a.cols());
+  EXPECT_EQ(2, a.depth());
+  DeviceMatrix ar(a.ReduceSize(2, 3, 2));
+  EXPECT_EQ(2, ar.rows());
+  EXPECT_EQ(3, ar.cols());
+  EXPECT_EQ(2, ar.depth());
+  EXPECT_EQ(
+      (std::vector<float> {
+          1, 1, 2,
+          3, 3, 4,
+
+          1.1, 1.1, 2.2,
+          3.3, 3.3, 4.4,
+      }),
+      ar.GetVector());
 }
 
 TEST(SmallMatrixTest, Convolution) {

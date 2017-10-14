@@ -661,7 +661,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.0002, 200);  // Investigate why exactly 200.
+  ExpectMatrixEquals(a_grad, n_grad, 0.0002, 201);  // Investigate why exactly 200 + epsilon.
 }
 
 

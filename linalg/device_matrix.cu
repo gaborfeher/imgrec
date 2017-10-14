@@ -20,7 +20,8 @@ DeviceMatrix::DeviceMatrix() :
     rows_(0),
     cols_(0),
     depth_(0),
-    size_(0) {}
+    size_(0),
+    data_(NULL) {}
 
 std::shared_ptr<float> AllocateData(int size) {
   float* data;
@@ -118,6 +119,10 @@ void DeviceMatrix::AssertRows(int rows) const {
   assert(rows_ == rows);
 }
 
+void DeviceMatrix::AssertDepth(int depth) const {
+  assert(depth_ == depth);
+}
+
 __global__ void VecAdd(float* A, float* B, float* C) {
   int i = threadIdx.x;
   C[i] = A[i] + B[i];
@@ -208,7 +213,8 @@ __global__ void MatrixDotProd(
 }
 
 DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
-  assert(cols_ == other.rows_  && depth_ == 1);
+  assert(cols_ == other.rows_);
+  assert(depth_ == 1);
   int c_rows = rows_;
   int c_cols = other.cols_;
   DeviceMatrix result(c_rows, c_cols, 1);
@@ -475,6 +481,70 @@ DeviceMatrix DeviceMatrix::AddPadding(
       data_.get(), rows_, cols_, depth_,
       row_padding, col_padding,
       result.data_.get());
+  return result;
+}
+
+__global__ void MatrixConstRow(
+    float* A,
+    int rows, int cols, int depth,
+    float value,
+    float* B) {
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+  int k = threadIdx.z;
+
+  int b_index = Dim3toDim1(i, j, k, rows + 1, cols, depth);
+  if (i < rows) {
+    int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
+    B[b_index] = A[a_index];
+  } else {
+    B[b_index] = value;
+  }
+}
+
+DeviceMatrix DeviceMatrix::AddConstRow(float value) const {
+  DeviceMatrix result(
+      rows_ + 1,
+      cols_,
+      depth_);  // filled with zeros
+
+  dim3 grid(1, 1, 1);
+  dim3 threads(rows_ + 1, cols_, depth_);
+  MatrixConstRow<<<grid, threads>>>(
+      data_.get(),
+      rows_, cols_, depth_,
+      value,
+      result.data_.get());
+  return result;
+}
+
+__global__ void MatrixReduceSize(
+    float* A,
+    int a_rows, int a_cols, int a_depth,
+    float* B,
+    int b_rows, int b_cols, int b_depth) {
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+  int k = threadIdx.z;
+
+  int a_index = Dim3toDim1(i, j, k, a_rows, a_cols, a_depth);
+  int b_index = Dim3toDim1(i, j, k, b_rows, b_cols, b_depth);
+  B[b_index] = A[a_index];
+}
+
+DeviceMatrix DeviceMatrix::ReduceSize(int rows, int cols, int depth) const {
+  assert(rows <= rows_);
+  assert(cols <= cols_);
+  assert(depth <= depth_);
+  DeviceMatrix result(rows, cols, depth);
+
+  dim3 grid(1, 1, 1);
+  dim3 threads(rows, cols, depth);
+  MatrixReduceSize<<<grid, threads>>>(
+      data_.get(),
+      rows_, cols_, depth_,
+      result.data_.get(),
+      rows, cols, depth);
   return result;
 }
 

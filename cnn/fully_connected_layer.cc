@@ -19,22 +19,42 @@ std::vector<float> GetRandomVector(int size, int seed) {
 
 
 FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size, int random_seed) :
-    input_size_(input_size),
-    output_size_(output_size),
-    weights_(output_size, input_size, 1, GetRandomVector(output_size * input_size, random_seed)),
-    weights_gradients_(output_size, input_size, 1) {
+    bias_trick_(true),
+    output_size_(output_size) {
+  if (bias_trick_) {
+    input_size_ = input_size + 1;
+  } else {
+    input_size_ = input_size;
+  }
+  weights_ = DeviceMatrix(
+      output_size,
+      input_size_,
+      1,
+      GetRandomVector(output_size * input_size_, random_seed));
+  weights_gradients_ = DeviceMatrix(output_size, input_size_, 1);
 }
 
 void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
-  input.AssertRows(input_size_);
-  input_ = input;
-  output_ = weights_.Dot(input);
+  if (bias_trick_) {
+    input_ = input.AddConstRow(1.0);  // simulate bias vector by this (aka. the bias trick)
+  } else {
+    input_ = input;
+  }
+  input_.AssertRows(input_size_);
+  input_.AssertDepth(1);
+  output_ = weights_.Dot(input_);
 }
 
 void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradients) {
   output_gradients.AssertRows(output_size_);
   weights_gradients_ = output_gradients.Dot(input_.T());
-  input_gradients_ = weights_.T().Dot(output_gradients);
+  input_gradients_ = weights_
+      .T()
+      .Dot(output_gradients);
+  if (bias_trick_) {
+    input_gradients_ = input_gradients_
+      .ReduceSize(input_.rows() - 1, input_.cols(), 1);
+  }
 }
 
 void FullyConnectedLayer::ApplyGradient(float learn_rate) {

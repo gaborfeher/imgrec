@@ -46,6 +46,10 @@ class DeviceMatrix {
   DeviceMatrix Dot(const DeviceMatrix&) const;
   DeviceMatrix Map(::matrix_mappers::MapperFunc map) const;
   DeviceMatrix AddPadding(int row_padding, int col_padding) const;
+  // Adds a constant row att the bottom of each layer.
+  DeviceMatrix AddConstRow(float value) const;
+  // It can drop last rows, last cols or last layers.
+  DeviceMatrix ReduceSize(int rows, int cols, int depth) const;
   DeviceMatrix ReshapeToColumns(int unit_depth) const;
   DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
   // Assuming that the matrix has n images, k layers each,
@@ -66,12 +70,14 @@ class DeviceMatrix {
   void Fill(float value);
 
   DeviceMatrix DeepCopy() const;
+
   float GetValue(int row, int col, int depth) const;
   void SetValue(int row, int col, int depth, float value);
 
   void AssertDimensions(int rows, int cols, int depth) const;
   void AssertSameDimensions(const DeviceMatrix& other) const;
   void AssertRows(int rows) const;
+  void AssertDepth(int depth) const;
 
   // Shallow-copy is supported by the compiler-generated
   // copy constructor and assignment operator.
