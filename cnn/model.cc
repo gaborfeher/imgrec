@@ -18,15 +18,19 @@ void Model::Train(
     float rate,
     std::vector<float>* error_hist) {
   for (int i = 0; i < epochs; ++i) {
+    float total_error = 0.0f;
     for (int j = 0; j < data_set.NumBatches(); ++j) {
       error_->SetExpectedValue(data_set.GetBatchOutput(j));
       model_->Forward(data_set.GetBatchInput(j));
-      error_hist->push_back(error_->GetError());
       DeviceMatrix dummy;
       model_->Backward(dummy);
       model_->ApplyGradient(rate);
+      total_error += error_->GetError();
       // std::cout << "epoch " << i << " batch " << j << " error= " << error_->GetError() << std::endl;
     }
+    float avg_error = total_error / data_set.NumBatches();
+    error_hist->push_back(avg_error);
+    // std::cout << "epoch " << i << " error= " << avg_error << std::endl;
   }
 }
 
