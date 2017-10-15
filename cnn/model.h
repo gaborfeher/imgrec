@@ -23,9 +23,9 @@ class Model {
       float regularization_lambda,
       std::vector<float>* error_hist);
   void Evaluate(
-      const DeviceMatrix& test_x,
-      const DeviceMatrix& test_y,
-      float* error);
+      const DataSet& data_set,
+      float* error,
+      float* accuracy);
 
  private:
   bool logging_;

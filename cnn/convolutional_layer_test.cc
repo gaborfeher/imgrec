@@ -748,24 +748,21 @@ TEST(ConvolutionalLayerTest, TrainTest) {
 
   // 3. Test training the model:
   std::vector<float> training_error;
-  Model model(stack, false);
+  Model model(stack, true);
   model.Train(
       training_ds,
-      1,  // epochs
+      10,  // epochs
       0.2,  // learn_rate
       0.0001,  // regularization
       &training_error);
 
   float test_error;
-  model.Evaluate(
-      test_ds.GetBatchInput(0),
-      test_ds.GetBatchOutput(0),
-      &test_error);
-  EXPECT_LT(test_error, 0.001);
-  // stack->GetLayer<Layer>(-2)->output().Print();
-  // training_y.Print();
-  // conv_layer->filters_.Print();
-  // conv_layer->biases_.Print();
-  // stack->GetLayer<FullyConnectedLayer>(-3)->weights_.Print();
+  float test_accuracy;
+  model.Evaluate(test_ds, &test_error, &test_accuracy);
+  EXPECT_LT(test_error, 0.01);
+  EXPECT_FLOAT_EQ(1.0, test_accuracy);
+
+//  conv_layer->filters_.Print();
+//  conv_layer->biases_.Print();
 }
 

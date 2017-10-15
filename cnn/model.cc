@@ -52,10 +52,23 @@ void Model::Train(
 }
 
 void Model::Evaluate(
-    const DeviceMatrix& test_x,
-    const DeviceMatrix& test_y,
-    float* error) {
-  error_->SetExpectedValue(test_y);
-  model_->Forward(test_x);
-  *error = error_->GetError();
+    const DataSet& data_set,
+    float* error,
+    float* accuracy) {
+  float total_error = 0.0f;
+  float total_accuracy = 0.0f;
+  for (int j = 0; j < data_set.NumBatches(); ++j) {
+    error_->SetExpectedValue(data_set.GetBatchOutput(j));
+    model_->Forward(data_set.GetBatchInput(j));
+    total_error += error_->GetError();
+    total_accuracy += error_->GetAccuracy();
+  }
+  *error = total_error / data_set.NumBatches();
+  *accuracy = total_accuracy / data_set.NumBatches();
+  if (logging_) {
+    std::cout << "evaluation "
+        << " error= " << *error
+        << " accuracy= " << 100.0 * *accuracy << "%"
+        << std::endl;
+  }
 }

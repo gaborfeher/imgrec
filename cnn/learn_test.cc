@@ -82,7 +82,11 @@ TEST(LearnTest, FullyConnectedTrain) {
   //   std::cout << "Training error= " << err << std::endl;
   // }
   float test_error;
-  model.Evaluate(test_x, test_y, &test_error);
+  float test_accuracy;
+  model.Evaluate(
+      InMemoryDataSet(test_x, test_y),
+      &test_error,
+      &test_accuracy);
   EXPECT_LT(test_error, 0.0001);
 }
 
