@@ -555,7 +555,7 @@ void Copy3x3VectorBlock(
   for (int layer = 0; layer < 2; ++layer) {
     for (int row = 0; row < 3; ++row) {
       for (int col = 0; col < 3; ++col) {
-        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = src[layer * 3 * 3 + row * 3 + col];
+        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = 2 * src[layer * 3 * 3 + row * 3 + col] - 1;
       }
     }
   }
@@ -603,7 +603,7 @@ void CreateTestCase2(
     std::vector<float> x;
     std::vector<float> y;
 
-    std::uniform_int_distribution<> dist01(0, 1);
+    std::uniform_int_distribution<> dist01(-1, 1);
     std::uniform_int_distribution<> dist3(0, 2);
     std::uniform_int_distribution<> dist4(0, 3);
     for (int i = 0; i < num_samples_per_batch; ++i) {
