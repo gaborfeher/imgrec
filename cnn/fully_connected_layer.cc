@@ -60,3 +60,8 @@ void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradients) {
 void FullyConnectedLayer::ApplyGradient(float learn_rate) {
   weights_ = weights_.Add(weights_gradients_.Multiply(-learn_rate));
 }
+
+void FullyConnectedLayer::Regularize(float lambda) {
+  // In case of bias_trick_, the biases are also regularized.
+  weights_ = weights_.Multiply(1.0 - lambda);
+}

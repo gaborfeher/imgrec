@@ -21,7 +21,6 @@ class NonlinearityLayer : public Layer {
   NonlinearityLayer(::activation_functions::ActivationFunc activation);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients);
-  virtual void ApplyGradient(float learn_rate);
  private:
   ::matrix_mappers::MapperFunc activation_function_;
   ::matrix_mappers::MapperFunc activation_function_gradient_;

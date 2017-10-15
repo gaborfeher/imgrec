@@ -112,3 +112,7 @@ void ConvolutionalLayer::ApplyGradient(float learn_rate) {
   filters_ = filters_.Add(filters_gradient_.Multiply(-learn_rate));
   biases_ = biases_.Add(biases_gradient_.Multiply(-learn_rate));
 }
+
+void ConvolutionalLayer::Regularize(float lambda) {
+  filters_ = filters_.Multiply(1.0 - lambda);
+}

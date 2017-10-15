@@ -22,17 +22,19 @@ Model::Model(std::shared_ptr<LayerStack> model, bool logging) :
 void Model::Train(
     const DataSet& data_set,
     int epochs,
-    float rate,
+    float learn_rate,
+    float regularization_lambda,
     std::vector<float>* error_hist) {
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     for (int j = 0; j < data_set.NumBatches(); ++j) {
       error_->SetExpectedValue(data_set.GetBatchOutput(j));
       model_->Forward(data_set.GetBatchInput(j));
+      total_error += error_->GetError();
       DeviceMatrix dummy;
       model_->Backward(dummy);
-      model_->ApplyGradient(rate);
-      total_error += error_->GetError();
+      model_->ApplyGradient(learn_rate);
+      model_->Regularize(regularization_lambda);
       // std::cout << "epoch " << i << " batch " << j << " error= " << error_->GetError() << std::endl;
     }
     float avg_error = total_error / data_set.NumBatches();

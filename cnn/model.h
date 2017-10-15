@@ -19,7 +19,8 @@ class Model {
   void Train(
       const DataSet& data_set,
       int epochs,
-      float rate,
+      float learn_rate,
+      float regularization_lambda,
       std::vector<float>* error_hist);
   void Evaluate(
       const DeviceMatrix& test_x,

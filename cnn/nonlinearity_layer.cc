@@ -38,4 +38,3 @@ void NonlinearityLayer::Backward(const DeviceMatrix& output_gradients) {
       .ElementwiseMultiply(output_gradients);
 }
 
-void NonlinearityLayer::ApplyGradient(float) {}

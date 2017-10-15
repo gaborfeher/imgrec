@@ -27,3 +27,9 @@ void LayerStack::ApplyGradient(float learn_rate) {
     layer->ApplyGradient(learn_rate);
   }
 }
+
+void LayerStack::Regularize(float lambda) {
+  for (std::shared_ptr<Layer> layer : layers_) {
+    layer->Regularize(lambda);
+  }
+}

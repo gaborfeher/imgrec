@@ -738,7 +738,7 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   // TODO: figure out reason for limit on batch size
   //   (floating-point precision limit or CUDA matrix size limit?)
   CreateTestCase2(10, 20, 142, &training_ds);
-  CreateTestCase2(1, 20, 143, &test_ds);
+  CreateTestCase2(1, 10, 143, &test_ds);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
@@ -748,8 +748,13 @@ TEST(ConvolutionalLayerTest, TrainTest) {
 
   // 3. Test training the model:
   std::vector<float> training_error;
-  Model model(stack, true);
-  model.Train(training_ds, 1, 0.1, &training_error);
+  Model model(stack, false);
+  model.Train(
+      training_ds,
+      1,  // epochs
+      0.2,  // learn_rate
+      0.0001,  // regularization
+      &training_error);
 
   float test_error;
   model.Evaluate(
@@ -760,5 +765,7 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   // stack->GetLayer<Layer>(-2)->output().Print();
   // training_y.Print();
   // conv_layer->filters_.Print();
+  // conv_layer->biases_.Print();
+  // stack->GetLayer<FullyConnectedLayer>(-3)->weights_.Print();
 }
 

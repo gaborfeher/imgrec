@@ -76,6 +76,7 @@ TEST(LearnTest, FullyConnectedTrain) {
       InMemoryDataSet(training_x, training_y),
       100,
       5,
+      0,
       &training_error);
   // for (float err: training_error) {
   //   std::cout << "Training error= " << err << std::endl;

@@ -20,6 +20,7 @@ class LayerStack : public Layer {
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients);
   virtual void ApplyGradient(float learn_rate);
+  virtual void Regularize(float lambda);
 
   virtual DeviceMatrix output() {
     return layers_.back()->output();

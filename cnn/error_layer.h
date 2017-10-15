@@ -6,7 +6,6 @@
 class ErrorLayer : public Layer {
  public:
   ErrorLayer();
-  virtual void ApplyGradient(float learn_rate);
   virtual float GetError() const;
   virtual void SetExpectedValue(const DeviceMatrix& expected_value) = 0;
 

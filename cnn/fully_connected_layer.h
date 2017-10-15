@@ -11,10 +11,12 @@ class FullyConnectedLayer : public Layer {
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
   virtual void ApplyGradient(float learn_rate);
+  virtual void Regularize(float lambda);
 
  private:
   FRIEND_TEST(LearnTest, FullyConnectedLayerWeightGradient);
   FRIEND_TEST(LearnTest, FullyConnectedLayerInputGradient);
+  FRIEND_TEST(ConvolutionalLayerTest, TrainTest);
 
   bool bias_trick_;
   int input_size_;
