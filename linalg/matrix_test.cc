@@ -136,7 +136,7 @@ TEST(SmallMatrixTest, NumMatches) {
       0.9, 1.4, -2.0, 1.0,
   });
   DeviceMatrix y(1, 4, 1, (float[]) {2.0, 1.0, 1.0, 0.0});
-  EXPECT_FLOAT_EQ(1.0f, wx.NumMatches(y));
+  EXPECT_FLOAT_EQ(2.0f, wx.NumMatches(y));
 }
 
 TEST(SmallMatrixTest, Fill) {

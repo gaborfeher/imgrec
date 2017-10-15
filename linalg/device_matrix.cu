@@ -2,6 +2,7 @@
 
 #include <cassert>  // TODO: release-mode assert
 #include <iostream>
+#include <iomanip>
 #include <math.h>
 
 #include <cuda_runtime.h>
@@ -90,6 +91,7 @@ std::vector<float> DeviceMatrix::GetVector() const {
 }
 
 void DeviceMatrix::Print() const {
+  std::cout << std::fixed << std::setw( 6 ) << std::setprecision( 4 );
   std::shared_ptr<float> host_data(get_host_data());
   std::cout << "Matrix " 
       << rows_ << "x"
@@ -474,7 +476,7 @@ __global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float*
   // Get max value from column.
   bool unique = true;
   float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-  for (int i = 0; i < a_rows; i++) {
+  for (int i = 1; i < a_rows; i++) {
     float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
     if (val > max_val) {
       max_val = val;
