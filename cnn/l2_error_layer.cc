@@ -26,3 +26,6 @@ void L2ErrorLayer::Backward(const DeviceMatrix& output_gradient) {
       .Multiply(multiplier);
 }
 
+float L2ErrorLayer::GetAccuracy() const {
+  return -1.0;  // TODO
+}

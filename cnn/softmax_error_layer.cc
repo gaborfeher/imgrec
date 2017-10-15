@@ -19,3 +19,6 @@ void SoftmaxErrorLayer::Backward(const DeviceMatrix& output_gradient) {
   input_gradients_ = input_.SoftmaxGradient(expected_value_);
 }
 
+float SoftmaxErrorLayer::GetAccuracy() const {
+  return input_.NumMatches(expected_value_) / expected_value_.cols();
+}

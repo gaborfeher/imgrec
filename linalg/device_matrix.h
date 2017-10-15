@@ -38,6 +38,7 @@ class DeviceMatrix {
   DeviceMatrix Multiply(float) const;
   float Softmax(const DeviceMatrix& expected_class) const;
   DeviceMatrix SoftmaxGradient(const DeviceMatrix& expected_class) const;
+  float NumMatches(const DeviceMatrix& expected_class) const;
 
   float L2() const;
   float Sum() const;

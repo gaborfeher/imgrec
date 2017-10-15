@@ -468,6 +468,52 @@ DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) c
   return result.Multiply(1.0f / cols_);
 }
 
+__global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float* C) {
+  int col = threadIdx.x;
+
+  // Get max value from column.
+  bool unique = true;
+  float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
+  for (int i = 0; i < a_rows; i++) {
+    float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
+    if (val > max_val) {
+      max_val = val;
+      unique = true;
+    } else if (val == max_val) {
+      unique = false;
+    }
+  }
+
+  if (unique) {
+    int expected_class = static_cast<int>(B[col]);
+    float expected_class_score = A[Dim3toDim1(expected_class, col, 0, a_rows, a_cols, 1)];
+    if (expected_class_score == max_val) {
+      C[col] = 1.0f;
+    } else {
+      C[col] = 0.0f;
+    }
+  } else {
+    C[col] = 0.0f;
+  }
+}
+
+float DeviceMatrix::NumMatches(const DeviceMatrix& expected_class) const {
+  assert(depth_ == 1);
+  // rows_ = number of classes
+  // cols_ = number of samples (we run the same algorithm for each sample)
+  assert(expected_class.rows_ == 1);
+  assert(expected_class.cols_ == cols_);
+  assert(expected_class.depth_ == 1);
+
+  DeviceMatrix result(1, cols_, 1);
+  VecNumMatches<<<1, cols_>>>(
+      data_.get(), rows_, cols_,
+      expected_class.data_.get(),
+      result.data_.get());
+  return result.Sum();
+}
+
+
 __global__ void VecFill(float value, float* A) {
   int i = threadIdx.x;
   A[i] = value;

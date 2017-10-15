@@ -129,6 +129,16 @@ TEST(SmallMatrixTest, Softmax2) {
   EXPECT_NEAR((1.0402 + 3.4691) / 2.0, wx.Softmax(y), 0.0002);
 }
 
+TEST(SmallMatrixTest, NumMatches) {
+  DeviceMatrix wx(3, 4, 1, (float[]) {
+      -2.85, 2.0, 1.0, 3.0,
+      0.86, 1.4, -1.0, 2.0,
+      0.9, 1.4, -2.0, 1.0,
+  });
+  DeviceMatrix y(1, 4, 1, (float[]) {2.0, 1.0, 1.0, 0.0});
+  EXPECT_FLOAT_EQ(1.0f, wx.NumMatches(y));
+}
+
 TEST(SmallMatrixTest, Fill) {
   DeviceMatrix a(2, 2, 1, (float[]){1, 1, 2, 0.5});
   a.Fill(4.2);

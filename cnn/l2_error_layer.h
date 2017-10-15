@@ -9,7 +9,8 @@ class L2ErrorLayer : public ErrorLayer {
   L2ErrorLayer();
   virtual void SetExpectedValue(const DeviceMatrix& expected_value);
   virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradients); 
+  virtual void Backward(const DeviceMatrix& output_gradients);
+  virtual float GetAccuracy() const;
 
  private:
   DeviceMatrix expected_value_;
