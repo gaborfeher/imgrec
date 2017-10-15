@@ -638,12 +638,11 @@ void CreateTestCase2(
 
 
 std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
-
-  // The estimation of gradient of LReLU functions is bound to be
+  // The numerical estimation of gradient of LReLU functions is going to be
   // broken around the zero point. Therefore we need to carefully
-  // select the neural network weights here to avoid that. (The
-  // ranomd seeds for the weights are specified in this function,
-  // and they are used to control this.)
+  // select the neural network weights here to avoid those cases, so that
+  // IntegratedGradientTest can pass. (We are using the random seeds for
+  // the weights to achieve that.)
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   stack->AddLayer(
@@ -653,8 +652,14 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
           52));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 3, 45));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2, 45));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
+
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 4, 46));
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(4, 3, 47));
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
+
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
   return stack;
 }
@@ -730,15 +735,14 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   ExpectMatrixEquals(a_grad, n_grad, 0.0002, 201);  // Investigate why exactly 200 + epsilon.
 }
 
-
 TEST(ConvolutionalLayerTest, TrainTest) {
   InMemoryDataSet training_ds;
   InMemoryDataSet test_ds;
 
   // TODO: figure out reason for limit on batch size
   //   (floating-point precision limit or CUDA matrix size limit?)
-  CreateTestCase2(10, 20, 142, &training_ds);
-  CreateTestCase2(1, 10, 143, &test_ds);
+  CreateTestCase2(1000, 20, 142, &training_ds);
+  CreateTestCase2(10, 20, 143, &test_ds);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
