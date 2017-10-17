@@ -84,6 +84,7 @@ class DeviceMatrix {
       const DeviceMatrix& biases) const;
 
   void Fill(float value);
+  void FillColumn(int col, float value);
 
   template <class Distribution>
   void RandomFill(Random* random, const Distribution& distribution) {

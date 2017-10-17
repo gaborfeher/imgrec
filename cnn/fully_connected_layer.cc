@@ -19,8 +19,17 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
 }
 
 void FullyConnectedLayer::Initialize(Random* random) {
-  std::uniform_real_distribution<> dist(-1, 1);
+  // http://cs231n.github.io/neural-networks-2/#init
+  int n = input_size_;
+  if (bias_trick_) {
+    n -= 1;
+  }
+  float variance = 2.0f / input_size_;
+  std::normal_distribution<float> dist(0, sqrt(variance));
   weights_.RandomFill(random, &dist);
+  if (bias_trick_) {
+    weights_.FillColumn(input_size_ - 1, 0.0f);  // reset biases to zero
+  }
 }
 
 void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
@@ -51,6 +60,12 @@ void FullyConnectedLayer::ApplyGradient(float learn_rate) {
 }
 
 void FullyConnectedLayer::Regularize(float lambda) {
-  // In case of bias_trick_, the biases are also regularized.
-  weights_ = weights_.Multiply(1.0 - lambda);
+  if (bias_trick_) {
+    DeviceMatrix regularizer(weights_.rows(), weights_.cols(), 1);
+    regularizer.Fill(1.0 - lambda);
+    regularizer.FillColumn(regularizer.cols() - 1, 1.0f);
+    weights_ = weights_.ElementwiseMultiply(regularizer);
+  } else {
+    weights_ = weights_.Multiply(1.0 - lambda);
+  }
 }

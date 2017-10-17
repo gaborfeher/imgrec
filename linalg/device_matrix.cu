@@ -529,6 +529,18 @@ void DeviceMatrix::Fill(float value) {
   VecFill<<<1, size_>>>(value, data_.get());
 }
 
+__global__ void VecFillColumn(float value, int col, float* A, int rows, int cols, int depth) {
+  int i = threadIdx.x;
+  for (int j = 0; j < depth; ++j) { // FIXME
+    A[Dim3toDim1(i, col, j, rows, cols, depth)] = value;
+  }
+}
+
+void DeviceMatrix::FillColumn(int col, float value) {
+  assert(col >= 0 && col < cols_);
+  VecFillColumn<<<1, rows_>>>(value, col, data_.get(), rows_, cols_, depth_);
+}
+
 __global__ void MatrixPadding(
     float* A,
     int rows, int cols, int depth,

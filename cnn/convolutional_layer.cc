@@ -22,9 +22,12 @@ ConvolutionalLayer::ConvolutionalLayer(
 }
 
 void ConvolutionalLayer::Initialize(Random* random) {
-  std::uniform_real_distribution<> dist(-1, 1);
+  // http://cs231n.github.io/neural-networks-2/#init
+  // https://stats.stackexchange.com/questions/198840/cnn-xavier-weight-initialization
+  float variance = 2.0f / (filters_.rows() * filters_.cols() * layers_per_image_);
+  std::normal_distribution<float> dist(0, sqrt(variance));
   filters_.RandomFill(random, &dist);
-  biases_.RandomFill(random, &dist);
+  biases_.Fill(0);
 }
 
 void ConvolutionalLayer::Forward(const DeviceMatrix& input) {

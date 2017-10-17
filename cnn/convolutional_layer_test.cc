@@ -640,9 +640,9 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 4));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 10));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(4, 3));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(10, 3));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
@@ -743,8 +743,8 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   model.Train(
       training_ds,
       10,  // epochs
-      0.3,  // learn_rate
-      0.001,  // regularization
+      0.2,  // learn_rate
+      0.002,  // regularization
       &training_error);
 
   float test_error;
@@ -755,5 +755,8 @@ TEST(ConvolutionalLayerTest, TrainTest) {
 
   // conv_layer->filters_.Print();
   // conv_layer->biases_.Print();
+  // stack->GetLayer<FullyConnectedLayer>(-7)->weights_.Print();
+  // stack->GetLayer<FullyConnectedLayer>(-5)->weights_.Print();
+  // stack->GetLayer<FullyConnectedLayer>(-3)->weights_.Print();
 }
 
