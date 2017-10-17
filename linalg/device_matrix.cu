@@ -384,7 +384,7 @@ __global__ void VecSoftmax(float* A, int a_rows, int a_cols, float* B, float* C)
   // Get max value from column. Needed for numerical stability, see
   // http://cs231n.github.io/linear-classify/#softmax
   float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-  for (int i = 0; i < a_rows; i++) {
+  for (int i = 1; i < a_rows; i++) {
     float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
     if (val > max_val) {
       max_val = val;
@@ -427,7 +427,7 @@ __global__ void VecSoftmaxGradient(float* A, int a_rows, int a_cols, float* B, f
   int col = threadIdx.x;
 
   float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-  for (int i = 0; i < a_rows; i++) {
+  for (int i = 1; i < a_rows; i++) {
     int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
     float val = A[index];
     if (val > max_val) {
