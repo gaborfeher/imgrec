@@ -4,34 +4,27 @@
 #include <random>
 #include <iostream>
 
-// TODO: clean up dup
-std::vector<float> GetRandomVector2(int size, int seed) {
-  std::mt19937 rnd(seed);
-  std::uniform_real_distribution<> dist(-1, 1);
-
-  // TODO: use Xavier-initialization
-  std::vector<float> result;
-  result.reserve(size);
-  for (int i = 0; i < size; ++i) {
-    result.push_back(dist(rnd));
-  }
-  return result;
-}
+#include "util/random.h"
 
 ConvolutionalLayer::ConvolutionalLayer(
     int num_filters, int filter_rows, int filter_cols,
-    int padding, int layers_per_image, int stride,
-    int random_seed) :
+    int padding, int layers_per_image, int stride) :
         padding_(padding),
         layers_per_image_(layers_per_image),
         stride_(stride),
-        filters_(filter_rows, filter_cols, num_filters * layers_per_image, GetRandomVector2(filter_rows * filter_cols * num_filters * layers_per_image, random_seed)),
+        filters_(filter_rows, filter_cols, num_filters * layers_per_image),
         filters_gradient_(filter_rows, filter_cols, num_filters * layers_per_image),
-        biases_(1, 1, num_filters, GetRandomVector2(num_filters, random_seed + 1 /* TODO */)),
+        biases_(1, 1, num_filters),
         biases_gradient_(1, 1, num_filters)
 {
   assert(stride_ == 1);  // Backprop doesn't support other values uet.
   assert(padding_ == 0);  // Backprop doesn't support other values yet.
+}
+
+void ConvolutionalLayer::Initialize(Random* random) {
+  std::uniform_real_distribution<> dist(-1, 1);
+  filters_.RandomFill(random, &dist);
+  biases_.RandomFill(random, &dist);
 }
 
 void ConvolutionalLayer::Forward(const DeviceMatrix& input) {

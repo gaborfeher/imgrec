@@ -53,8 +53,7 @@ DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, const std::vector<floa
     cols_(cols),
     depth_(depth),
     size_(rows * cols * depth) {
-  assert(data.size() == size_);
-  data_ = ImportData(size_, &data[0]);
+  SetVector(data);
 }
 
 DeviceMatrix::DeviceMatrix(int rows, int cols, int depth) :
@@ -75,6 +74,11 @@ std::shared_ptr<float> DeviceMatrix::get_host_data() const {
       size_ * sizeof(float),
       cudaMemcpyDeviceToHost);
   return host_data;
+}
+
+void DeviceMatrix::SetVector(const std::vector<float>& data) {
+  assert(data.size() == size_);
+  data_ = ImportData(size_, &data[0]);
 }
 
 std::vector<float> DeviceMatrix::GetVector() const {

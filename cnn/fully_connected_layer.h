@@ -5,9 +5,12 @@
 #include "gtest/gtest_prod.h"
 #include "linalg/device_matrix.h"
 
+class Random;
+
 class FullyConnectedLayer : public Layer {
  public:
-  FullyConnectedLayer(int input_size, int output_size, int random_seed);
+  FullyConnectedLayer(int input_size, int output_size);
+  virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
   virtual void ApplyGradient(float learn_rate);

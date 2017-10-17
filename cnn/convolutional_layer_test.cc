@@ -142,8 +142,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
       biases,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 1, 1,
-          42));
+          0, 1, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
@@ -169,8 +168,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
       biases,
       std::make_shared<ConvolutionalLayer>(
           1, 2, 2,
-          0, 1, 1,
-          42));
+          0, 1, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
@@ -198,8 +196,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
       biases,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
-          0, 1, 1,
-          42));
+          0, 1, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
@@ -231,8 +228,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
       biases,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 2, 1,
-          42));
+          0, 2, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
@@ -271,8 +267,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
       biases,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 2, 1,
-          42));
+          0, 2, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
@@ -328,8 +323,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
       biases,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
-          0, 3, 1,
-          63));
+          0, 3, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
@@ -397,8 +391,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
       biases,
       std::make_shared<ConvolutionalLayer>(
           2, 3, 2,
-          0, 3, 1,
-          42));
+          0, 3, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
@@ -458,8 +451,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
       biases,
       std::make_shared<ConvolutionalLayer>(
           3, 2, 2,
-          0, 2, 1,
-          42));
+          0, 2, 1));
 }
 
 // For convolutional
@@ -638,26 +630,19 @@ void CreateTestCase2(
 
 
 std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
-  // The numerical estimation of gradient of LReLU functions is going to be
-  // broken around the zero point. Therefore we need to carefully
-  // select the neural network weights here to avoid those cases, so that
-  // IntegratedGradientTest can pass. (We are using the random seeds for
-  // the weights to achieve that.)
-
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   stack->AddLayer(
       std::make_shared<ConvolutionalLayer>(
           2, 3, 3,
-          0, 2, 1,
-          52));
+          0, 2, 1));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2, 45));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 4, 46));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 4));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(4, 3, 47));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(4, 3));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
@@ -670,6 +655,8 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   CreateTestCase1(&training_x, &training_y);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
+  Random random(44);
+  stack->Initialize(&random);  // Note: the initialization of the convolutional layer will be overridden, but this is needed for the fully connected layer.
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(-1);
@@ -752,12 +739,12 @@ TEST(ConvolutionalLayerTest, TrainTest) {
 
   // 3. Test training the model:
   std::vector<float> training_error;
-  Model model(stack, true);
+  Model model(stack, 41, true);
   model.Train(
       training_ds,
       10,  // epochs
-      0.2,  // learn_rate
-      0.0001,  // regularization
+      0.3,  // learn_rate
+      0.001,  // regularization
       &training_error);
 
   float test_error;
@@ -766,7 +753,7 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
 
-//  conv_layer->filters_.Print();
-//  conv_layer->biases_.Print();
+  // conv_layer->filters_.Print();
+  // conv_layer->biases_.Print();
 }
 

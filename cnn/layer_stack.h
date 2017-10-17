@@ -6,6 +6,8 @@
 
 #include "cnn/layer.h"
 
+class Random;
+
 class LayerStack : public Layer {
  public:
   LayerStack();
@@ -17,6 +19,7 @@ class LayerStack : public Layer {
     id = id % layers_.size();
     return std::dynamic_pointer_cast<T>(layers_[id]);
   }
+  virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients);
   virtual void ApplyGradient(float learn_rate);

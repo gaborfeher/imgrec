@@ -6,6 +6,8 @@
 #include "cnn/layer.h"
 #include "linalg/device_matrix.h"
 
+class Random;
+
 class ConvolutionalLayer : public Layer {
  public:
   ConvolutionalLayer(
@@ -14,8 +16,8 @@ class ConvolutionalLayer : public Layer {
       int filter_height,
       int padding,
       int layers_per_image,
-      int stride,
-      int random_seed);
+      int stride);
+  virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);

@@ -6,17 +6,25 @@
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/model.h"
+#include "util/random.h"
 
-Model::Model(std::shared_ptr<LayerStack> model) :
+void Initialize(std::shared_ptr<LayerStack> model, int random_seed) {
+  Random random(random_seed);
+  model->Initialize(&random);
+}
+
+Model::Model(std::shared_ptr<LayerStack> model, int random_seed) :
     logging_(false),
     model_(model),
     error_(model->GetLayer<ErrorLayer>(-1)) {
+  Initialize(model, random_seed);
 }
 
-Model::Model(std::shared_ptr<LayerStack> model, bool logging) :
+Model::Model(std::shared_ptr<LayerStack> model, int random_seed, bool logging) :
     logging_(logging),
     model_(model),
     error_(model->GetLayer<ErrorLayer>(-1)) {
+  Initialize(model, random_seed);
 }
 
 void Model::Train(

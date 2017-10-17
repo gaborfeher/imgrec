@@ -1,9 +1,17 @@
 #include "cnn/layer_stack.h"
 
+#include "util/random.h"
+
 LayerStack::LayerStack() {}
 
 void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);
+}
+
+void LayerStack::Initialize(Random* random) {
+  for (std::shared_ptr<Layer> layer : layers_) {
+    layer->Initialize(random);
+  }
 }
 
 void LayerStack::Forward(const DeviceMatrix& input) {

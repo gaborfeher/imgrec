@@ -2,7 +2,10 @@
 #define _LINALG_DEVICE_MATRIX_H_
 
 #include <memory>
+#include <random>
 #include <vector>
+
+#include "util/random.h"
 
 namespace matrix_mappers {
 
@@ -31,6 +34,7 @@ class DeviceMatrix {
 
   std::shared_ptr<float> get_host_data() const;
   std::vector<float> GetVector() const;
+  void SetVector(const std::vector<float>& data);
   void Print() const;
 
   DeviceMatrix Add(const DeviceMatrix& other) const;
@@ -80,6 +84,16 @@ class DeviceMatrix {
       const DeviceMatrix& biases) const;
 
   void Fill(float value);
+
+  template <class Distribution>
+  void RandomFill(Random* random, const Distribution& distribution) {
+    std::vector<float> result;
+    result.reserve(size_);
+    for (int i = 0; i < size_; ++i) {
+      result.push_back(random->RandFloat(distribution));
+    }
+    SetVector(result);
+  }
 
   DeviceMatrix DeepCopy() const;
 

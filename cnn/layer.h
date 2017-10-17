@@ -3,11 +3,14 @@
 
 #include "linalg/device_matrix.h"
 
+class Random;
+
 class Layer {
  public:
   Layer();
   virtual ~Layer() {}
 
+  virtual void Initialize(Random* /* generator */) {};
   virtual void Forward(const DeviceMatrix& input) = 0;
   virtual void Backward(const DeviceMatrix& ouotput_gradients) = 0;
   virtual void ApplyGradient(float /* learn_rate */) {};

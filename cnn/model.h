@@ -9,12 +9,13 @@ class DeviceMatrix;
 class ErrorLayer;
 class Layer;
 class LayerStack;
+class Random;
 
 class Model {
  public:
   // The last layer of model is assumed to be an ErrorLayer.
-  Model(std::shared_ptr<LayerStack> model);
-  Model(std::shared_ptr<LayerStack> model, bool logging);
+  Model(std::shared_ptr<LayerStack> model, int random_seed);
+  Model(std::shared_ptr<LayerStack> model, int random_seed, bool logging);
 
   void Train(
       const DataSet& data_set,
