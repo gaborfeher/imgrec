@@ -6,7 +6,7 @@ CXX = clang++
 CPPFLAGS += -isystem $(GTEST_DIR)/include -I .
 CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11 -L$(CUDA_LIB)
 
-.PHONY: clean clean_all
+.PHONY: clean clean_all test
 
 clean:
 	rm -Rf bin
@@ -81,4 +81,6 @@ error_layer_test: bin/cnn/error_layer_test
 
 convolutional_layer_test: bin/cnn/convolutional_layer_test
 	$<
+
+test: matrix_test learn_test error_layer_test convolutional_layer_test
 
