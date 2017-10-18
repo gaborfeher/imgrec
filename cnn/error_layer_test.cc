@@ -6,6 +6,7 @@
 #include "cnn/layer_test_base.h"
 #include "cnn/softmax_error_layer.h"
 #include "linalg/device_matrix.h"
+#include "linalg/matrix_test_util.h"
 
 #include "gtest/gtest.h"
 

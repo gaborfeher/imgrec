@@ -52,6 +52,7 @@ void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
 void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradients) {
   output_gradients.AssertRows(output_size_);
   weights_gradients_ = output_gradients.Dot(input_.T());
+
   input_gradients_ = weights_
       .T()
       .Dot(output_gradients);

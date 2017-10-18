@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "linalg/device_matrix.h"
+#include "linalg/matrix_test_util.h"
 
 TEST(SmallMatrixTest, HostDeviceTransfer) {
   DeviceMatrix a(2, 2, 1, (float[]){1, 6, 7, 42});
@@ -616,4 +617,37 @@ TEST(SmallMatrixTest, SumLayers) {
   EXPECT_FLOAT_EQ(
       12 /* layer3 */ + 11 /* layer5 */,
       s.GetValue(0, 0, 2));
+}
+
+TEST(BigMatrixTest, DotProduct) {
+  DeviceMatrix a(11, 3, 1);
+  a.Fill(1.0f);
+  DeviceMatrix b(3, 200, 1);
+  b.Fill(2.0f);
+  DeviceMatrix c(a.Dot(b));
+  DeviceMatrix c_exp(11, 200, 1);
+  c_exp.Fill(6.0f);
+  ExpectMatrixEquals(c_exp, c);
+}
+
+TEST(BigMatrixTest, Fill) {
+  DeviceMatrix a(100, 100, 5);
+  a.Fill(42.0f);
+  for (int i = 0; i < 100; ++i) {
+    for (int j = 0; j < 100; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        EXPECT_FLOAT_EQ(42.0f, a.GetValue(i, j, k));
+      }
+    }
+  }
+}
+
+TEST(BigMatrixTest, ReLU) {
+  DeviceMatrix a(100, 100, 5);
+  a.Fill(2.0f);
+  DeviceMatrix b = a.Map(matrix_mappers::ReLU());
+
+  DeviceMatrix b_exp(100, 100, 5);
+  b_exp.Fill(2.0f);
+  ExpectMatrixEquals(b_exp, b);
 }

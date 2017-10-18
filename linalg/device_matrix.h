@@ -9,7 +9,7 @@
 
 namespace matrix_mappers {
 
-typedef void (*MapperFunc)(float* A, float* B);
+typedef void (*MapperFunc)(float* A, float* B, int size);
 
 MapperFunc Sigmoid();
 MapperFunc SigmoidGradient();

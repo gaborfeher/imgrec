@@ -12,6 +12,7 @@
 #include "cnn/model.h"
 #include "cnn/nonlinearity_layer.h"
 #include "linalg/device_matrix.h"
+#include "linalg/matrix_test_util.h"
 
 #include "gtest/gtest.h"
 

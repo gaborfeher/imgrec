@@ -129,27 +129,31 @@ void DeviceMatrix::AssertDepth(int depth) const {
   assert(depth_ == depth);
 }
 
-__global__ void VecAdd(float* A, float* B, float* C) {
-  int i = threadIdx.x;
-  C[i] = A[i] + B[i];
+__global__ void VecAdd(float* A, float* B, float* C, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    C[i] = A[i] + B[i];
+  }
 }
 
 DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
   AssertSameDimensions(other);
   DeviceMatrix result(rows_, cols_, depth_);
-  VecAdd<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());
+  VecAdd<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
   return result;
 }
 
-__global__ void VecMult(float* A, float* B, float* C) {
-  int i = threadIdx.x;
-  C[i] = A[i] * B[i];
+__global__ void VecMult(float* A, float* B, float* C, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    C[i] = A[i] * B[i];
+  }
 }
 
 DeviceMatrix DeviceMatrix::ElementwiseMultiply(const DeviceMatrix& other) const {
   AssertSameDimensions(other);
   DeviceMatrix result(rows_, cols_, depth_);
-  VecMult<<<1, size_>>>(data_.get(), other.data_.get(), result.data_.get());
+  VecMult<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
   return result;
 }
 
@@ -194,14 +198,16 @@ DeviceMatrix DeviceMatrix::Rot180() const {
   return result;
 }
 
-__global__ void VecMultiply(float* A, float m, float* B) {
-  int i = threadIdx.x;
-  B[i] = A[i] * m;
+__global__ void VecMultiply(float* A, float m, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = A[i] * m;
+  }
 }
 
 DeviceMatrix DeviceMatrix::Multiply(float m) const {
   DeviceMatrix result(rows_, cols_, depth_);
-  VecMultiply<<<1, size_>>>(data_.get(), m, result.data_.get());
+  VecMultiply<<<(size_ + 255) / 256, 256>>>(data_.get(), m, result.data_.get(), size_);
   return result;
 }
 
@@ -209,13 +215,24 @@ __global__ void MatrixDotProd(
     float* A, int a_rows, int a_cols,
     float* B, int b_rows, int b_cols,
     float* C, int c_rows, int c_cols) {
-  int i = threadIdx.x;
-  int j = threadIdx.y;
-  float sum = 0.0;
-  for (int k = 0; k < a_cols; ++k) {
-    sum += A[i * a_cols + k] * B[k * b_cols + j];
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  if (i < c_rows && j < c_cols) {
+    float sum = 0.0;
+    for (int k = 0; k < a_cols; ++k) {
+      sum += A[i * a_cols + k] * B[k * b_cols + j];
+    }
+    C[i * c_cols + j] = sum;
   }
-  C[i * c_cols + j] = sum;
+}
+
+void GetConfigForMatrix(
+    int rows, int cols, int depth,
+    dim3* threadsPerBlock,
+    dim3* blocks) {
+  assert(depth == 1);
+  *threadsPerBlock = dim3(16, 16);
+  *blocks = dim3((rows + 15) / 16, (cols + 15) / 16);
 }
 
 DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
@@ -224,58 +241,73 @@ DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
   int c_rows = rows_;
   int c_cols = other.cols_;
   DeviceMatrix result(c_rows, c_cols, 1);
-  dim3 grid(1, 1);
-  dim3 threads(c_rows, c_cols);
-  MatrixDotProd<<<grid, threads>>>(
+
+  dim3 threadsPerBlock, blocks;
+  GetConfigForMatrix(c_rows, c_cols, 1, &threadsPerBlock, &blocks);
+  MatrixDotProd<<<blocks, threadsPerBlock>>>(
       data_.get(), rows_, cols_,
       other.data_.get(), other.rows_, other.cols_,
       result.data_.get(), result.rows_, result.cols_);
   return result;
 }
 
-__global__ void VecSigmoid(float* A, float* B) {
-  int i = threadIdx.x;
-  B[i] = 1.0 / (1.0 + exp(-A[i]));
-}
-
-
-__global__ void VecSigmoidGradient(float* A, float* B) {
-  int i = threadIdx.x;
-  float sigma = 1.0 / (1.0 + exp(-A[i]));
-  B[i] = sigma * (1.0 - sigma);
-}
-
-__global__ void VecReLU(float* A, float* B) {
-  int i = threadIdx.x;
-  B[i] = max(0.0f, A[i]);
-}
-
-__global__ void VecReLUGradient(float* A, float* B) {
-  int i = threadIdx.x;
-  if (A[i] < 0.0f) {
-    B[i] = 0.0f;
-  } else {
-    B[i] = 1.0f;
+__global__ void VecSigmoid(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = 1.0 / (1.0 + exp(-A[i]));
   }
 }
 
-__global__ void VecLReLU(float* A, float* B) {
-  int i = threadIdx.x;
-  B[i] = max(0.01f * A[i], A[i]);
-}
 
-__global__ void VecLReLUGradient(float* A, float* B) {
-  int i = threadIdx.x;
-  if (A[i] < 0.0f) {
-    B[i] = 0.01f;
-  } else {
-    B[i] = 1.0f;
+__global__ void VecSigmoidGradient(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    float sigma = 1.0 / (1.0 + exp(-A[i]));
+    B[i] = sigma * (1.0 - sigma);
   }
 }
 
-__global__ void VecSquare(float* A, float* B) {
-  int i = threadIdx.x;
-  B[i] = A[i] * A[i];
+__global__ void VecReLU(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = max(0.0f, A[i]);
+  }
+}
+
+__global__ void VecReLUGradient(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    if (A[i] < 0.0f) {
+      B[i] = 0.0f;
+    } else {
+      B[i] = 1.0f;
+    }
+  }
+}
+
+__global__ void VecLReLU(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = max(0.01f * A[i], A[i]);
+  }
+}
+
+__global__ void VecLReLUGradient(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    if (A[i] < 0.0f) {
+      B[i] = 0.01f;
+    } else {
+      B[i] = 1.0f;
+    }
+  }
+}
+
+__global__ void VecSquare(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = A[i] * A[i];
+  }
 }
 
 namespace matrix_mappers {
@@ -316,7 +348,10 @@ MapperFunc Square() {
 
 DeviceMatrix DeviceMatrix::Map(::matrix_mappers::MapperFunc map) const {
   DeviceMatrix result(rows_, cols_, depth_);
-  map<<<1, size_>>>(data_.get(), result.data_.get());
+  map<<<(size_ + 255) / 256, 256>>>(
+      data_.get(),
+      result.data_.get(),
+      size_);
   return result;
 }
 
@@ -340,23 +375,24 @@ __global__ void MatrixSumLayers(
     int a_rows, int a_cols, int a_depth,
     int cycle,
     float* B) {
-  int b_index = threadIdx.x;
-
-  float result = 0.0;
-  for (int i = 0; i < a_rows; ++i) {
-    for (int j = 0; j < a_cols; ++j) {
-      for (int k = b_index; k < a_depth; k += cycle) {
-        result += A[Dim3toDim1(i, j, k, a_rows, a_cols, a_depth)];
+  int b_index = threadIdx.x + blockDim.x * blockIdx.x;
+  if (b_index < cycle) {
+    float result = 0.0;
+    for (int i = 0; i < a_rows; ++i) {
+      for (int j = 0; j < a_cols; ++j) {
+        for (int k = b_index; k < a_depth; k += cycle) {
+          result += A[Dim3toDim1(i, j, k, a_rows, a_cols, a_depth)];
+        }
       }
     }
+    B[b_index] = result;
   }
-  B[b_index] = result;
 }
 
 DeviceMatrix DeviceMatrix::SumLayers(int cycle) const {
   assert(depth_ % cycle == 0);
   DeviceMatrix result(1, 1, cycle);
-  MatrixSumLayers<<<1, cycle>>>(
+  MatrixSumLayers<<<(cycle + 255) / 256, 256>>>(
       data_.get(),
       rows_, cols_, depth_,
       cycle,
@@ -383,30 +419,32 @@ float DeviceMatrix::L2() const {
 
 
 __global__ void VecSoftmax(float* A, int a_rows, int a_cols, float* B, float* C) {
-  int col = threadIdx.x;
+  int col = threadIdx.x + blockDim.x * blockIdx.x;
+  if (col < a_cols) {
 
-  // Get max value from column. Needed for numerical stability, see
-  // http://cs231n.github.io/linear-classify/#softmax
-  float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-  for (int i = 1; i < a_rows; i++) {
-    float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
-    if (val > max_val) {
-      max_val = val;
+    // Get max value from column. Needed for numerical stability, see
+    // http://cs231n.github.io/linear-classify/#softmax
+    float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
+    for (int i = 1; i < a_rows; i++) {
+      float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
+      if (val > max_val) {
+        max_val = val;
+      }
     }
-  }
 
-  int expected_class = static_cast<int>(B[col]);
-  float expected_class_score = -1.0;
-  float sum = 0.0f;
-  for (int i = 0; i < a_rows; ++i) {
-    float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)] - max_val;
-    if (i == expected_class) {
-      expected_class_score = val;
+    int expected_class = static_cast<int>(B[col]);
+    float expected_class_score = -1.0;
+    float sum = 0.0f;
+    for (int i = 0; i < a_rows; ++i) {
+      float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)] - max_val;
+      if (i == expected_class) {
+        expected_class_score = val;
+      }
+      sum += exp(val);
     }
-    sum += exp(val);
-  }
 
-  C[col] = -expected_class_score + log(sum);
+    C[col] = -expected_class_score + log(sum);
+  }
 }
 
 float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
@@ -418,7 +456,7 @@ float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
   assert(expected_class.depth_ == 1);
 
   DeviceMatrix result(1, cols_, 1);
-  VecSoftmax<<<1, cols_>>>(
+  VecSoftmax<<<(cols_ + 255) / 256, 256>>>(
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
@@ -428,30 +466,33 @@ float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
 
 __global__ void VecSoftmaxGradient(float* A, int a_rows, int a_cols, float* B, float* C) {
   // TODO: clean up code duplication with VecSoftmax
-  int col = threadIdx.x;
+  int col = threadIdx.x + blockDim.x * blockIdx.x;
 
-  float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-  for (int i = 1; i < a_rows; i++) {
-    int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
-    float val = A[index];
-    if (val > max_val) {
-      max_val = val;
+  if (col < a_cols) {
+
+    float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
+    for (int i = 1; i < a_rows; i++) {
+      int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
+      float val = A[index];
+      if (val > max_val) {
+        max_val = val;
+      }
     }
-  }
 
-  float sum = 0.0f;
-  for (int i = 0; i < a_rows; ++i) {
-    int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
-    float val = exp(A[index] - max_val);
-    C[index] = val;
-    sum += val;
-  }
-  int expected_class = static_cast<int>(B[col]);
-  for (int i = 0; i < a_rows; ++i) {
-    int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
-    C[index] = C[index] / sum;
-    if (i == expected_class) {
-      C[index] -= 1.0f;
+    float sum = 0.0f;
+    for (int i = 0; i < a_rows; ++i) {
+      int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
+      float val = exp(A[index] - max_val);
+      C[index] = val;
+      sum += val;
+    }
+    int expected_class = static_cast<int>(B[col]);
+    for (int i = 0; i < a_rows; ++i) {
+      int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
+      C[index] = C[index] / sum;
+      if (i == expected_class) {
+        C[index] -= 1.0f;
+      }
     }
   }
 }
@@ -467,7 +508,7 @@ DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) c
   assert(expected_class.depth_ == 1);
 
   DeviceMatrix result(rows_, cols_, 1);
-  VecSoftmaxGradient<<<1, cols_>>>(
+  VecSoftmaxGradient<<<(cols_ + 255) / 256, 256>>>(
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
@@ -475,31 +516,33 @@ DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) c
 }
 
 __global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float* C) {
-  int col = threadIdx.x;
+  int col = threadIdx.x + blockDim.x * blockIdx.x;
+  if (col < a_cols) {
 
-  // Get max value from column.
-  bool unique = true;
-  float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-  for (int i = 1; i < a_rows; i++) {
-    float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
-    if (val > max_val) {
-      max_val = val;
-      unique = true;
-    } else if (val == max_val) {
-      unique = false;
+    // Get max value from column.
+    bool unique = true;
+    float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
+    for (int i = 1; i < a_rows; i++) {
+      float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
+      if (val > max_val) {
+        max_val = val;
+        unique = true;
+      } else if (val == max_val) {
+        unique = false;
+      }
     }
-  }
 
-  if (unique) {
-    int expected_class = static_cast<int>(B[col]);
-    float expected_class_score = A[Dim3toDim1(expected_class, col, 0, a_rows, a_cols, 1)];
-    if (expected_class_score == max_val) {
-      C[col] = 1.0f;
+    if (unique) {
+      int expected_class = static_cast<int>(B[col]);
+      float expected_class_score = A[Dim3toDim1(expected_class, col, 0, a_rows, a_cols, 1)];
+      if (expected_class_score == max_val) {
+        C[col] = 1.0f;
+      } else {
+        C[col] = 0.0f;
+      }
     } else {
       C[col] = 0.0f;
     }
-  } else {
-    C[col] = 0.0f;
   }
 }
 
@@ -512,7 +555,7 @@ float DeviceMatrix::NumMatches(const DeviceMatrix& expected_class) const {
   assert(expected_class.depth_ == 1);
 
   DeviceMatrix result(1, cols_, 1);
-  VecNumMatches<<<1, cols_>>>(
+  VecNumMatches<<<(cols_ + 255) / 256, 256>>>(
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
@@ -520,25 +563,29 @@ float DeviceMatrix::NumMatches(const DeviceMatrix& expected_class) const {
 }
 
 
-__global__ void VecFill(float value, float* A) {
-  int i = threadIdx.x;
-  A[i] = value;
+__global__ void VecFill(float value, float* A, int a_size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < a_size) {
+    A[i] = value;
+  }
 }
 
 void DeviceMatrix::Fill(float value) {
-  VecFill<<<1, size_>>>(value, data_.get());
+  VecFill<<<(size_ + 255) / 256, 256>>>(value, data_.get(), size_);
 }
 
 __global__ void VecFillColumn(float value, int col, float* A, int rows, int cols, int depth) {
-  int i = threadIdx.x;
-  for (int j = 0; j < depth; ++j) { // FIXME
-    A[Dim3toDim1(i, col, j, rows, cols, depth)] = value;
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < rows) {
+    for (int j = 0; j < depth; ++j) { // FIXME
+      A[Dim3toDim1(i, col, j, rows, cols, depth)] = value;
+    }
   }
 }
 
 void DeviceMatrix::FillColumn(int col, float value) {
   assert(col >= 0 && col < cols_);
-  VecFillColumn<<<1, rows_>>>(value, col, data_.get(), rows_, cols_, depth_);
+  VecFillColumn<<<(rows_ + 255) / 256, 256>>>(value, col, data_.get(), rows_, cols_, depth_);
 }
 
 __global__ void MatrixPadding(
@@ -546,17 +593,19 @@ __global__ void MatrixPadding(
     int rows, int cols, int depth,
     int row_padding, int col_padding,
     float* B) {
-  int i = threadIdx.x;
-  int j = threadIdx.y;
-  int k = threadIdx.z;
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
 
-  int b_index = Dim3toDim1(
-      i + row_padding, j + col_padding, k,
-      rows + 2 * row_padding,
-      cols + 2 * col_padding,
-      depth);
-  int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
-  B[b_index] = A[a_index];
+  if (i < rows && j < cols && k < depth) {
+    int b_index = Dim3toDim1(
+        i + row_padding, j + col_padding, k,
+        rows + 2 * row_padding,
+        cols + 2 * col_padding,
+        depth);
+    int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
+    B[b_index] = A[a_index];
+  }
 }
 
 DeviceMatrix DeviceMatrix::AddPadding(
@@ -564,15 +613,15 @@ DeviceMatrix DeviceMatrix::AddPadding(
   if (row_padding <= 0 && col_padding <= 0) {
     return *this;
   }
-  
+
   DeviceMatrix result(
       rows_ + 2 * row_padding,
       cols_ + 2 * col_padding,
       depth_);  // filled with zeros
 
-  dim3 grid(1, 1, 1);
-  dim3 threads(rows_, cols_, depth_);
-  MatrixPadding<<<grid, threads>>>(
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, depth_);
+  MatrixPadding<<<blocks, threadsPerBlock>>>(
       data_.get(), rows_, cols_, depth_,
       row_padding, col_padding,
       result.data_.get());
@@ -584,16 +633,18 @@ __global__ void MatrixConstRow(
     int rows, int cols, int depth,
     float value,
     float* B) {
-  int i = threadIdx.x;
-  int j = threadIdx.y;
-  int k = threadIdx.z;
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
 
-  int b_index = Dim3toDim1(i, j, k, rows + 1, cols, depth);
-  if (i < rows) {
-    int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
-    B[b_index] = A[a_index];
-  } else {
-    B[b_index] = value;
+  if (i < rows + 1 && j < cols && k < depth) {
+    int b_index = Dim3toDim1(i, j, k, rows + 1, cols, depth);
+    if (i < rows) {
+      int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
+      B[b_index] = A[a_index];
+    } else {
+      B[b_index] = value;
+    }
   }
 }
 
@@ -603,9 +654,9 @@ DeviceMatrix DeviceMatrix::AddConstRow(float value) const {
       cols_,
       depth_);  // filled with zeros
 
-  dim3 grid(1, 1, 1);
-  dim3 threads(rows_ + 1, cols_, depth_);
-  MatrixConstRow<<<grid, threads>>>(
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((rows_ + 1 + 15) / 16, (cols_ + 15) / 16, depth_);
+  MatrixConstRow<<<blocks, threadsPerBlock>>>(
       data_.get(),
       rows_, cols_, depth_,
       value,
@@ -618,13 +669,15 @@ __global__ void MatrixReduceSize(
     int a_rows, int a_cols, int a_depth,
     float* B,
     int b_rows, int b_cols, int b_depth) {
-  int i = threadIdx.x;
-  int j = threadIdx.y;
-  int k = threadIdx.z;
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
 
-  int a_index = Dim3toDim1(i, j, k, a_rows, a_cols, a_depth);
-  int b_index = Dim3toDim1(i, j, k, b_rows, b_cols, b_depth);
-  B[b_index] = A[a_index];
+  if (i < b_rows && j < b_cols && k < b_depth) {
+    int a_index = Dim3toDim1(i, j, k, a_rows, a_cols, a_depth);
+    int b_index = Dim3toDim1(i, j, k, b_rows, b_cols, b_depth);
+    B[b_index] = A[a_index];
+  }
 }
 
 DeviceMatrix DeviceMatrix::ReduceSize(int rows, int cols, int depth) const {
@@ -633,9 +686,9 @@ DeviceMatrix DeviceMatrix::ReduceSize(int rows, int cols, int depth) const {
   assert(depth <= depth_);
   DeviceMatrix result(rows, cols, depth);
 
-  dim3 grid(1, 1, 1);
-  dim3 threads(rows, cols, depth);
-  MatrixReduceSize<<<grid, threads>>>(
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((rows + 15) / 16, (cols + 15) / 16, depth);
+  MatrixReduceSize<<<blocks, threadsPerBlock>>>(
       data_.get(),
       rows_, cols_, depth_,
       result.data_.get(),
@@ -649,47 +702,50 @@ __global__ void MatrixConvolution(
     float* filters, int f_rows, int f_cols, int f_depth,
     float* B, int b_rows, int b_cols, int b_depth,
     float* biases) {
-  int i = threadIdx.x;
-  int j = threadIdx.y;
-  int k = threadIdx.z;  // destination depth-level = id of filter to apply
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+  if (i < b_rows && j < b_cols && k < b_depth) {
+    // k: destination depth-level = id of filter to apply
 
-  // layout of resulting matrix (list of layers):
-  //
-  // 1st image with 1st filter
-  // 1st image with 2nd filter
-  // ...
-  // 2nd image with 1st filter
-  // 2nd image with 2nd filter
-  // ...
+    // layout of resulting matrix (list of layers):
+    //
+    // 1st image with 1st filter
+    // 1st image with 2nd filter
+    // ...
+    // 2nd image with 1st filter
+    // 2nd image with 2nd filter
+    // ...
 
-  int num_filters = f_depth / layers_per_image;
-  int filter_id = k % num_filters;
-  int image_id = k / num_filters;
+    int num_filters = f_depth / layers_per_image;
+    int filter_id = k % num_filters;
+    int image_id = k / num_filters;
 
 
-  float sum = 0.0;
-  for (int fk = 0; fk < layers_per_image; ++fk) {
-    for (int fi = 0; fi < f_rows; ++fi) {
-      for (int fj = 0; fj < f_cols; ++fj) {
-        int filter_index = Dim3toDim1(
-            fi,
-            fj,
-            fk + filter_id * layers_per_image,  // fk: level in cur. filter
-            f_rows, f_cols, f_depth);
-        int a_index = Dim3toDim1(
-            i + fi,
-            j + fj,
-            fk + image_id * layers_per_image,  // fk: level in cur. image
-            a_rows, a_cols, a_depth);
+    float sum = 0.0;
+    for (int fk = 0; fk < layers_per_image; ++fk) {
+      for (int fi = 0; fi < f_rows; ++fi) {
+        for (int fj = 0; fj < f_cols; ++fj) {
+          int filter_index = Dim3toDim1(
+              fi,
+              fj,
+              fk + filter_id * layers_per_image,  // fk: level in cur. filter
+              f_rows, f_cols, f_depth);
+          int a_index = Dim3toDim1(
+              i + fi,
+              j + fj,
+              fk + image_id * layers_per_image,  // fk: level in cur. image
+              a_rows, a_cols, a_depth);
 
-        sum += filters[filter_index] * A[a_index];
+          sum += filters[filter_index] * A[a_index];
+        }
       }
     }
+    if (biases != NULL) {
+      sum += biases[filter_id];
+    }
+    B[Dim3toDim1(i, j, k, b_rows, b_cols, b_depth)] = sum;
   }
-  if (biases != NULL) {
-    sum += biases[filter_id];
-  }
-  B[Dim3toDim1(i, j, k, b_rows, b_cols, b_depth)] = sum;
 }
 
 DeviceMatrix DeviceMatrix::Convolution(
@@ -714,9 +770,9 @@ DeviceMatrix DeviceMatrix::Convolution(
       row_slots / stride,
       col_slots / stride,
       filters.depth() / layers_per_image * depth() / layers_per_image);
-  dim3 grid(1, 1, 1);
-  dim3 threads(result.rows(), result.cols(), result.depth());
-  MatrixConvolution<<<grid, threads>>>(
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((result.rows() + 15) / 16, (result.cols() + 15) / 16, result.depth());
+  MatrixConvolution<<<blocks, threadsPerBlock>>>(
       layers_per_image,
       data_.get(), rows_, cols_, depth_,
       filters.data_.get(), filters.rows(), filters.cols(), filters.depth(),

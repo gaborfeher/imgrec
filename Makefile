@@ -36,11 +36,15 @@ bin/linalg/matrix.o: linalg/device_matrix.cu linalg/device_matrix.h
 bin/linalg/hello: linalg/hello.cc bin/linalg/matrix.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lcudart $^ -o $@
 
-bin/linalg/matrix_test.o: linalg/matrix_test.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
+bin/linalg/matrix_test.o: linalg/matrix_test.cc linalg/device_matrix.h linalg/matrix_test_util.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/linalg
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
-bin/linalg/matrix_test: bin/linalg/matrix_test.o bin/linalg/matrix.o bin/googletest/gtest_main.a
+bin/linalg/matrix_test_util.o: linalg/matrix_test_util.cc linalg/matrix_test_util.h
+	mkdir -p bin/linalg
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
+
+bin/linalg/matrix_test: bin/linalg/matrix_test.o bin/linalg/matrix.o bin/linalg/matrix_test_util.o bin/googletest/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart $^ -o $@
 
 matrix_test: bin/linalg/matrix_test
@@ -57,15 +61,15 @@ bin/cnn/%_test.o: cnn/%_test.cc linalg/device_matrix.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
-bin/cnn/learn_test: bin/cnn/learn_test.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/data_set.o bin/cnn/l2_error_layer.o bin/cnn/error_layer.o bin/cnn/nonlinearity_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/layer_test_base.o bin/cnn/reshape_layer.o bin/googletest/gtest_main.a
+bin/cnn/learn_test: bin/cnn/learn_test.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/data_set.o bin/cnn/l2_error_layer.o bin/cnn/error_layer.o bin/cnn/nonlinearity_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/linalg/matrix_test_util.o bin/cnn/layer_test_base.o bin/cnn/reshape_layer.o bin/googletest/gtest_main.a
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart  $(filter %.cu %.cc %.o %.a,$^) -o $@
 
-bin/cnn/error_layer_test: bin/cnn/error_layer_test.o bin/cnn/l2_error_layer.o bin/cnn/softmax_error_layer.o bin/cnn/error_layer.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/layer_test_base.o bin/googletest/gtest_main.a
+bin/cnn/error_layer_test: bin/cnn/error_layer_test.o bin/cnn/l2_error_layer.o bin/cnn/softmax_error_layer.o bin/cnn/error_layer.o bin/cnn/layer.o bin/linalg/matrix.o bin/linalg/matrix_test_util.o bin/cnn/layer_test_base.o bin/googletest/gtest_main.a
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart  $(filter %.cu %.cc %.o %.a,$^) -o $@
 
-bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/data_set.o bin/cnn/softmax_error_layer.o bin/cnn/l2_error_layer.o bin/cnn/error_layer.o bin/cnn/nonlinearity_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/cnn/convolutional_layer.o bin/cnn/reshape_layer.o bin/cnn/layer_test_base.o bin/googletest/gtest_main.a
+bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o bin/cnn/fully_connected_layer.o bin/cnn/model.o bin/cnn/data_set.o bin/cnn/softmax_error_layer.o bin/cnn/l2_error_layer.o bin/cnn/error_layer.o bin/cnn/nonlinearity_layer.o bin/cnn/layer_stack.o bin/cnn/layer.o bin/linalg/matrix.o bin/linalg/matrix_test_util.o bin/cnn/convolutional_layer.o bin/cnn/reshape_layer.o bin/cnn/layer_test_base.o bin/googletest/gtest_main.a
 	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart  $(filter %.cu %.cc %.o %.a,$^) -o $@
 

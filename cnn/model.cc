@@ -55,6 +55,7 @@ void Model::Train(
           << " error= " << avg_error
           << " accuracy= " << 100.0 * avg_accuracy << "%"
           << std::endl;
+      // model_->Print();
     }
   }
 }
@@ -71,10 +72,10 @@ void Model::Evaluate(
     total_error += error_->GetError();
     total_accuracy += error_->GetAccuracy();
   }
-  *error = total_error / data_set.NumBatches();
+  *error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
   *accuracy = total_accuracy / data_set.NumBatches();
   if (logging_) {
-    std::cout << "evaluation "
+    std::cout << "evaluation"
         << " error= " << *error
         << " accuracy= " << 100.0 * *accuracy << "%"
         << std::endl;

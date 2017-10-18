@@ -16,6 +16,7 @@
 #include "cnn/softmax_error_layer.h"
 #include "cnn/nonlinearity_layer.h"
 #include "linalg/device_matrix.h"
+#include "linalg/matrix_test_util.h"
 
 
 class ConvolutionalLayerGradientTest : public ::testing::Test {
@@ -654,6 +655,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   DeviceMatrix training_x;
   DeviceMatrix training_y;
   CreateTestCase1(&training_x, &training_y);
+  // TODO: test with bigger batches, investigate stability issues
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   Random random(44);
@@ -683,7 +685,10 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.002, 2);
+  {
+    SCOPED_TRACE("Gradient Check on Filters");
+    ExpectMatrixEquals(a_grad, n_grad, 0.002, 2);
+  }
 
   // 2. Compute gradient on the biases:
 
@@ -701,7 +706,10 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.001, 2);
+  {
+    SCOPED_TRACE("Gradient Check on Biases");
+    ExpectMatrixEquals(a_grad, n_grad, 0.001, 2);
+  }
 
   // 3. Compute gradient on the inputs:
 
@@ -720,17 +728,16 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.0005, 180);  // Investigate
+  {
+    SCOPED_TRACE("Gradient Check on Inputs");
+    ExpectMatrixEquals(a_grad, n_grad, 0.0005, 180);  // Investigate
+  }
 }
 
-TEST(ConvolutionalLayerTest, TrainTest) {
+TEST(ConvolutionalLayerTest, TrainTest_Small) {
   InMemoryDataSet training_ds(20);
-  InMemoryDataSet test_ds(20);
-
-
-  // TODO: figure out reason for limit on batch size
-  //   (floating-point precision limit or CUDA matrix size limit?)
   CreateTestCase2(1000, 142, &training_ds);
+  InMemoryDataSet test_ds(20);
   CreateTestCase2(10, 143, &test_ds);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
@@ -754,7 +761,36 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   model.Evaluate(test_ds, &test_error, &test_accuracy);
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
+  // stack->Print();
+}
 
+TEST(ConvolutionalLayerTest, TrainTest_Big) {
+  InMemoryDataSet training_ds(60);
+  CreateTestCase2(500, 142, &training_ds);
+  InMemoryDataSet test_ds(20);
+  CreateTestCase2(10, 143, &test_ds);
+
+  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
+  std::shared_ptr<ConvolutionalLayer> conv_layer =
+      stack->GetLayer<ConvolutionalLayer>(0);
+  std::shared_ptr<ErrorLayer> error_layer =
+      stack->GetLayer<ErrorLayer>(-1);
+
+  // 3. Test training the model:
+  std::vector<float> training_error;
+  Model model(stack, 41, true);
+  model.Train(
+      training_ds,
+      5,  // epochs
+      0.006,  // learn_rate
+      0.001,  // regularization
+      &training_error);
+
+  float test_error;
+  float test_accuracy;
+  model.Evaluate(test_ds, &test_error, &test_accuracy);
+  EXPECT_LT(test_error, 0.01);
+  EXPECT_FLOAT_EQ(1.0, test_accuracy);
   // stack->Print();
 }
 
