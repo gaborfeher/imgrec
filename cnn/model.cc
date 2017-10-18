@@ -31,8 +31,7 @@ void Model::Train(
     const DataSet& data_set,
     int epochs,
     float learn_rate,
-    float regularization_lambda,
-    std::vector<float>* error_hist) {
+    float regularization_lambda) {
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
@@ -49,7 +48,6 @@ void Model::Train(
     }
     float avg_error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
     float avg_accuracy = total_accuracy / data_set.NumBatches();
-    error_hist->push_back(avg_error);
     if (logging_) {
       std::cout << "epoch " << i
           << " error= " << avg_error

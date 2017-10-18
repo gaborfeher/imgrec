@@ -1,6 +1,4 @@
-
 #include <iostream>
-#include <vector>
 
 #include "cnn/convolutional_layer.h"
 #include "cnn/data_set.h"
@@ -68,16 +66,11 @@ TEST(LearnTest, FullyConnectedTrain) {
   stack->AddLayer(error_layer);
   Model model(stack, 42);
 
-  std::vector<float> training_error;
   model.Train(
       *training,
       100,
       40,
-      0,
-      &training_error);
-  // for (float err: training_error) {
-  //   std::cout << "Training error= " << err << std::endl;
-  // }
+      0);
   float test_error;
   float test_accuracy;
   model.Evaluate(

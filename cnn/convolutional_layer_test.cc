@@ -554,12 +554,12 @@ void Copy3x3VectorBlock(
   }
 }
 
-void CreateTestCase2(
+std::shared_ptr<InMemoryDataSet> CreateTestCase2(
     int num_batches,
-    int random_seed,
-    InMemoryDataSet* training_ds) {
-
-  int num_samples_per_batch = training_ds->MiniBatchSize();
+    int num_samples_per_batch,
+    int random_seed) {
+  std::shared_ptr<InMemoryDataSet> training_ds =
+      std::make_shared<InMemoryDataSet>(num_samples_per_batch);
 
   // We want to teach the convolutional layer to detect two patterns.
   // (Same as CreateTestCase1, but with more data.)
@@ -626,8 +626,7 @@ void CreateTestCase2(
 
   }
 
-  // training_x->Print();
-  // training_y->Print();
+  return training_ds;
 }
 
 
@@ -735,60 +734,40 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 }
 
 TEST(ConvolutionalLayerTest, TrainTest_Small) {
-  InMemoryDataSet training_ds(20);
-  CreateTestCase2(1000, 142, &training_ds);
-  InMemoryDataSet test_ds(20);
-  CreateTestCase2(10, 143, &test_ds);
-
+  std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(1000, 20, 142);
+  std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
-  std::shared_ptr<ConvolutionalLayer> conv_layer =
-      stack->GetLayer<ConvolutionalLayer>(0);
-  std::shared_ptr<ErrorLayer> error_layer =
-      stack->GetLayer<ErrorLayer>(-1);
 
-  // 3. Test training the model:
-  std::vector<float> training_error;
   Model model(stack, 41, true);
   model.Train(
-      training_ds,
+      *training_ds,
       5,  // epochs
       0.03,  // learn_rate
-      0.0002,  // regularization
-      &training_error);
+      0.0002);  // regularization
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(test_ds, &test_error, &test_accuracy);
+  model.Evaluate(*test_ds, &test_error, &test_accuracy);
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
   // stack->Print();
 }
 
 TEST(ConvolutionalLayerTest, TrainTest_Big) {
-  InMemoryDataSet training_ds(60);
-  CreateTestCase2(500, 142, &training_ds);
-  InMemoryDataSet test_ds(20);
-  CreateTestCase2(10, 143, &test_ds);
-
+  std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(500, 60, 142);
+  std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
-  std::shared_ptr<ConvolutionalLayer> conv_layer =
-      stack->GetLayer<ConvolutionalLayer>(0);
-  std::shared_ptr<ErrorLayer> error_layer =
-      stack->GetLayer<ErrorLayer>(-1);
 
-  // 3. Test training the model:
-  std::vector<float> training_error;
   Model model(stack, 41, true);
   model.Train(
-      training_ds,
+      *training_ds,
       5,  // epochs
       0.006,  // learn_rate
-      0.001,  // regularization
-      &training_error);
+      0.001);  // regularization
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(test_ds, &test_error, &test_accuracy);
+  model.Evaluate(*test_ds, &test_error, &test_accuracy);
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
   // stack->Print();

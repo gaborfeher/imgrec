@@ -2,7 +2,6 @@
 #define _CNN_MODEL_H_
 
 #include <memory>
-#include <vector>
 
 class DataSet;
 class DeviceMatrix;
@@ -21,8 +20,7 @@ class Model {
       const DataSet& data_set,
       int epochs,
       float learn_rate,
-      float regularization_lambda,
-      std::vector<float>* error_hist);
+      float regularization_lambda);
   void Evaluate(
       const DataSet& data_set,
       float* error,
