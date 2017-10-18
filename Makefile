@@ -33,9 +33,6 @@ bin/linalg/matrix.o: linalg/device_matrix.cu linalg/device_matrix.h
 		--compiler-bindir=$(CXX) \
 		--std=c++11
 
-bin/linalg/hello: linalg/hello.cc bin/linalg/matrix.o
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lcudart $^ -o $@
-
 bin/linalg/matrix_test.o: linalg/matrix_test.cc linalg/device_matrix.h linalg/matrix_test_util.h $(MAIN_GTEST_HEADER)
 	mkdir -p bin/linalg
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
@@ -48,9 +45,6 @@ bin/linalg/matrix_test: bin/linalg/matrix_test.o bin/linalg/matrix.o bin/linalg/
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lcudart $^ -o $@
 
 matrix_test: bin/linalg/matrix_test
-	$<
-
-hello: bin/linalg/hello
 	$<
 
 bin/cnn/%.o: cnn/%.cc cnn/%.h
