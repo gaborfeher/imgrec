@@ -44,7 +44,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           return error_layer->GetError();
         });
     // a_grad.Print(); n_grad.Print();
-    ExpectMatrixEquals(a_grad, n_grad, 0.05, 5);
+    ExpectMatrixEquals(a_grad, n_grad, 0.01, 3);
   }
 
   void BiasGradientTest(
@@ -71,7 +71,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           return error_layer->GetError();
         });
     // a_grad.Print(); n_grad.Print();
-    ExpectMatrixEquals(a_grad, n_grad, 0.05, 5);
+    ExpectMatrixEquals(a_grad, n_grad, 0.01, 3);
   }
 
   void InputGradientTest(
@@ -97,7 +97,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           return error_layer->GetError();
         });
     // a_grad.Print(); n_grad.Print();
-    ExpectMatrixEquals(a_grad, n_grad, 0.05, 5);
+    ExpectMatrixEquals(a_grad, n_grad, 0.01, 5);
   }
 
   void SimpleConvolutionGradientTest(
@@ -683,7 +683,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.001, 30);
+  ExpectMatrixEquals(a_grad, n_grad, 0.001, 5);
 
   // 2. Compute gradient on the biases:
 
@@ -720,7 +720,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.0002, 201);  // Investigate why exactly 200 + epsilon.
+  ExpectMatrixEquals(a_grad, n_grad, 0.0002, 180);  // Investigate
 }
 
 TEST(ConvolutionalLayerTest, TrainTest) {

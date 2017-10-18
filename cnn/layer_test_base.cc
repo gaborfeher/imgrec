@@ -52,15 +52,17 @@ DeviceMatrix ComputeNumericGradients(
 
   DeviceMatrix result(x0.rows(), x0.cols(), x0.depth());
 
-  float error0 = runner(x0);
-  float delta = 0.002f;  // I am not supper-happy that this is a carefully-tuned value to make all the test pass.
+  float delta = 0.001f;  // I am not supper-happy that this is a carefully-tuned value to make all the test pass.
   for (int k = 0; k < x0.depth(); k++) {
     for (int i = 0; i < x0.rows(); i++) {
       for (int j = 0; j < x0.cols(); j++) {
         DeviceMatrix x1(x0.DeepCopy());
         x1.SetValue(i, j, k, x0.GetValue(i, j, k) + delta);
         float error1 = runner(x1);
-        result.SetValue(i, j, k, (error1 - error0) / delta );
+        x1.SetValue(i, j, k, x0.GetValue(i, j, k) - delta);
+        float error2 = runner(x1);
+
+        result.SetValue(i, j, k, (error1 - error2) / (2 * delta) );
       }
     }
   }
