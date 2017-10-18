@@ -727,6 +727,7 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   InMemoryDataSet training_ds(20);
   InMemoryDataSet test_ds(20);
 
+
   // TODO: figure out reason for limit on batch size
   //   (floating-point precision limit or CUDA matrix size limit?)
   CreateTestCase2(1000, 142, &training_ds);
@@ -754,10 +755,6 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
 
-  // conv_layer->filters_.Print();
-  // conv_layer->biases_.Print();
-  // stack->GetLayer<FullyConnectedLayer>(-7)->weights_.Print();
-  // stack->GetLayer<FullyConnectedLayer>(-5)->weights_.Print();
-  // stack->GetLayer<FullyConnectedLayer>(-3)->weights_.Print();
+  // stack->Print();
 }
 

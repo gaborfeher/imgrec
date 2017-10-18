@@ -17,6 +17,7 @@ class ConvolutionalLayer : public Layer {
       int padding,
       int layers_per_image,
       int stride);
+  virtual void Print() const;
   virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
@@ -25,7 +26,6 @@ class ConvolutionalLayer : public Layer {
 
  private:
   FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
-  FRIEND_TEST(ConvolutionalLayerTest, TrainTest);
   friend class ConvolutionalLayerGradientTest;
 
   int padding_;

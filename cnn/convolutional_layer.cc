@@ -21,6 +21,12 @@ ConvolutionalLayer::ConvolutionalLayer(
   assert(padding_ == 0);  // Backprop doesn't support other values yet.
 }
 
+void ConvolutionalLayer::Print() const {
+  std::cout << "Convolutional Layer:" << std::endl;
+  filters_.Print();
+  biases_.Print();
+}
+
 void ConvolutionalLayer::Initialize(Random* random) {
   // http://cs231n.github.io/neural-networks-2/#init
   // https://stats.stackexchange.com/questions/198840/cnn-xavier-weight-initialization

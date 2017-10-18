@@ -10,6 +10,7 @@ class Random;
 class FullyConnectedLayer : public Layer {
  public:
   FullyConnectedLayer(int input_size, int output_size);
+  virtual void Print() const;
   virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients); 
@@ -19,7 +20,6 @@ class FullyConnectedLayer : public Layer {
  private:
   FRIEND_TEST(LearnTest, FullyConnectedLayerWeightGradient);
   FRIEND_TEST(LearnTest, FullyConnectedLayerInputGradient);
-  FRIEND_TEST(ConvolutionalLayerTest, TrainTest);
 
   bool bias_trick_;
   int input_size_;

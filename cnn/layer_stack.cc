@@ -8,6 +8,12 @@ void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);
 }
 
+void LayerStack::Print() const {
+  for (std::shared_ptr<Layer> layer : layers_) {
+    layer->Print();
+  }
+}
+
 void LayerStack::Initialize(Random* random) {
   for (std::shared_ptr<Layer> layer : layers_) {
     layer->Initialize(random);

@@ -10,6 +10,7 @@ class Layer {
   Layer();
   virtual ~Layer() {}
 
+  virtual void Print() const {};
   virtual void Initialize(Random* /* generator */) {};
   virtual void Forward(const DeviceMatrix& input) = 0;
   virtual void Backward(const DeviceMatrix& ouotput_gradients) = 0;

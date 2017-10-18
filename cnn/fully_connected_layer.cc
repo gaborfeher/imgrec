@@ -1,6 +1,7 @@
 #include "cnn/fully_connected_layer.h"
 
 #include <vector>
+#include <iostream>
 #include <random>
 
 FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
@@ -16,6 +17,11 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
       input_size_,
       1);
   weights_gradients_ = DeviceMatrix(output_size, input_size_, 1);
+}
+
+void FullyConnectedLayer::Print() const {
+  std::cout << "Fully Connected Layer:" << std::endl;
+  weights_.Print();
 }
 
 void FullyConnectedLayer::Initialize(Random* random) {
