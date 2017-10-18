@@ -422,7 +422,7 @@ float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
-  return result.Sum() / static_cast<float>(cols_);
+  return result.Sum();
 }
 
 
@@ -471,7 +471,7 @@ DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) c
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
-  return result.Multiply(1.0f / cols_);
+  return result;
 }
 
 __global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float* C) {

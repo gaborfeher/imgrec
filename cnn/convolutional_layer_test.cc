@@ -744,9 +744,9 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   Model model(stack, 41, true);
   model.Train(
       training_ds,
-      10,  // epochs
-      4,  // learn_rate
-      0.04,  // regularization
+      5,  // epochs
+      0.03,  // learn_rate
+      0.0002,  // regularization
       &training_error);
 
   float test_error;
