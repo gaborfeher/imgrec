@@ -683,7 +683,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.001, 5);
+  ExpectMatrixEquals(a_grad, n_grad, 0.002, 2);
 
   // 2. Compute gradient on the biases:
 
@@ -701,7 +701,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.001, 5);
+  ExpectMatrixEquals(a_grad, n_grad, 0.001, 2);
 
   // 3. Compute gradient on the inputs:
 
@@ -720,7 +720,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         return error_layer->GetError();
       });
 
-  ExpectMatrixEquals(a_grad, n_grad, 0.0002, 180);  // Investigate
+  ExpectMatrixEquals(a_grad, n_grad, 0.0005, 180);  // Investigate
 }
 
 TEST(ConvolutionalLayerTest, TrainTest) {
