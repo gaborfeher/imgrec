@@ -43,8 +43,11 @@ void Model::Train(
       total_accuracy += error_->GetAccuracy();
       DeviceMatrix dummy;
       model_->Backward(dummy);
-      model_->ApplyGradient(learn_rate);
-      model_->Regularize(regularization_lambda);
+      // Normalize with minibatch size so that the
+      // "amount of learning" per sample remains independent of
+      // the minibatch size.
+      model_->ApplyGradient(learn_rate / data_set.MiniBatchSize());
+      model_->Regularize(regularization_lambda / data_set.MiniBatchSize());
       // std::cout << "epoch " << i << " batch " << j << " error= " << error_->GetError() << std::endl;
     }
     float avg_error = total_error / data_set.NumBatches();

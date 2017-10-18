@@ -1,14 +1,21 @@
 #include "cnn/data_set.h"
 
+#include <cassert>
+
 #include "linalg/device_matrix.h"
 
-InMemoryDataSet::InMemoryDataSet() : num_batches_(0) {}
+InMemoryDataSet::InMemoryDataSet(int minibatch_size) :
+    num_batches_(0),
+    minibatch_size_(minibatch_size) {}
 
-InMemoryDataSet::InMemoryDataSet(DeviceMatrix x, DeviceMatrix y) :
-    num_batches_(1),
-    x_{ x },
-    y_{ y }
-{}
+InMemoryDataSet::InMemoryDataSet(
+  int minibatch_size,
+  const DeviceMatrix& x,
+  const DeviceMatrix& y) :
+    num_batches_(0),
+    minibatch_size_(minibatch_size) {
+  AddBatch(x, y);
+}
 
 DeviceMatrix InMemoryDataSet::GetBatchInput(int batch) const {
   return x_[batch];
@@ -22,6 +29,9 @@ int InMemoryDataSet::NumBatches() const {
   return num_batches_;
 }
 
+int InMemoryDataSet::MiniBatchSize() const {
+  return minibatch_size_;
+}
 
 void InMemoryDataSet::AddBatch(const DeviceMatrix& x, const DeviceMatrix& y) {
   num_batches_++;

@@ -1,4 +1,4 @@
-#include <functional>
+
 #include <iostream>
 #include <vector>
 
@@ -16,51 +16,47 @@
 #include "gtest/gtest.h"
 
 // For fully connected
-void CreateTestCase1(
-    DeviceMatrix* training_x,
-    DeviceMatrix* training_y,
-    DeviceMatrix* test_x,
-    DeviceMatrix* test_y) {
+std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
+  return std::make_shared<InMemoryDataSet>(
+      8,
+      DeviceMatrix(8, 3, 1, (float[]) {
+        -1,  2, 1,
+         0,  1, 1,
+         1,  0, 1,
+         2, -1, 1,
+        -2,  1, 1,
+        -1,  0, 1,
+         0, -1, 1,
+         1, -2, 1,
+      }).T(),
+      DeviceMatrix(8, 1, 1, (float[]) {
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          1,
+          1,
+      }).T());
+}
 
-  *training_x = DeviceMatrix(8, 3, 1, (float[]) {
-      -1,  2, 1,
-       0,  1, 1,
-       1,  0, 1,
-       2, -1, 1,
-      -2,  1, 1,
-      -1,  0, 1,
-       0, -1, 1,
-       1, -2, 1,
-    }).T();
-
-  *training_y = DeviceMatrix(8, 1, 1, (float[]) {
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-  }).T();
-
-  *test_x = DeviceMatrix(2, 3, 1, (float[]) {
-      -1, -1, 1,
-       1,  1, 1,
-  }).T();
-
-  *test_y = DeviceMatrix(2, 1, 1, (float[]) {
-      1,
-      0,
-  }).T();
+std::shared_ptr<InMemoryDataSet> CreateTestCase1_TestData() {
+  return std::make_shared<InMemoryDataSet>(
+      2,
+      DeviceMatrix(2, 3, 1, (float[]) {
+          -1, -1, 1,
+           1,  1, 1,
+      }).T(),
+      DeviceMatrix(2, 1, 1, (float[]) {
+          1,
+          0,
+      }).T());
 }
 
 TEST(LearnTest, FullyConnectedTrain) {
-  DeviceMatrix training_x;
-  DeviceMatrix training_y;
-  DeviceMatrix test_x;
-  DeviceMatrix test_y;
-  CreateTestCase1(&training_x, &training_y, &test_x, &test_y);
+  std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
+  std::shared_ptr<InMemoryDataSet> test = CreateTestCase1_TestData();
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
@@ -73,9 +69,9 @@ TEST(LearnTest, FullyConnectedTrain) {
 
   std::vector<float> training_error;
   model.Train(
-      InMemoryDataSet(training_x, training_y),
+      *training,
       100,
-      5,
+      40,
       0,
       &training_error);
   // for (float err: training_error) {
@@ -84,18 +80,16 @@ TEST(LearnTest, FullyConnectedTrain) {
   float test_error;
   float test_accuracy;
   model.Evaluate(
-      InMemoryDataSet(test_x, test_y),
+      *test,
       &test_error,
       &test_accuracy);
   EXPECT_LT(test_error, 0.0001);
 }
 
 TEST(LearnTest, FullyConnectedLayerWeightGradient) {
-  DeviceMatrix training_x;
-  DeviceMatrix training_y;
-  DeviceMatrix test_x;
-  DeviceMatrix test_y;
-  CreateTestCase1(&training_x, &training_y, &test_x, &test_y);
+  std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
+  DeviceMatrix training_x = training->GetBatchInput(0);
+  DeviceMatrix training_y = training->GetBatchOutput(0);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
@@ -131,11 +125,9 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 }
 
 TEST(LearnTest, FullyConnectedLayerInputGradient) {
-  DeviceMatrix training_x;
-  DeviceMatrix training_y;
-  DeviceMatrix test_x;
-  DeviceMatrix test_y;
-  CreateTestCase1(&training_x, &training_y, &test_x, &test_y);
+  std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
+  DeviceMatrix training_x = training->GetBatchInput(0);
+  DeviceMatrix training_y = training->GetBatchOutput(0);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =

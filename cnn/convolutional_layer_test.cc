@@ -555,9 +555,10 @@ void Copy3x3VectorBlock(
 
 void CreateTestCase2(
     int num_batches,
-    int num_samples_per_batch,
     int random_seed,
     InMemoryDataSet* training_ds) {
+
+  int num_samples_per_batch = training_ds->MiniBatchSize();
 
   // We want to teach the convolutional layer to detect two patterns.
   // (Same as CreateTestCase1, but with more data.)
@@ -723,13 +724,13 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 }
 
 TEST(ConvolutionalLayerTest, TrainTest) {
-  InMemoryDataSet training_ds;
-  InMemoryDataSet test_ds;
+  InMemoryDataSet training_ds(20);
+  InMemoryDataSet test_ds(20);
 
   // TODO: figure out reason for limit on batch size
   //   (floating-point precision limit or CUDA matrix size limit?)
-  CreateTestCase2(1000, 20, 142, &training_ds);
-  CreateTestCase2(10, 20, 143, &test_ds);
+  CreateTestCase2(1000, 142, &training_ds);
+  CreateTestCase2(10, 143, &test_ds);
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
   std::shared_ptr<ConvolutionalLayer> conv_layer =
@@ -743,8 +744,8 @@ TEST(ConvolutionalLayerTest, TrainTest) {
   model.Train(
       training_ds,
       10,  // epochs
-      0.2,  // learn_rate
-      0.002,  // regularization
+      4,  // learn_rate
+      0.04,  // regularization
       &training_error);
 
   float test_error;
