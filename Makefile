@@ -102,15 +102,15 @@ bin/linalg/matrix_test: bin/linalg/matrix_test.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/learn_test: bin/cnn/learn_test.o \
-		bin/cnn/data_set.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/fully_connected_layer.o \
 		bin/cnn/l2_error_layer.o \
 		bin/cnn/layer.o \
 		bin/cnn/layer_stack.o \
 		bin/cnn/layer_test_base.o \
-		bin/cnn/model.o \
 		bin/cnn/nonlinearity_layer.o \
+		bin/infra/data_set.o \
+		bin/infra/model.o \
 		bin/linalg/device_matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a
@@ -129,17 +129,17 @@ bin/cnn/error_layer_test: bin/cnn/error_layer_test.o \
 
 bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
 		bin/cnn/convolutional_layer.o \
-		bin/cnn/data_set.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/fully_connected_layer.o \
 		bin/cnn/l2_error_layer.o \
 		bin/cnn/layer.o \
 		bin/cnn/layer_stack.o \
 		bin/cnn/layer_test_base.o \
-		bin/cnn/model.o \
 		bin/cnn/nonlinearity_layer.o \
 		bin/cnn/reshape_layer.o \
 		bin/cnn/softmax_error_layer.o \
+		bin/infra/data_set.o \
+		bin/infra/model.o \
 		bin/linalg/device_matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a

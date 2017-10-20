@@ -1,5 +1,5 @@
-#ifndef _CNN_MODEL_H_
-#define _CNN_MODEL_H_
+#ifndef _INFRA_MODEL_H_
+#define _INFRA_MODEL_H_
 
 #include <memory>
 
@@ -33,4 +33,4 @@ class Model {
 };
 
 
-#endif  // _CNN_MODEL_H_
+#endif  // _INFRA_MODEL_H_

@@ -1,5 +1,5 @@
-#ifndef _CNN_DATA_SET_H_
-#define _CNN_DATA_SET_H_
+#ifndef _INFRA_DATA_SET_H_
+#define _INFRA_DATA_SET_H_
 
 #include <vector>
 
@@ -36,4 +36,4 @@ class InMemoryDataSet : public DataSet {
   std::vector<DeviceMatrix> y_;
 };
 
-#endif  // _CNN_DATA_SET_H_
+#endif  // _INFRA_DATA_SET_H_

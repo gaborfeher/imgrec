@@ -1,11 +1,11 @@
-#include "linalg/device_matrix.h"
+#include "infra/model.h"
 
 #include <iostream>
 
-#include "cnn/data_set.h"
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
-#include "cnn/model.h"
+#include "infra/data_set.h"
+#include "linalg/device_matrix.h"
 #include "util/random.h"
 
 void Initialize(std::shared_ptr<LayerStack> model, int random_seed) {

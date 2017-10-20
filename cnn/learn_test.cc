@@ -1,14 +1,14 @@
 #include <iostream>
 
 #include "cnn/convolutional_layer.h"
-#include "cnn/data_set.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
 #include "cnn/reshape_layer.h"
-#include "cnn/model.h"
 #include "cnn/nonlinearity_layer.h"
+#include "infra/data_set.h"
+#include "infra/model.h"
 #include "linalg/device_matrix.h"
 #include "linalg/matrix_test_util.h"
 

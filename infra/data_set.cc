@@ -1,4 +1,4 @@
-#include "cnn/data_set.h"
+#include "infra/data_set.h"
 
 #include <cassert>
 
