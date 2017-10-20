@@ -10,14 +10,18 @@ NVCC = /usr/local/cuda/bin/nvcc
 NVCCFLAGS += --include-path=. -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
 CUDA_LIB=/usr/local/cuda/lib64
 
-SOURCES=$(wildcard **/*.cc) $(wildcard **/*.cu)
+SOURCES := $(wildcard **/*.cc) $(wildcard **/*.cu)
+TEST_SOURCES := $(filter %_test.cc,$(SOURCES))
+TEST_DS := $(addprefix bin/,$(subst .cc,.d,$(TEST_SOURCES)))
+TEST_OBJS := $(addprefix bin/,$(subst .cc,.o,$(TEST_SOURCES)))
+
 
 # PHONY targets
 #######
 
 .PHONY: clean clean_all test matrix_test learn_test error_layer_test convolutional_layer_test
 
-test: matrix_test learn_test error_layer_test convolutional_layer_test
+test: $(MAIN_GTEST_HEADER) matrix_test learn_test error_layer_test convolutional_layer_test
 
 clean:
 	rm -Rf bin
@@ -43,9 +47,8 @@ convolutional_layer_test: bin/cnn/convolutional_layer_test
 $(MAIN_GTEST_HEADER) :
 	$(MAKE) -C googletest downloaded_deps/googletest
 
-TEST_SOURCES=$(filter _test.cc,$SOURCES)
-$(subst .cc,.d,TEST_SOURCES): $(MAIN_GTEST_HEADER)
-$(subst .cc,.o,TEST_SOURCES): $(MAIN_GTEST_HEADER)
+$(TEST_OBJS): $(MAIN_GTEST_HEADER)
+$(TEST_DS): $(MAIN_GTEST_HEADER)
 
 # Build GoogleTest
 
