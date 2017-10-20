@@ -22,9 +22,11 @@ class LayerStack : public Layer {
   virtual void Print() const;
   virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradients);
+  virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
   virtual void Regularize(float lambda);
+  virtual bool BeginTrainingPhase(TrainingPhase phase);
+  virtual void EndTrainingPhase(TrainingPhase phase);
 
   virtual DeviceMatrix output() {
     return layers_.back()->output();

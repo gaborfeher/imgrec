@@ -10,10 +10,12 @@ class BatchNormalizationLayer : public Layer {
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
 
+  virtual bool BeginTrainingPhase(TrainingPhase phase);
+  virtual void EndTrainingPhase(TrainingPhase phase);
  private:
   DeviceMatrix beta_;
   DeviceMatrix gamma_;
-  
+
 };
 
 #endif

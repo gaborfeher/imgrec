@@ -7,3 +7,11 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix&) {
 
 void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
 }
+
+
+bool BatchNormalizationLayer::BeginTrainingPhase(TrainingPhase phase) {
+  return true;
+}
+
+void BatchNormalizationLayer::EndTrainingPhase(TrainingPhase phase) {
+}

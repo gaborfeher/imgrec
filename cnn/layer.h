@@ -7,6 +7,11 @@ class Random;
 
 class Layer {
  public:
+  enum TrainingPhase {
+    PRE_PHASE,
+    POST_PHASE
+  };
+
   Layer();
   virtual ~Layer() {}
 
@@ -16,6 +21,14 @@ class Layer {
   virtual void Backward(const DeviceMatrix& ouotput_gradient) = 0;
   virtual void ApplyGradient(float /* learn_rate */) {};
   virtual void Regularize(float /* lambda */) {};
+
+  // This should return true if the layer requires
+  // the given phase. If no layers return true,
+  // then the phase is skipped.
+  virtual bool BeginTrainingPhase(TrainingPhase /* phase */) {
+    return false;
+  };
+  virtual void EndTrainingPhase(TrainingPhase /* phase */) {};
 
   virtual DeviceMatrix output() { return output_; }
   virtual DeviceMatrix input_gradients() { return input_gradients_; }

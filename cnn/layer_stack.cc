@@ -28,11 +28,11 @@ void LayerStack::Forward(const DeviceMatrix& input) {
   }
 }
 
-void LayerStack::Backward(const DeviceMatrix& output_gradients) {
-  DeviceMatrix last_output_gradients = output_gradients;
+void LayerStack::Backward(const DeviceMatrix& output_gradient) {
+  DeviceMatrix last_output_gradient = output_gradient;
   for (int i = layers_.size() - 1; i >= 0; i--) {
-    layers_[i]->Backward(last_output_gradients);
-    last_output_gradients = layers_[i]->input_gradients();
+    layers_[i]->Backward(last_output_gradient);
+    last_output_gradient = layers_[i]->input_gradients();
   }
 }
 
@@ -47,3 +47,20 @@ void LayerStack::Regularize(float lambda) {
     layer->Regularize(lambda);
   }
 }
+
+bool LayerStack::BeginTrainingPhase(TrainingPhase phase) {
+  bool result = false;
+  for (std::shared_ptr<Layer> layer : layers_) {
+    if (layer->BeginTrainingPhase(phase)) {
+      result = true;
+    }
+  }
+  return result;
+}
+
+void LayerStack::EndTrainingPhase(TrainingPhase phase) {
+  for (std::shared_ptr<Layer> layer : layers_) {
+    layer->EndTrainingPhase(phase);
+  }
+}
+

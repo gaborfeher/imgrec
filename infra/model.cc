@@ -32,6 +32,8 @@ void Model::Train(
     int epochs,
     float learn_rate,
     float regularization_lambda) {
+
+  RunTrainingPhase(data_set, Layer::PRE_PHASE);
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
@@ -55,6 +57,18 @@ void Model::Train(
           << std::endl;
       // model_->Print();
     }
+  }
+  RunTrainingPhase(data_set, Layer::POST_PHASE);
+}
+
+void Model::RunTrainingPhase(
+    const DataSet& data_set,
+    Layer::TrainingPhase phase) {
+  if (model_->BeginTrainingPhase(phase)) {
+    for (int i = 0; i < data_set.NumBatches(); ++i) {
+      model_->Forward(data_set.GetBatchInput(1));
+    }
+    model_->EndTrainingPhase(phase);
   }
 }
 

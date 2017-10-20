@@ -3,10 +3,11 @@
 
 #include <memory>
 
+#include "cnn/layer.h"
+
 class DataSet;
 class DeviceMatrix;
 class ErrorLayer;
-class Layer;
 class LayerStack;
 class Random;
 
@@ -30,6 +31,8 @@ class Model {
   bool logging_;
   std::shared_ptr<LayerStack> model_;
   std::shared_ptr<ErrorLayer> error_;
+
+  void RunTrainingPhase(const DataSet& data_set, Layer::TrainingPhase phase);
 };
 
 
