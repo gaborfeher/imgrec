@@ -7,9 +7,12 @@ class Random;
 
 class Layer {
  public:
-  enum TrainingPhase {
-    PRE_PHASE,
-    POST_PHASE
+  enum Phase {
+    NONE,
+    PRE_TRAIN_PHASE,
+    TRAIN_PHASE,
+    POST_TRAIN_PHASE,
+    INFER_PHASE,
   };
 
   Layer();
@@ -22,13 +25,17 @@ class Layer {
   virtual void ApplyGradient(float /* learn_rate */) {};
   virtual void Regularize(float /* lambda */) {};
 
-  // This should return true if the layer requires
-  // the given phase. If no layers return true,
-  // then the phase is skipped.
-  virtual bool BeginTrainingPhase(TrainingPhase /* phase */) {
-    return false;
+
+  // Signals to the layer that a phase is beginning.
+  // For PRE_TRAIN_PHASE and POST_TRAIN_PHASE, the return value
+  // determines the forward passes of the phase: it will be the
+  // highest value returned by a layer (can be 0).
+  // Even layers returning =0 must be able to handle all the
+  // phases.
+  virtual int BeginPhase(Phase /* phase */) {
+    return 0;
   };
-  virtual void EndTrainingPhase(TrainingPhase /* phase */) {};
+  virtual void EndPhase(Phase /* phase */) {};
 
   virtual DeviceMatrix output() { return output_; }
   virtual DeviceMatrix input_gradients() { return input_gradients_; }

@@ -52,6 +52,15 @@ class DeviceMatrix {
   // will be the sum of sums of the following layers from the original
   // matrix: i, i+cycle, i+2cycle, ...
   DeviceMatrix SumLayers(int cycle) const;
+
+  // layers > 0: consider this matrix as a series of matrices
+  //    of depth |layers|, and summarize them into one matrix
+  //    of depth layer.
+  // layers = 0: summarize the columns of the matrix, the
+  //             resulting matrix will have one column. This
+  //             matrix must have depth = 1.
+  DeviceMatrix Sum(int layers) const;
+
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
   DeviceMatrix Dot(const DeviceMatrix&) const;

@@ -33,7 +33,8 @@ void Model::Train(
     float learn_rate,
     float regularization_lambda) {
 
-  RunTrainingPhase(data_set, Layer::PRE_PHASE);
+  RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
+  model_->BeginPhase(Layer::TRAIN_PHASE);
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
@@ -58,24 +59,27 @@ void Model::Train(
       // model_->Print();
     }
   }
-  RunTrainingPhase(data_set, Layer::POST_PHASE);
+  model_->EndPhase(Layer::TRAIN_PHASE);
+  RunPhase(data_set, Layer::POST_TRAIN_PHASE);
 }
 
-void Model::RunTrainingPhase(
+void Model::RunPhase(
     const DataSet& data_set,
-    Layer::TrainingPhase phase) {
-  if (model_->BeginTrainingPhase(phase)) {
-    for (int i = 0; i < data_set.NumBatches(); ++i) {
+    Layer::Phase phase) {
+  int requested_runs = model_->BeginPhase(phase);
+  for (int i = 0; i < requested_runs; ++i) {
+    for (int j = 0; i < data_set.NumBatches(); ++j) {
       model_->Forward(data_set.GetBatchInput(1));
     }
-    model_->EndTrainingPhase(phase);
   }
+  model_->EndPhase(phase);
 }
 
 void Model::Evaluate(
     const DataSet& data_set,
     float* error,
     float* accuracy) {
+  model_->BeginPhase(Layer::INFER_PHASE);
   float total_error = 0.0f;
   float total_accuracy = 0.0f;
   for (int j = 0; j < data_set.NumBatches(); ++j) {
@@ -92,4 +96,5 @@ void Model::Evaluate(
         << " accuracy= " << 100.0 * *accuracy << "%"
         << std::endl;
   }
+  model_->EndPhase(Layer::INFER_PHASE);
 }

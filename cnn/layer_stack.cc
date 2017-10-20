@@ -48,19 +48,20 @@ void LayerStack::Regularize(float lambda) {
   }
 }
 
-bool LayerStack::BeginTrainingPhase(TrainingPhase phase) {
-  bool result = false;
+int LayerStack::BeginPhase(Phase phase) {
+  bool result = 0;
   for (std::shared_ptr<Layer> layer : layers_) {
-    if (layer->BeginTrainingPhase(phase)) {
-      result = true;
+    int r = layer->BeginPhase(phase);
+    if (r > result) {
+      result = r;
     }
   }
   return result;
 }
 
-void LayerStack::EndTrainingPhase(TrainingPhase phase) {
+void LayerStack::EndPhase(Phase phase) {
   for (std::shared_ptr<Layer> layer : layers_) {
-    layer->EndTrainingPhase(phase);
+    layer->EndPhase(phase);
   }
 }
 

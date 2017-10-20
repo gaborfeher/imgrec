@@ -32,7 +32,7 @@ class Model {
   std::shared_ptr<LayerStack> model_;
   std::shared_ptr<ErrorLayer> error_;
 
-  void RunTrainingPhase(const DataSet& data_set, Layer::TrainingPhase phase);
+  void RunPhase(const DataSet& data_set, Layer::Phase phase);
 };
 
 
