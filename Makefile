@@ -19,9 +19,9 @@ TEST_OBJS := $(addprefix bin/,$(subst .cc,.o,$(TEST_SOURCES)))
 # PHONY targets
 #######
 
-.PHONY: clean clean_all test matrix_test learn_test error_layer_test convolutional_layer_test
+.PHONY: clean clean_all test matrix_test learn_test error_layer_test convolutional_layer_test batch_normalization_layer_test
 
-test: $(MAIN_GTEST_HEADER) matrix_test learn_test error_layer_test convolutional_layer_test
+test: $(MAIN_GTEST_HEADER) matrix_test learn_test error_layer_test convolutional_layer_test batch_normalization_layer_test
 
 clean:
 	rm -Rf bin
@@ -39,6 +39,9 @@ error_layer_test: bin/cnn/error_layer_test
 	$<
 
 convolutional_layer_test: bin/cnn/convolutional_layer_test
+	$<
+
+batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test
 	$<
 
 # Make sure GoogleTest is downloaded before compiling test targets:
@@ -145,3 +148,7 @@ bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
 		bin/googletest/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
+bin/cnn/batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test.o \
+		bin/cnn/batch_normalization_layer.o \
+		bin/googletest/gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
