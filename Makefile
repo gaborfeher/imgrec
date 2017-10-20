@@ -61,15 +61,15 @@ bin/googletest/gtest_main.a : $(MAIN_GTEST_HEADER)
 #######
 
 bin/%.d: %.cc
-	mkdir -p $(dir bin/$*)
 	@set -e; rm -f $@; \
+		mkdir -p $(dir bin/$*); \
 		$(CXX) -MM $(CPPFLAGS) $(CXXFLAGS) $< > $@.$$$$; \
 		sed 's,\($(notdir $(basename $*))\)\.o[ :]*,$(dir bin/$*)\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 
 bin/%.cu.d: %.cu
-	mkdir -p $(dir bin/$*)
 	@set -e; rm -f $@; \
+		mkdir -p $(dir bin/$*); \
 		$(NVCC) -M $(NVCCFLAGS) $< > $@.$$$$; \
 		sed 's,\($(notdir $(basename $*))\)\.o[ :]*,$(dir bin/$*)\1.cu.o $@ : ,g' < $@.$$$$ | \
 		grep -v '^[[:space:]]*/' > $@; \
@@ -82,14 +82,14 @@ include $(addprefix bin/,$(subst .cc,.d,$(subst .cu,.cu.d,$(SOURCES))))
 #######
 
 bin/%.cu.o: %.cu
-	mkdir -p $(dir bin/$*)
+	@set -e; mkdir -p $(dir bin/$*)
 	$(NVCC) $(filter %.cu %.cc,$^) \
 		$(NVCCFLAGS) \
 		--lib \
 		--output-file=$@
 
 bin/%.o: %.cc
-	mkdir -p $(dir bin/$*)
+	@set -e; mkdir -p $(dir bin/$*)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(filter %.cu %.cc %.o,$^) -o $@
 
 # Fully linked end-product binary files:
@@ -114,7 +114,6 @@ bin/cnn/learn_test: bin/cnn/learn_test.o \
 		bin/linalg/device_matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a
-	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/error_layer_test: bin/cnn/error_layer_test.o \
@@ -126,7 +125,6 @@ bin/cnn/error_layer_test: bin/cnn/error_layer_test.o \
 		bin/linalg/device_matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a
-	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
@@ -145,6 +143,5 @@ bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
 		bin/linalg/device_matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a
-	mkdir -p bin/cnn
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
