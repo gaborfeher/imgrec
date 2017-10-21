@@ -143,6 +143,19 @@ DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
   return result;
 }
 
+__global__ void VecAddConst(float* A, float b, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = A[i] + b;
+  }
+}
+
+DeviceMatrix DeviceMatrix::AddConst(float c) const {
+  DeviceMatrix result(rows_, cols_, depth_);
+  VecAddConst<<<(size_ + 255) / 256, 256>>>(data_.get(), c, result.data_.get(), size_);
+  return result;
+}
+
 __global__ void VecMult(float* A, float* B, float* C, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
@@ -154,6 +167,20 @@ DeviceMatrix DeviceMatrix::ElementwiseMultiply(const DeviceMatrix& other) const 
   AssertSameDimensions(other);
   DeviceMatrix result(rows_, cols_, depth_);
   VecMult<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
+  return result;
+}
+
+__global__ void VecDivide(float* A, float* B, float* C, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    C[i] = A[i] / B[i];
+  }
+}
+
+DeviceMatrix DeviceMatrix::ElementwiseDivide(const DeviceMatrix& other) const {
+  AssertSameDimensions(other);
+  DeviceMatrix result(rows_, cols_, depth_);
+  VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
   return result;
 }
 
@@ -310,6 +337,13 @@ __global__ void VecSquare(float* A, float* B, int size) {
   }
 }
 
+__global__ void VecSqrt(float* A, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = sqrt(A[i]);
+  }
+}
+
 namespace matrix_mappers {
 
 // We provide factory methdos instead of direct implementations
@@ -342,6 +376,10 @@ MapperFunc LReLUGradient() {
 
 MapperFunc Square() {
   return &VecSquare;
+}
+
+MapperFunc Sqrt() {
+  return &VecSqrt;
 }
 
 }  // namespacce matrix_mappers

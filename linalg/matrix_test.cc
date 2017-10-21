@@ -17,6 +17,27 @@ TEST(SmallMatrixTest, Add) {
   EXPECT_EQ(2, c.cols());
 }
 
+TEST(SmallMatrixTest, AddConst) {
+  DeviceMatrix a(2, 2, 1, (float[]){5, 2, 3, 4});
+  DeviceMatrix b(a.AddConst(1));
+  DeviceMatrix b_exp(2, 2, 1, (float[]){6, 3, 4, 5});
+  ExpectMatrixEquals(b_exp, b);
+}
+
+TEST(SmallMatrixTest, Square) {
+  DeviceMatrix a(2, 2, 1, (float[]){5, 2, -3, 4});
+  DeviceMatrix b(a.Map(::matrix_mappers::Square()));
+  DeviceMatrix b_exp(2, 2, 1, {25, 4, 9, 16});
+  ExpectMatrixEquals(b_exp, b);
+}
+
+TEST(SmallMatrixTest, Sqrt) {
+  DeviceMatrix a(2, 2, 1, {25, 4, 9, 16});
+  DeviceMatrix b(a.Map(::matrix_mappers::Sqrt()));
+  DeviceMatrix b_exp(2, 2, 1, (float[]){5, 2, 3, 4});
+  ExpectMatrixEquals(b_exp, b);
+}
+
 TEST(SmallMatrixTest, ElementwiseMultiply) {
   DeviceMatrix a(2, 2, 1, (float[]){5, 2, 3, 4});
   DeviceMatrix b(2, 2, 1, (float[]){1, 1, 2, 2});
@@ -24,6 +45,14 @@ TEST(SmallMatrixTest, ElementwiseMultiply) {
   EXPECT_EQ((std::vector<float> {5, 2, 6, 8}), c.GetVector());
   EXPECT_EQ(2, c.rows());
   EXPECT_EQ(2, c.cols());
+}
+
+TEST(SmallMatrixTest, ElementwiseDivide) {
+  DeviceMatrix a(2, 2, 1, (float[]){5, 2, 3, 4});
+  DeviceMatrix b(2, 2, 1, (float[]){1, 1, 2, 2});
+  DeviceMatrix c(a.ElementwiseDivide(b));
+  DeviceMatrix c_exp(2, 2, 1, (float[]) {5, 2, 1.5, 2});
+  ExpectMatrixEquals(c_exp, c);
 }
 
 TEST(SmallMatrixTest, Transpose) {
