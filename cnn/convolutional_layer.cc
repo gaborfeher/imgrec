@@ -107,7 +107,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
   //     filter1-layer1, filter1-layer2, filter1-layer3
   //     filter2-layer1, filter2-layer2, filter2-layer3
 
-  biases_gradient_ = output_gradient.SumLayers(num_filters);
+  biases_gradient_ = output_gradient.SumPerLayers(num_filters);
 }
 
 void ConvolutionalLayer::ApplyGradient(float learn_rate) {

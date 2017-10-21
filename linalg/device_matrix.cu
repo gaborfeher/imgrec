@@ -389,7 +389,7 @@ __global__ void MatrixSumLayers(
   }
 }
 
-DeviceMatrix DeviceMatrix::SumLayers(int cycle) const {
+DeviceMatrix DeviceMatrix::SumPerLayers(int cycle) const {
   assert(depth_ % cycle == 0);
   DeviceMatrix result(1, 1, cycle);
   MatrixSumLayers<<<(cycle + 255) / 256, 256>>>(
@@ -400,6 +400,65 @@ DeviceMatrix DeviceMatrix::SumLayers(int cycle) const {
   return result;
 }
 
+
+__global__ void MatrixSum_Columns(
+    float* A,
+    int rows, int cols,
+    float* B) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+
+  if (i < rows) {
+    float result = 0.0f;
+    for (int j = 0; j < cols; ++j) {
+      result += A[Dim3toDim1(i, j, 0, rows, cols, 1)];
+    }
+    B[i] = result;
+  }
+}
+
+__global__ void MatrixSum_Layers(
+    float* A,
+    int rows, int cols, int a_depth,
+    float* B,
+    int b_depth) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int b_k = threadIdx.z + blockDim.z * blockIdx.z;
+
+  if (i < rows && j < cols && b_k < b_depth) {
+    float result = 0.0f;
+    for (int a_k = b_k; a_k < a_depth; a_k += b_depth) {
+      result += A[Dim3toDim1(i, j, a_k, rows, cols, 1)];
+    }
+    B[Dim3toDim1(i, j, b_k, rows, cols, b_depth)] = result;
+  }
+}
+
+DeviceMatrix DeviceMatrix::Sum(int layers) const {
+  assert(layers >= 0);
+  if (layers == 0) {
+    // sum columns
+    assert(depth_ == 1);
+    DeviceMatrix result(rows_, 1, 1);
+    MatrixSum_Columns<<<(rows_ + 255) / 256, 256>>>(
+        data_.get(),
+        rows_, cols_,
+        result.data_.get());
+    return result;
+  } else {
+    // sum layers
+    assert(depth_ % layers == 0);
+    DeviceMatrix result(rows_, cols_, layers);
+    dim3 threadsPerBlock(16, 16, 1);
+    dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, layers);
+    MatrixSum_Layers<<<blocks, threadsPerBlock>>>(
+        data_.get(),
+        rows_, cols_, depth_,
+        result.data_.get(),
+        layers);
+    return result;
+  }
+}
 
 __global__ void VecL2(float* A, int len, float* B) {
   float result = 0.0;

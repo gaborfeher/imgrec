@@ -51,7 +51,7 @@ class DeviceMatrix {
   // layers, each with 1 element only. The ith layer in the result
   // will be the sum of sums of the following layers from the original
   // matrix: i, i+cycle, i+2cycle, ...
-  DeviceMatrix SumLayers(int cycle) const;
+  DeviceMatrix SumPerLayers(int cycle) const;
 
   // layers > 0: consider this matrix as a series of matrices
   //    of depth |layers|, and summarize them into one matrix
@@ -60,6 +60,11 @@ class DeviceMatrix {
   //             resulting matrix will have one column. This
   //             matrix must have depth = 1.
   DeviceMatrix Sum(int layers) const;
+  // layers > 0: repeat this matrix as a series of layers
+  //    in the resulting matrix, times times
+  // layers = 0: repeat this matrix as a series of columns
+  //    in the resulting matrix. This matrix must have depth = 1.
+  DeviceMatrix Repeat(int times, int layers) const;
 
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
