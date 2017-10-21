@@ -156,6 +156,19 @@ DeviceMatrix DeviceMatrix::AddConst(float c) const {
   return result;
 }
 
+__global__ void VecPow(float* A, float exp, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = pow(A[i], exp);
+  }
+}
+
+DeviceMatrix DeviceMatrix::Pow(float exp) const {
+  DeviceMatrix result(rows_, cols_, depth_);
+  VecPow<<<(size_ + 255) / 256, 256>>>(data_.get(), exp, result.data_.get(), size_);
+  return result;
+}
+
 __global__ void VecMult(float* A, float* B, float* C, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {

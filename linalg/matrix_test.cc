@@ -24,6 +24,13 @@ TEST(SmallMatrixTest, AddConst) {
   ExpectMatrixEquals(b_exp, b);
 }
 
+TEST(SmallMatrixTest, Pow) {
+  DeviceMatrix a(2, 2, 1, (float[]){5, 2, 3, 4});
+  DeviceMatrix b(a.Pow(3));
+  DeviceMatrix b_exp(2, 2, 1, (float[]){125, 8, 27, 64});
+  ExpectMatrixEquals(b_exp, b);
+}
+
 TEST(SmallMatrixTest, Square) {
   DeviceMatrix a(2, 2, 1, (float[]){5, 2, -3, 4});
   DeviceMatrix b(a.Map(::matrix_mappers::Square()));

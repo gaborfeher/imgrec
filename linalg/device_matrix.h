@@ -40,6 +40,7 @@ class DeviceMatrix {
 
   DeviceMatrix Add(const DeviceMatrix& other) const;
   DeviceMatrix AddConst(float c) const;
+  DeviceMatrix Pow(float exp) const;
   DeviceMatrix ElementwiseMultiply(const DeviceMatrix& other) const;
   DeviceMatrix ElementwiseDivide(const DeviceMatrix& other) const;
   DeviceMatrix Multiply(float) const;
