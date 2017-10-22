@@ -20,9 +20,9 @@ void FullyConnectedLayer::Print() const {
 
 void FullyConnectedLayer::Initialize(Random* random) {
   // http://cs231n.github.io/neural-networks-2/#init
-  float variance = 2.0f / (input_size_ + 1);  // +1 is tmp hack for tests
+  float variance = 2.0f / input_size_;
   std::normal_distribution<float> dist(0, sqrt(variance));
-  weights_.RandomFill2(random, &dist);  // tmp hack for tests
+  weights_.RandomFill(random, &dist);
 }
 
 void FullyConnectedLayer::Forward(const DeviceMatrix& input) {

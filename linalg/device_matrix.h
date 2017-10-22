@@ -112,21 +112,6 @@ class DeviceMatrix {
     SetVector(result);
   }
 
-  // tmp hack for tests
-  template <class Distribution>
-  void RandomFill2(Random* random, const Distribution& distribution) {
-    std::vector<float> result;
-    result.reserve(size_);
-    for (int i = 0; i < size_; ++i) {
-      result.push_back(random->RandFloat(distribution));
-      if ((i + 1) % cols_ == 0) {
-        random->RandFloat(distribution);  // discard
-      }
-    }
-    SetVector(result);
-  }
-
-
   DeviceMatrix DeepCopy() const;
 
   float GetValue(int row, int col, int depth) const;
