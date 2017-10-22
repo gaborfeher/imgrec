@@ -21,7 +21,7 @@ void ExpectMatrixEquals(
     return;
   }
   for (size_t i = 0; i < av.size(); ++i) {
-    EXPECT_NEAR(av[i], bv[i], absolute_diff);
+    EXPECT_NEAR(av[i], bv[i], absolute_diff) << "(i= " << i << ")";
     if (percentage_diff >= 0.0f) {
       float diff = std::abs(av[i] - bv[i]);
       if (diff < std::numeric_limits<float>::epsilon() ||
@@ -58,6 +58,6 @@ void ExpectMatrixEquals(
     return;
   }
   for (size_t i = 0; i < av.size(); ++i) {
-    EXPECT_FLOAT_EQ(av[i], bv[i]);
+    EXPECT_FLOAT_EQ(av[i], bv[i]) << "(i= " << i << ")";
   }
 }

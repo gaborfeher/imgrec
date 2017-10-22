@@ -4,15 +4,32 @@
 
 #include "linalg/device_matrix.h"
 
+BatchNormalizationLayer::BatchNormalizationLayer(
+  int num_neurons, bool convolutional) :
+    epsilon_(0.0001),
+    convolutional_(convolutional),
+    num_neurons_(num_neurons),
+    num_layers_per_sample_(convolutional ? num_neurons : 0) {
 
-BatchNormalizationLayer::BatchNormalizationLayer() :
-    epsilon_(0.0001) {
+  if (convolutional) {
+    beta_ = DeviceMatrix(1, 1, num_neurons);
+    gamma_ = DeviceMatrix(1, 1, num_neurons);
+  } else {
+    beta_ = DeviceMatrix(num_neurons, 1, 1);
+    gamma_ = DeviceMatrix(num_neurons, 1, 1);
+  }
+
+}
+
+void BatchNormalizationLayer::Initialize(Random*) {
+  gamma_.Fill(1.0);
+  beta_.Fill(0.0);
 }
 
 void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
 
-  if (num_layers_per_sample_ > 0) {
+  if (convolutional_) {
     assert(input.depth() % num_layers_per_sample_ == 0);
     // Each layer is considered rows*cols sample of the same
     // variable, because they have to be normalized jointly.
@@ -48,7 +65,6 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
       // break;  // fall through!
     }
     case TRAIN_PHASE: {
-
       mean_ = input
           .Sum(num_layers_per_sample_)
           .Multiply(1.0 / num_samples_);
@@ -61,11 +77,12 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
           .Sum(num_layers_per_sample_)
           .Multiply(1.0 / num_samples_);
       variance_e_ = variance_.AddConst(epsilon_);
-      sqrt_variance_e_ = variance_e_
-          .Map(::matrix_mappers::Sqrt());
-      normalized_ = shifted_.ElementwiseDivide(sqrt_variance_e_);
-      output_ = normalized_.ElementwiseMultiply(gamma_).Add(beta_);
-
+      sqrt_variance_e_ = variance_e_.Map(::matrix_mappers::Sqrt());
+      normalized_ = shifted_.ElementwiseDivide(
+          sqrt_variance_e_.Repeat(input.rows(), input.cols(), input.depth()));
+      output_ = normalized_
+          .ElementwiseMultiply(gamma_.Repeat(input.rows(), input.cols(), input.depth()))
+          .Add(beta_.Repeat(input.rows(), input.cols(), input.depth()));
       break;
     }
 

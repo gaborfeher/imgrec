@@ -3,12 +3,16 @@
 
 #include "cnn/layer.h"
 
+#include "gtest/gtest_prod.h"
+
 class DeviceMatrix;
+class Random;
 
 // https://arxiv.org/pdf/1502.03167.pdf
 class BatchNormalizationLayer : public Layer {
  public:
-  BatchNormalizationLayer();
+  BatchNormalizationLayer(int num_neurons, bool convolutional);
+  virtual void Initialize(Random*);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
@@ -16,10 +20,24 @@ class BatchNormalizationLayer : public Layer {
   virtual bool BeginPhase(Phase phase, int phase_sub_id);
   virtual void EndPhase(Phase phase, int phase_sub_id);
  private:
+  FRIEND_TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode);
+  FRIEND_TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode);
+  FRIEND_TEST(BatchNormalizationLayerTest, Forward_LayerMode);
   float epsilon_;
 
+  // Input shape and mode description:
+
+  // true= input samples are layers, false= input samples are columns
+  bool convolutional_;
+
+  // convolutional_ == true -> number of layers in a sample
+  // convolutional_ == false -> number of rows in a sample
+  int num_neurons_;
+
+  // ...
+  int num_layers_per_sample_;
+
   int num_samples_;
-  int num_layers_per_sample_;  // 0 means each sample is a row
 
   // Internal parameters and their gradients:
   DeviceMatrix beta_;

@@ -157,6 +157,7 @@ bin/cnn/batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test.o
 		bin/cnn/batch_normalization_layer.o \
 		bin/cnn/layer.o \
 		bin/linalg/device_matrix.cu.o \
+		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
