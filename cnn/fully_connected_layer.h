@@ -21,7 +21,6 @@ class FullyConnectedLayer : public Layer {
   FRIEND_TEST(LearnTest, FullyConnectedLayerWeightGradient);
   FRIEND_TEST(LearnTest, FullyConnectedLayerInputGradient);
 
-  bool bias_trick_;
   int input_size_;
   int output_size_;
   DeviceMatrix weights_;

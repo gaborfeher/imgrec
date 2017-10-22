@@ -13,10 +13,7 @@ ConvolutionalLayer::ConvolutionalLayer(
         layers_per_image_(layers_per_image),
         stride_(stride),
         filters_(filter_rows, filter_cols, num_filters * layers_per_image),
-        filters_gradient_(filter_rows, filter_cols, num_filters * layers_per_image),
-        biases_(1, 1, num_filters),
-        biases_gradient_(1, 1, num_filters)
-{
+        filters_gradient_(filter_rows, filter_cols, num_filters * layers_per_image) {
   assert(stride_ == 1);  // Backprop doesn't support other values uet.
   assert(padding_ == 0);  // Backprop doesn't support other values yet.
 }
@@ -24,7 +21,6 @@ ConvolutionalLayer::ConvolutionalLayer(
 void ConvolutionalLayer::Print() const {
   std::cout << "Convolutional Layer:" << std::endl;
   filters_.Print();
-  biases_.Print();
 }
 
 void ConvolutionalLayer::Initialize(Random* random) {
@@ -33,7 +29,6 @@ void ConvolutionalLayer::Initialize(Random* random) {
   float variance = 2.0f / (filters_.rows() * filters_.cols() * layers_per_image_);
   std::normal_distribution<float> dist(0, sqrt(variance));
   filters_.RandomFill(random, &dist);
-  biases_.Fill(0);
 }
 
 void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
@@ -43,8 +38,7 @@ void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
       .Convolution(
           filters_,
           layers_per_image_,
-          stride_,
-          biases_);
+          stride_);
 }
 
 void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
@@ -106,13 +100,10 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
   //  filters_gradients_ is:
   //     filter1-layer1, filter1-layer2, filter1-layer3
   //     filter2-layer1, filter2-layer2, filter2-layer3
-
-  biases_gradient_ = output_gradient.Sum(num_filters);
 }
 
 void ConvolutionalLayer::ApplyGradient(float learn_rate) {
   filters_ = filters_.Add(filters_gradient_.Multiply(-learn_rate));
-  biases_ = biases_.Add(biases_gradient_.Multiply(-learn_rate));
 }
 
 void ConvolutionalLayer::Regularize(float lambda) {

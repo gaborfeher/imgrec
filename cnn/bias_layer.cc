@@ -41,5 +41,8 @@ void BiasLayer::Backward(const DeviceMatrix& output_gradient) {
 
 void BiasLayer::ApplyGradient(float learn_rate) {
   biases_ = biases_.Add(biases_gradient_.Multiply(-learn_rate));
+//  std::cout << "========================" << std::endl;
+//  biases_gradient_.Print();
+//  biases_.Print();
 }
 

@@ -92,3 +92,67 @@ TEST(BiasLayerTest, GradientCheck_LayerMode) {
       0.001f,
       1.0f);
 }
+
+TEST(BiasLayerTest, Forwardpass_ColumnMode) {
+  DeviceMatrix training_x(4, 3, 1, (float[]) {
+    1, 2, 3,
+    1, 1, 1,
+    1, 1, 2,
+    1, 2, 3,
+  });
+  DeviceMatrix biases(4, 1, 1, (float[]) { 1, -1, 1, 2} );
+
+  BiasLayer bias_layer(4, false);
+  bias_layer.biases_ = biases;
+
+  bias_layer.Forward(training_x);
+  ExpectMatrixEquals(
+      DeviceMatrix(4, 3, 1, (float[]) {
+          2, 3, 4,
+          0, 0, 0,
+          2, 2, 3,
+          3, 4, 5,
+      }),
+      bias_layer.output(),
+      0.0f,
+      0.1f);
+}
+
+TEST(BiasLayerTest, Forwardpass_LayerMode) {
+  DeviceMatrix training_x(2, 3, 4, (float[]) {
+      1, 1, 2,
+      1, 1, 2,
+
+      2, 2, 3,
+      2, 2, 3,
+
+      3, 3, 4,
+      3, 3, 4,
+
+      4, 4, 5,
+      4, 4, 5,
+  });
+  DeviceMatrix biases(1, 1, 2, (float[]) { 1, -1 } );
+
+  BiasLayer bias_layer(2, true);
+  bias_layer.biases_ = biases;
+
+  bias_layer.Forward(training_x);
+  ExpectMatrixEquals(
+      DeviceMatrix(2, 3, 4, (float[]) {
+          2, 2, 3,
+          2, 2, 3,
+
+          1, 1, 2,
+          1, 1, 2,
+
+          4, 4, 5,
+          4, 4, 5,
+
+          3, 3, 4,
+          3, 3, 4,
+      }),
+      bias_layer.output(),
+      0.0f,
+      0.1f);
+}

@@ -108,6 +108,7 @@ bin/linalg/matrix_test: bin/linalg/matrix_test.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/learn_test: bin/cnn/learn_test.o \
+		bin/cnn/bias_layer.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/fully_connected_layer.o \
 		bin/cnn/l2_error_layer.o \
@@ -134,6 +135,7 @@ bin/cnn/error_layer_test: bin/cnn/error_layer_test.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
+		bin/cnn/bias_layer.o \
 		bin/cnn/convolutional_layer.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/fully_connected_layer.o \

@@ -19,6 +19,9 @@ class BiasLayer : public Layer {
  private:
   FRIEND_TEST(BiasLayerTest, GradientCheck_ColumnMode);
   FRIEND_TEST(BiasLayerTest, GradientCheck_LayerMode);
+  FRIEND_TEST(BiasLayerTest, Forwardpass_ColumnMode);
+  FRIEND_TEST(BiasLayerTest, Forwardpass_LayerMode);
+  FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
 
   bool convolutional_;
   DeviceMatrix biases_;
