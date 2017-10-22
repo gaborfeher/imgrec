@@ -40,6 +40,10 @@ class Layer {
   virtual DeviceMatrix output() { return output_; }
   virtual DeviceMatrix input_gradients() { return input_gradients_; }
 
+  // Prevent copy and assignment.
+  Layer(const Layer&) = delete;
+  Layer& operator=(const Layer&) = delete;
+
  protected:
   DeviceMatrix input_;
   DeviceMatrix output_;

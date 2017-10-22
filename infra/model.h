@@ -27,6 +27,10 @@ class Model {
       float* error,
       float* accuracy);
 
+  // Prevent copy and assignment.
+  Model(const Model&) = delete;
+  Model& operator=(const Model&) = delete;
+
  private:
   bool logging_;
   std::shared_ptr<LayerStack> model_;

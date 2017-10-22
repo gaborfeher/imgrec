@@ -7,11 +7,16 @@ class DeviceMatrix;
 
 class DataSet {
  public:
+  DataSet() {}
   virtual ~DataSet() {}
   virtual int NumBatches() const = 0;
   virtual int MiniBatchSize() const = 0;
   virtual DeviceMatrix GetBatchInput(int batch) const = 0;
   virtual DeviceMatrix GetBatchOutput(int batch) const = 0;
+
+  // Prevent copy and assignment.
+  DataSet(const DataSet&) = delete;
+  DataSet& operator=(const DataSet&) = delete;
 };
 
 class InMemoryDataSet : public DataSet {
