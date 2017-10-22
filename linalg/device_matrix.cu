@@ -749,26 +749,6 @@ DeviceMatrix DeviceMatrix::AddPadding(
   return result;
 }
 
-__global__ void MatrixConstRow(
-    float* A,
-    int rows, int cols, int depth,
-    float value,
-    float* B) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  int j = threadIdx.y + blockDim.y * blockIdx.y;
-  int k = threadIdx.z + blockDim.z * blockIdx.z;
-
-  if (i < rows + 1 && j < cols && k < depth) {
-    int b_index = Dim3toDim1(i, j, k, rows + 1, cols, depth);
-    if (i < rows) {
-      int a_index = Dim3toDim1(i, j, k, rows, cols, depth);
-      B[b_index] = A[a_index];
-    } else {
-      B[b_index] = value;
-    }
-  }
-}
-
 __global__ void MatrixConvolution(
     int layers_per_image,
     float* A, int a_rows, int a_cols, int a_depth,
