@@ -4,7 +4,10 @@
 
 #include "gtest/gtest.h"
 
+#include "cnn/error_layer.h"
+#include "cnn/layer_stack.h"
 #include "linalg/device_matrix.h"
+#include "linalg/matrix_test_util.h"
 
 DeviceMatrix ComputeNumericGradients(
     const DeviceMatrix& x0,
@@ -30,3 +33,28 @@ DeviceMatrix ComputeNumericGradients(
 
   return result;
 }
+
+void ParameterGradientCheck(
+  std::shared_ptr<LayerStack> stack,
+  const DeviceMatrix& input,
+  const DeviceMatrix& param,
+  std::function< void (const DeviceMatrix&) > set_param,
+  std::function< DeviceMatrix() > get_param_grad,
+  float absolute_diff,
+  float percentage_diff) {
+
+  set_param(param);
+  stack->Forward(input);
+  stack->Backward(DeviceMatrix());
+  DeviceMatrix a_grad = get_param_grad();
+
+  DeviceMatrix n_grad = ComputeNumericGradients(
+      param,
+      [set_param, &stack, input] (const DeviceMatrix& x) -> float {
+        set_param(x);
+        stack->Forward(input);
+        return stack->GetLayer<ErrorLayer>(-1)->GetError();
+      });
+  ExpectMatrixEquals(a_grad, n_grad, absolute_diff, percentage_diff);
+}
+    
