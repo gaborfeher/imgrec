@@ -9,7 +9,7 @@ class LayerStack;
 
 // Numerically estimates the gradient of function |runner| at the
 // point of |x0|. The result will have the same shape as |x0|.
-DeviceMatrix ComputeNumericGradients(
+DeviceMatrix ComputeNumericGradient(
     const DeviceMatrix& x0,
     std::function< float (const DeviceMatrix&) > runner);
 

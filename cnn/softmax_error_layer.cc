@@ -16,7 +16,7 @@ void SoftmaxErrorLayer::Backward(const DeviceMatrix& output_gradient) {
   // output_gradient is not used, we assume that this is the last
   // layer.
   output_gradient.AssertDimensions(0, 0, 0);
-  input_gradients_ = input_.SoftmaxGradient(expected_value_);
+  input_gradient_ = input_.SoftmaxGradient(expected_value_);
 }
 
 float SoftmaxErrorLayer::GetAccuracy() const {

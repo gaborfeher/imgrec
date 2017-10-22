@@ -9,7 +9,7 @@ class SoftmaxErrorLayer : public ErrorLayer {
   SoftmaxErrorLayer();
   virtual void SetExpectedValue(const DeviceMatrix& expected_value);
   virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradients);
+  virtual void Backward(const DeviceMatrix& output_gradient);
   virtual float GetAccuracy() const;
 
  private:

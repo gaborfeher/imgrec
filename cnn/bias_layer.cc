@@ -31,7 +31,7 @@ void BiasLayer::Forward(const DeviceMatrix& input) {
 }
 
 void BiasLayer::Backward(const DeviceMatrix& output_gradient) {
-  input_gradients_ = output_gradient;
+  input_gradient_ = output_gradient;
   if (convolutional_) {
     biases_gradient_ = output_gradient.Sum(biases_.depth());
   } else {
@@ -41,8 +41,5 @@ void BiasLayer::Backward(const DeviceMatrix& output_gradient) {
 
 void BiasLayer::ApplyGradient(float learn_rate) {
   biases_ = biases_.Add(biases_gradient_.Multiply(-learn_rate));
-//  std::cout << "========================" << std::endl;
-//  biases_gradient_.Print();
-//  biases_.Print();
 }
 

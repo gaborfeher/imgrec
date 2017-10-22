@@ -31,8 +31,8 @@ class LayerStack : public Layer {
   virtual DeviceMatrix output() {
     return layers_.back()->output();
   }
-  virtual DeviceMatrix input_gradients() {
-    return layers_.front()->input_gradients();
+  virtual DeviceMatrix input_gradient() {
+    return layers_.front()->input_gradient();
   }
 
  private:

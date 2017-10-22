@@ -10,8 +10,8 @@ void ReshapeLayer::Forward(const DeviceMatrix& input) {
   output_ = input.ReshapeToColumns(unit_depth_);
 }
 
-void ReshapeLayer::Backward(const DeviceMatrix& output_gradients) {
-  input_gradients_ = output_gradients.ReshapeFromColumns(
+void ReshapeLayer::Backward(const DeviceMatrix& output_gradient) {
+  input_gradient_ = output_gradient.ReshapeFromColumns(
       unit_rows_, unit_cols_, unit_depth_);
 }
 

@@ -60,7 +60,7 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
   int num_input_images = input_.depth() / layers_per_image_;
 
   // (22)
-  input_gradients_ = output_gradient
+  input_gradient_ = output_gradient
       .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
       .Convolution(
           filters_
@@ -69,14 +69,14 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
           num_filters,
           1);
   // Layer-wise this means:
-  //  output_gradients_ is
+  //  output_gradient_ is
   //     img1-filter1, img1-filter2
   //     img2-filter1, img2-filter2
   //  filters_ after reordering is
   //     imglayer1-filter1, imglayer1-filter2
   //     imglayer2-filter1, imglayer2-filter2
   //     imglayer3-filter1, imglayer3-filter2
-  //  input_gradients_ is
+  //  input_gradient_ is
   //     img1-layer1, img1-layer2, img1-layer3
   //     img2-layer1, img2-layer2, img2-layer3
 
@@ -90,14 +90,14 @@ void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
           1
       ).Rot180();
   // Layer-wise this means:
-  //  output_gradients after reordering is:
+  //  output_gradient after reordering is:
   //     img1-filter1, img2-filter1,
   //     img1-filter2, img2-filter2
   //  input_ after reordering is:
   //     img1-layer1, img2-layer1
   //     img1-layer2, img2-layer2
   //     img1-layer3, img2-layer3
-  //  filters_gradients_ is:
+  //  filters_gradient_ is:
   //     filter1-layer1, filter1-layer2, filter1-layer3
   //     filter2-layer1, filter2-layer2, filter2-layer3
 }

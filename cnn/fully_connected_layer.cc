@@ -11,7 +11,7 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
         output_size,
         input_size_,
         1),
-    weights_gradients_(output_size, input_size_, 1) {}
+    weights_gradient_(output_size, input_size_, 1) {}
 
 void FullyConnectedLayer::Print() const {
   std::cout << "Fully Connected Layer:" << std::endl;
@@ -32,17 +32,17 @@ void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
   output_ = weights_.Dot(input_);
 }
 
-void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradients) {
-  output_gradients.AssertRows(output_size_);
-  weights_gradients_ = output_gradients.Dot(input_.T());
+void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradient) {
+  output_gradient.AssertRows(output_size_);
+  weights_gradient_ = output_gradient.Dot(input_.T());
 
-  input_gradients_ = weights_
+  input_gradient_ = weights_
       .T()
-      .Dot(output_gradients);
+      .Dot(output_gradient);
 }
 
 void FullyConnectedLayer::ApplyGradient(float learn_rate) {
-  weights_ = weights_.Add(weights_gradients_.Multiply(-learn_rate));
+  weights_ = weights_.Add(weights_gradient_.Multiply(-learn_rate));
 }
 
 void FullyConnectedLayer::Regularize(float lambda) {

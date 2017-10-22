@@ -13,7 +13,7 @@ class FullyConnectedLayer : public Layer {
   virtual void Print() const;
   virtual void Initialize(Random* random);
   virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradients); 
+  virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
   virtual void Regularize(float lambda);
 
@@ -24,7 +24,7 @@ class FullyConnectedLayer : public Layer {
   int input_size_;
   int output_size_;
   DeviceMatrix weights_;
-  DeviceMatrix weights_gradients_;
+  DeviceMatrix weights_gradient_;
 };
 
 

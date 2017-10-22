@@ -36,7 +36,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
     DeviceMatrix a_grad = conv_layer->filters_gradient_;
 
     // Approximate gradient the numerical way:
-    DeviceMatrix n_grad = ComputeNumericGradients(
+    DeviceMatrix n_grad = ComputeNumericGradient(
         filters,
         [&conv_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
           conv_layer->filters_ = x;
@@ -58,10 +58,10 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
     // Compute gradient the analytical way:
     stack->Forward(training_x);
     stack->Backward(DeviceMatrix());
-    DeviceMatrix a_grad = conv_layer->input_gradients_;
+    DeviceMatrix a_grad = conv_layer->input_gradient_;
 
     // Approximate gradient the numerical way:
-    DeviceMatrix n_grad = ComputeNumericGradients(
+    DeviceMatrix n_grad = ComputeNumericGradient(
         training_x,
         [&stack, error_layer] (const DeviceMatrix& x) -> float {
           stack->Forward(x);
@@ -634,7 +634,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   DeviceMatrix a_grad = conv_layer->filters_gradient_;
 
   // 1.2. Approximate gradient the numerical way:
-  DeviceMatrix n_grad = ComputeNumericGradients(
+  DeviceMatrix n_grad = ComputeNumericGradient(
       filters,
       [&conv_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
         conv_layer->filters_ = x;
@@ -655,7 +655,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   a_grad = bias_layer->biases_gradient_;
 
   // 2.2. Approximate gradient the numerical way:
-  n_grad = ComputeNumericGradients(
+  n_grad = ComputeNumericGradient(
       biases,
       [&bias_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
         bias_layer->biases_ = x;
@@ -675,10 +675,10 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   // 3.1. Compute gradient the analytical way:
   stack->Forward(training_x);
   stack->Backward(DeviceMatrix());
-  a_grad = conv_layer->input_gradients();
+  a_grad = conv_layer->input_gradient();
 
   // 3.2. Approximate gradient the numerical way:
-  n_grad = ComputeNumericGradients(
+  n_grad = ComputeNumericGradient(
       training_x,
       [&stack, error_layer] (const DeviceMatrix& x) -> float {
         stack->Forward(x);

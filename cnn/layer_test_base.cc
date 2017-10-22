@@ -9,7 +9,7 @@
 #include "linalg/device_matrix.h"
 #include "linalg/matrix_test_util.h"
 
-DeviceMatrix ComputeNumericGradients(
+DeviceMatrix ComputeNumericGradient(
     const DeviceMatrix& x0,
     std::function< float (const DeviceMatrix&) > runner
 ) {
@@ -48,7 +48,7 @@ void ParameterGradientCheck(
   stack->Backward(DeviceMatrix());
   DeviceMatrix a_grad = get_param_grad();
 
-  DeviceMatrix n_grad = ComputeNumericGradients(
+  DeviceMatrix n_grad = ComputeNumericGradient(
       param,
       [set_param, &stack, input] (const DeviceMatrix& x) -> float {
         set_param(x);

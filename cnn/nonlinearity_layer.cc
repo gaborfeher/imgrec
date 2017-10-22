@@ -32,9 +32,9 @@ void NonlinearityLayer::Forward(const DeviceMatrix& input) {
   output_ = input.Map(activation_function_);
 }
 
-void NonlinearityLayer::Backward(const DeviceMatrix& output_gradients) {
-  input_gradients_ = input_
+void NonlinearityLayer::Backward(const DeviceMatrix& output_gradient) {
+  input_gradient_ = input_
       .Map(activation_function_gradient_)
-      .ElementwiseMultiply(output_gradients);
+      .ElementwiseMultiply(output_gradient);
 }
 

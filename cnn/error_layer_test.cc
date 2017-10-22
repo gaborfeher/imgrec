@@ -14,10 +14,10 @@ TEST(ErrorLayerTest, L2GradientAt0) {
   L2ErrorLayer error_layer;
   error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
 
-  // Get gradients with a forward+backward pass (expecting zero gradients here):
+  // Get gradient with a forward+backward pass (expecting zero gradient here):
   error_layer.Forward(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
   error_layer.Backward(DeviceMatrix());
-  std::vector<float> grad = error_layer.input_gradients().GetVector();
+  std::vector<float> grad = error_layer.input_gradient().GetVector();
   EXPECT_FLOAT_EQ(0.0f, grad[0]);
   EXPECT_FLOAT_EQ(0.0f, grad[1]);
   EXPECT_FLOAT_EQ(0.0f, grad[2]);
@@ -28,13 +28,13 @@ TEST(ErrorLayerTest, L2Gradient) {
   error_layer.SetExpectedValue(DeviceMatrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
   DeviceMatrix input(1, 3, 1, (float[]) {1.0f, 4.0f, 0.0f});
 
-  // Get gradients with a forward+backward pass:
+  // Get gradient with a forward+backward pass:
   error_layer.Forward(input);
   error_layer.Backward(DeviceMatrix());
-  DeviceMatrix a_grad = error_layer.input_gradients();
+  DeviceMatrix a_grad = error_layer.input_gradient();
 
-  // Approximate gradients numerically (at the same position as before):
-  DeviceMatrix n_grad = ComputeNumericGradients(
+  // Approximate gradient numerically (at the same position as before):
+  DeviceMatrix n_grad = ComputeNumericGradient(
       input,
       [&error_layer] (const DeviceMatrix& x) -> float {
         error_layer.Forward(x);
@@ -42,7 +42,7 @@ TEST(ErrorLayerTest, L2Gradient) {
       }
   );
 
-  // Compare analytically and numerically computed gradients:
+  // Compare analytically and numerically computed gradient:
   ExpectMatrixEquals(a_grad, n_grad, 0.001f, 5);
 }
 
@@ -56,13 +56,13 @@ TEST(ErrorLayerTest, SoftmaxGradient) {
        0.5f, -2.0f, 3.0f
   });
 
-  // Get gradients with a forward+backward pass:
+  // Get gradient with a forward+backward pass:
   error_layer.Forward(input);
   error_layer.Backward(DeviceMatrix());
-  DeviceMatrix a_grad = error_layer.input_gradients();
+  DeviceMatrix a_grad = error_layer.input_gradient();
 
-  // Approximate gradients numerically (at the same position as before):
-  DeviceMatrix n_grad = ComputeNumericGradients(
+  // Approximate gradient numerically (at the same position as before):
+  DeviceMatrix n_grad = ComputeNumericGradient(
       input,
       [&error_layer] (const DeviceMatrix& x) -> float {
         error_layer.Forward(x);
@@ -70,7 +70,7 @@ TEST(ErrorLayerTest, SoftmaxGradient) {
       }
   );
 
-  // Compare analytically and numerically computed gradients:
+  // Compare analytically and numerically computed gradient:
   ExpectMatrixEquals(a_grad, n_grad, 0.001f, 5);
 }
 

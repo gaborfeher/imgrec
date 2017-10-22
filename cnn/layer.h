@@ -38,7 +38,7 @@ class Layer {
   virtual void EndPhase(Phase /* phase */, int /* phase_sub_id */) {};
 
   virtual DeviceMatrix output() { return output_; }
-  virtual DeviceMatrix input_gradients() { return input_gradients_; }
+  virtual DeviceMatrix input_gradient() { return input_gradient_; }
 
   // Prevent copy and assignment.
   Layer(const Layer&) = delete;
@@ -47,9 +47,7 @@ class Layer {
  protected:
   DeviceMatrix input_;
   DeviceMatrix output_;
-  DeviceMatrix input_gradients_;
-
-
+  DeviceMatrix input_gradient_;
 };
 
 

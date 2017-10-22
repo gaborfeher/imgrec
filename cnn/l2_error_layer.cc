@@ -21,7 +21,7 @@ void L2ErrorLayer::Backward(const DeviceMatrix& output_gradient) {
     multiplier = 1.0f / error_;
   }
 
-  input_gradients_ = input_
+  input_gradient_ = input_
       .Add(expected_value_.Multiply(-1))
       .Multiply(multiplier);
 }

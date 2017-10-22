@@ -80,7 +80,7 @@ void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
       .ElementwiseMultiply(shifted_)
       .Multiply(2.0 / num_samples_);
   DeviceMatrix input_grad_part3 = mean_grad.Multiply(1.0 / num_samples_);
-  input_gradients_ = input_grad_part1
+  input_gradient_ = input_grad_part1
       .Add(input_grad_part2)
       .Add(input_grad_part3);
   gamma_gradient_ = output_gradient
