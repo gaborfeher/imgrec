@@ -73,10 +73,6 @@ class DeviceMatrix {
   DeviceMatrix Dot(const DeviceMatrix&) const;
   DeviceMatrix Map(::matrix_mappers::MapperFunc map) const;
   DeviceMatrix AddPadding(int row_padding, int col_padding) const;
-  // Adds a constant row att the bottom of each layer.
-  DeviceMatrix AddConstRow(float value) const;
-  // It can drop last rows, last cols or last layers.
-  DeviceMatrix ReduceSize(int rows, int cols, int depth) const;
   DeviceMatrix ReshapeToColumns(int unit_depth) const;
   DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
   // Assuming that the matrix has n images, k layers each,
@@ -100,7 +96,6 @@ class DeviceMatrix {
       const DeviceMatrix& biases) const;
 
   void Fill(float value);
-  void FillColumn(int col, float value);
 
   template <class Distribution>
   void RandomFill(Random* random, const Distribution& distribution) {

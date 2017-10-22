@@ -709,20 +709,6 @@ void DeviceMatrix::Fill(float value) {
   VecFill<<<(size_ + 255) / 256, 256>>>(value, data_.get(), size_);
 }
 
-__global__ void VecFillColumn(float value, int col, float* A, int rows, int cols, int depth) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < rows) {
-    for (int j = 0; j < depth; ++j) { // FIXME
-      A[Dim3toDim1(i, col, j, rows, cols, depth)] = value;
-    }
-  }
-}
-
-void DeviceMatrix::FillColumn(int col, float value) {
-  assert(col >= 0 && col < cols_);
-  VecFillColumn<<<(rows_ + 255) / 256, 256>>>(value, col, data_.get(), rows_, cols_, depth_);
-}
-
 __global__ void MatrixPadding(
     float* A,
     int rows, int cols, int depth,
@@ -781,54 +767,6 @@ __global__ void MatrixConstRow(
       B[b_index] = value;
     }
   }
-}
-
-DeviceMatrix DeviceMatrix::AddConstRow(float value) const {
-  DeviceMatrix result(
-      rows_ + 1,
-      cols_,
-      depth_);  // filled with zeros
-
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((rows_ + 1 + 15) / 16, (cols_ + 15) / 16, depth_);
-  MatrixConstRow<<<blocks, threadsPerBlock>>>(
-      data_.get(),
-      rows_, cols_, depth_,
-      value,
-      result.data_.get());
-  return result;
-}
-
-__global__ void MatrixReduceSize(
-    float* A,
-    int a_rows, int a_cols, int a_depth,
-    float* B,
-    int b_rows, int b_cols, int b_depth) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  int j = threadIdx.y + blockDim.y * blockIdx.y;
-  int k = threadIdx.z + blockDim.z * blockIdx.z;
-
-  if (i < b_rows && j < b_cols && k < b_depth) {
-    int a_index = Dim3toDim1(i, j, k, a_rows, a_cols, a_depth);
-    int b_index = Dim3toDim1(i, j, k, b_rows, b_cols, b_depth);
-    B[b_index] = A[a_index];
-  }
-}
-
-DeviceMatrix DeviceMatrix::ReduceSize(int rows, int cols, int depth) const {
-  assert(rows <= rows_);
-  assert(cols <= cols_);
-  assert(depth <= depth_);
-  DeviceMatrix result(rows, cols, depth);
-
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((rows + 15) / 16, (cols + 15) / 16, depth);
-  MatrixReduceSize<<<blocks, threadsPerBlock>>>(
-      data_.get(),
-      rows_, cols_, depth_,
-      result.data_.get(),
-      rows, cols, depth);
-  return result;
 }
 
 __global__ void MatrixConvolution(
