@@ -90,11 +90,6 @@ class DeviceMatrix {
       const DeviceMatrix& filters,
       int layers_per_image,
       int stride) const;
-  DeviceMatrix Convolution(
-      const DeviceMatrix& filters,
-      int layers_per_image,
-      int stride,
-      const DeviceMatrix& biases) const;
 
   void Fill(float value);
 
