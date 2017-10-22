@@ -95,11 +95,14 @@ void BatchNormalizationLayer::ApplyGradient(float learn_rate) {
   gamma_.Add(gamma_gradient_.Multiply(-learn_rate));
 }
 
-int BatchNormalizationLayer::BeginPhase(Phase phase) {
+bool BatchNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {
   phase_ = phase;
-  return phase == POST_TRAIN_PHASE ? 2 : 0;
+  return phase == POST_TRAIN_PHASE && phase_sub_id < 2;
 }
 
-void BatchNormalizationLayer::EndPhase(Phase phase) {
+void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
+  if (phase_ == POST_TRAIN_PHASE) {
+    
+  }
   phase_ = NONE;
 }

@@ -25,8 +25,8 @@ class LayerStack : public Layer {
   virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
   virtual void Regularize(float lambda);
-  virtual int BeginPhase(Phase phase);
-  virtual void EndPhase(Phase phase);
+  virtual bool BeginPhase(Phase phase, int phase_sub_id);
+  virtual void EndPhase(Phase phase, int phase_sub_id);
 
   virtual DeviceMatrix output() {
     return layers_.back()->output();

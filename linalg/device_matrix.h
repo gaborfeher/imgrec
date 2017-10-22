@@ -29,6 +29,7 @@ class DeviceMatrix {
   DeviceMatrix(int rows, int cols, int depth, float* data);
   DeviceMatrix(int rows, int cols, int depth, const std::vector<float>& data);
 
+  bool is_null() const { return data_.get() == NULL; }
   int rows() const { return rows_; }
   int cols() const { return cols_; }
   int depth() const { return depth_; }

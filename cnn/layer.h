@@ -27,15 +27,15 @@ class Layer {
 
 
   // Signals to the layer that a phase is beginning.
-  // For PRE_TRAIN_PHASE and POST_TRAIN_PHASE, the return value
-  // determines the forward passes of the phase: it will be the
-  // highest value returned by a layer (can be 0).
-  // Even layers returning =0 must be able to handle all the
+  // For optional phases like PRE_TRAIN_PHASE and POST_TRAIN_PHASE,
+  // the return value determines if the phases are needed.
+  // (See Model::RunPhase.)
+  // Even layers returning false must be able to handle all the
   // phases.
-  virtual int BeginPhase(Phase /* phase */) {
-    return 0;
+  virtual bool BeginPhase(Phase /* phase */, int /* phase_sub_id */) {
+    return false;
   };
-  virtual void EndPhase(Phase /* phase */) {};
+  virtual void EndPhase(Phase /* phase */, int /* phase_sub_id */) {};
 
   virtual DeviceMatrix output() { return output_; }
   virtual DeviceMatrix input_gradients() { return input_gradients_; }

@@ -48,20 +48,19 @@ void LayerStack::Regularize(float lambda) {
   }
 }
 
-int LayerStack::BeginPhase(Phase phase) {
-  bool result = 0;
+bool LayerStack::BeginPhase(Phase phase, int phase_sub_id) {
+  bool result = false;
   for (std::shared_ptr<Layer> layer : layers_) {
-    int r = layer->BeginPhase(phase);
-    if (r > result) {
-      result = r;
+    if (layer->BeginPhase(phase, phase_sub_id)) {
+      result = true;
     }
   }
   return result;
 }
 
-void LayerStack::EndPhase(Phase phase) {
+void LayerStack::EndPhase(Phase phase, int phase_sub_id) {
   for (std::shared_ptr<Layer> layer : layers_) {
-    layer->EndPhase(phase);
+    layer->EndPhase(phase, phase_sub_id);
   }
 }
 

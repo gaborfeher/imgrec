@@ -13,8 +13,8 @@ class BatchNormalizationLayer : public Layer {
   virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
 
-  virtual int BeginPhase(Phase phase);
-  virtual void EndPhase(Phase phase);
+  virtual bool BeginPhase(Phase phase, int phase_sub_id);
+  virtual void EndPhase(Phase phase, int phase_sub_id);
  private:
   int num_layers_per_sample_;  // 0 means each sample is a row
   DeviceMatrix beta_;
@@ -22,15 +22,19 @@ class BatchNormalizationLayer : public Layer {
   DeviceMatrix gamma_;
   DeviceMatrix gamma_gradient_;
 
+  // Intermediate values shared between Forward and Backward.
   DeviceMatrix mean_;
   DeviceMatrix shifted_;
   DeviceMatrix variance_;
   DeviceMatrix variance_e_;
   DeviceMatrix sqrt_variance_e_;
   DeviceMatrix normalized_;
+
   int num_samples_;
 
   Phase phase_;
+  DeviceMatrix global_mean_;
+  DeviceMatrix global_variance_;
 
 };
 
