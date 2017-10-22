@@ -478,6 +478,64 @@ DeviceMatrix DeviceMatrix::Sum(int layers) const {
   }
 }
 
+__global__ void MatrixRepeatLayers(
+    float* A, int a_depth,
+    float* B, int b_rows, int b_cols, int b_depth) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+  if (i < b_rows && j < b_cols && k < b_depth) {
+    int b_index = Dim3toDim1(
+        i, j, k,
+        b_rows, b_cols, b_depth);
+    int a_index = Dim3toDim1(0, 0, k % a_depth, 1, 1, a_depth);
+    B[b_index] = A[a_index];
+  }
+}
+
+__global__ void MatrixRepeatColumns(
+    float* A,
+    int rows, int cols,
+    float* B) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+
+  if (i < rows && j < cols) {
+    int b_index = Dim3toDim1(i, j, 0, rows, cols, 1);
+    B[b_index] = A[i];
+  }
+}
+
+DeviceMatrix DeviceMatrix::Repeat(int rows, int cols, int depth) const {
+  if (depth > 1) {
+    assert(depth % depth_ == 0);
+    assert(rows_ == 1);
+    assert(cols_ == 1);
+    DeviceMatrix result(rows, cols, depth);
+    dim3 threads_per_block(16, 16, 1);
+    dim3 blocks((rows + 15) / 16, (cols + 15) / 16, depth);
+    MatrixRepeatLayers<<<blocks, threads_per_block>>>(
+        data_.get(), depth_,
+        result.data_.get(), rows, cols, depth);
+    return result;
+  } else {
+    assert(rows % rows_ == 0);
+    assert(depth == 1);
+    assert(depth_ == 1);
+    assert(cols_ == 1);
+    DeviceMatrix result(rows, cols, depth);
+    dim3 threads_per_block(16, 16, 1);
+    dim3 blocks((rows + 15) / 16, (cols + 15) / 16, 1);
+    MatrixRepeatColumns<<<blocks, threads_per_block>>>(
+        data_.get(),
+        rows, cols,
+        result.data_.get());
+
+    return result;
+  }
+}
+
 __global__ void VecL2(float* A, int len, float* B) {
   float result = 0.0;
   for (int i = 0; i < len; ++i) {

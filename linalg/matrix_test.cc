@@ -670,6 +670,46 @@ TEST(SmallMatrixTest, Sum_Columns) {
   ExpectMatrixEquals(s, expected);
 }
 
+TEST(SmallMatrixTest, Repeat_Layers) {
+  DeviceMatrix a(1, 1, 2, (float[]) {
+      1,
+      2,
+  });
+  DeviceMatrix b = a.Repeat(2, 3, 6);
+  DeviceMatrix expected(2, 3, 6, (float[]) {
+      1, 1, 1,
+      1, 1, 1,
+      2, 2, 2,
+      2, 2, 2,
+      1, 1, 1,
+      1, 1, 1,
+      2, 2, 2,
+      2, 2, 2,
+      1, 1, 1,
+      1, 1, 1,
+      2, 2, 2,
+      2, 2, 2,
+  });
+  ExpectMatrixEquals(expected, b);
+}
+
+TEST(SmallMatrixTest, Repeat_Columns) {
+  DeviceMatrix a(4, 1, 1, (float[]) {
+      4,
+      3,
+      2,
+      1,
+  });
+  DeviceMatrix b = a.Repeat(4, 3, 1);
+  DeviceMatrix expected(4, 3, 1, (float[]) {
+      4, 4, 4,
+      3, 3, 3,
+      2, 2, 2,
+      1, 1, 1,
+  });
+  ExpectMatrixEquals(expected, b);
+}
+
 TEST(BigMatrixTest, DotProduct) {
   DeviceMatrix a(11, 3, 1);
   a.Fill(1.0f);

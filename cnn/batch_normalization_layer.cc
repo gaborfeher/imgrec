@@ -30,7 +30,7 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
       shifted_ = input.Add(
           mean_
               .Multiply(-1.0)
-              .Repeat(num_samples_, num_layers_per_sample_));
+              .Repeat(input.rows(), input.cols(), input.depth()));
       variance_ = shifted_
           .Map(::matrix_mappers::Square())
           .Sum(num_layers_per_sample_)
@@ -76,7 +76,7 @@ void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
 
   DeviceMatrix input_grad_part1 = normalized_grad_over_sqrt_variance_e;
   DeviceMatrix input_grad_part2 = variance_grad
-      .Repeat(num_samples_, num_layers_per_sample_)
+      .Repeat(input_.rows(), input_.cols(), input_.depth())
       .ElementwiseMultiply(shifted_)
       .Multiply(2.0 / num_samples_);
   DeviceMatrix input_grad_part3 = mean_grad.Multiply(1.0 / num_samples_);
