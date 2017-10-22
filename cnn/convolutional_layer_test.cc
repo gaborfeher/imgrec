@@ -22,55 +22,6 @@
 
 class ConvolutionalLayerGradientTest : public ::testing::Test {
  protected:
-  void FilterGradientTest(
-      std::shared_ptr<LayerStack> stack,
-      std::shared_ptr<ConvolutionalLayer> conv_layer,
-      std::shared_ptr<L2ErrorLayer> error_layer,
-      const DeviceMatrix& training_x,
-      const DeviceMatrix& filters) {
-
-    conv_layer->filters_ = filters;
-    // Compute gradient the analytical way:
-    stack->Forward(training_x);
-    stack->Backward(DeviceMatrix());
-    DeviceMatrix a_grad = conv_layer->filters_gradient_;
-
-    // Approximate gradient the numerical way:
-    DeviceMatrix n_grad = ComputeNumericGradient(
-        filters,
-        [&conv_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
-          conv_layer->filters_ = x;
-          stack->Forward(training_x);
-          return error_layer->GetError();
-        });
-    // a_grad.Print(); n_grad.Print();
-    ExpectMatrixEquals(a_grad, n_grad, 0.01, 3);
-  }
-
-  void InputGradientTest(
-      std::shared_ptr<LayerStack> stack,
-      std::shared_ptr<ConvolutionalLayer> conv_layer,
-      std::shared_ptr<L2ErrorLayer> error_layer,
-      const DeviceMatrix& training_x,
-      const DeviceMatrix& filters) {
-
-    conv_layer->filters_ = filters;
-    // Compute gradient the analytical way:
-    stack->Forward(training_x);
-    stack->Backward(DeviceMatrix());
-    DeviceMatrix a_grad = conv_layer->input_gradient_;
-
-    // Approximate gradient the numerical way:
-    DeviceMatrix n_grad = ComputeNumericGradient(
-        training_x,
-        [&stack, error_layer] (const DeviceMatrix& x) -> float {
-          stack->Forward(x);
-          return error_layer->GetError();
-        });
-    // a_grad.Print(); n_grad.Print();
-    ExpectMatrixEquals(a_grad, n_grad, 0.01, 5);
-  }
-
   void SimpleConvolutionGradientTest(
       const DeviceMatrix& training_x,
       const DeviceMatrix& training_y,
@@ -83,8 +34,31 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
     stack->AddLayer(error_layer);
     error_layer->SetExpectedValue(training_y);
 
-    FilterGradientTest(stack, conv_layer, error_layer, training_x, filters);
-    InputGradientTest(stack, conv_layer, error_layer, training_x, filters);
+    {
+      SCOPED_TRACE("filters gradient check");
+      ParameterGradientCheck(
+          stack,
+          training_x,
+          filters,
+          [&conv_layer] (const DeviceMatrix& p) -> void {
+              conv_layer->filters_ = p;
+          },
+          [conv_layer] () -> DeviceMatrix {
+              return conv_layer->filters_gradient_;
+          },
+          0.01f,
+          3.0f);
+    }
+
+    conv_layer->filters_ = filters;
+    {
+      SCOPED_TRACE("input gradient check");
+      InputGradientCheck(
+          stack,
+          training_x,
+          0.01f,
+          5.0f);
+    }
   }
 };
 
@@ -626,68 +600,48 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   DeviceMatrix filters = conv_layer->filters_;
   DeviceMatrix biases = bias_layer->biases_;
 
-  // 1. Compute gradient on the filters:
-
-  // 1.1. Compute gradient the analytical way:
-  stack->Forward(training_x);
-  stack->Backward(DeviceMatrix());
-  DeviceMatrix a_grad = conv_layer->filters_gradient_;
-
-  // 1.2. Approximate gradient the numerical way:
-  DeviceMatrix n_grad = ComputeNumericGradient(
-      filters,
-      [&conv_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
-        conv_layer->filters_ = x;
-        stack->Forward(training_x);
-        return error_layer->GetError();
-      });
-
   {
-    SCOPED_TRACE("Gradient Check on Filters");
-    ExpectMatrixEquals(a_grad, n_grad, 0.002, 2);
+    SCOPED_TRACE("gradient check on filters");
+    ParameterGradientCheck(
+        stack,
+        training_x,
+        filters,
+        [&conv_layer] (const DeviceMatrix& p) -> void {
+            conv_layer->filters_ = p;
+        },
+        [conv_layer] () -> DeviceMatrix {
+            return conv_layer->filters_gradient_;
+        },
+        0.002f,
+        2.0f);
   }
-
-  // 2. Compute gradient on the biases:
-
-  // 2.1. Compute gradient the analytical way:
-  stack->Forward(training_x);
-  stack->Backward(DeviceMatrix());
-  a_grad = bias_layer->biases_gradient_;
-
-  // 2.2. Approximate gradient the numerical way:
-  n_grad = ComputeNumericGradient(
-      biases,
-      [&bias_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
-        bias_layer->biases_ = x;
-        stack->Forward(training_x);
-        return error_layer->GetError();
-      });
-
-  {
-    SCOPED_TRACE("Gradient Check on Biases");
-    ExpectMatrixEquals(a_grad, n_grad, 0.001, 2);
-  }
-
-  // 3. Compute gradient on the inputs:
-
   conv_layer->filters_ = filters;
 
-  // 3.1. Compute gradient the analytical way:
-  stack->Forward(training_x);
-  stack->Backward(DeviceMatrix());
-  a_grad = conv_layer->input_gradient();
-
-  // 3.2. Approximate gradient the numerical way:
-  n_grad = ComputeNumericGradient(
-      training_x,
-      [&stack, error_layer] (const DeviceMatrix& x) -> float {
-        stack->Forward(x);
-        return error_layer->GetError();
-      });
+  // 2. Compute gradient on the biases:
+  {
+    SCOPED_TRACE("gradient check on biases");
+    ParameterGradientCheck(
+        stack,
+        training_x,
+        biases,
+        [&bias_layer] (const DeviceMatrix& p) -> void {
+            bias_layer->biases_ = p;
+        },
+        [bias_layer] () -> DeviceMatrix {
+            return bias_layer->biases_gradient_;
+        },
+        0.001f,
+        2.0f);
+  }
+  bias_layer->biases_ = biases;
 
   {
-    SCOPED_TRACE("Gradient Check on Inputs");
-    ExpectMatrixEquals(a_grad, n_grad, 0.0005, 180);  // Investigate
+    SCOPED_TRACE("gradient check on inputs");
+    InputGradientCheck(
+        stack,
+        training_x,
+        0.001f,
+        120.0f);  // Investigate
   }
 }
 

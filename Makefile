@@ -127,6 +127,7 @@ bin/cnn/error_layer_test: bin/cnn/error_layer_test.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/l2_error_layer.o \
 		bin/cnn/layer.o \
+		bin/cnn/layer_stack.o \
 		bin/cnn/layer_test_base.o \
 		bin/cnn/softmax_error_layer.o \
 		bin/linalg/device_matrix.cu.o \

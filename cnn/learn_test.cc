@@ -100,25 +100,19 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 
   error_layer->SetExpectedValue(training_y);
 
-  // Compute gradient the analytical way:
   DeviceMatrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
-  fc_layer->weights_ = weights;
-  stack->Forward(training_x);
-  DeviceMatrix dummy;
-  stack->Backward(dummy);
-  DeviceMatrix a_grad = fc_layer->weights_gradient_;
-
-  // Approximate gradient the numerical way:
-  DeviceMatrix n_grad = ComputeNumericGradient(
+  ParameterGradientCheck(
+      stack,
+      training_x,
       weights,
-      [&fc_layer, &stack, training_x, error_layer] (const DeviceMatrix& x) -> float {
-        fc_layer->weights_ = x;
-        stack->Forward(training_x);
-        return error_layer->GetError();
-      });
-
-  // Compare analytically and numerically computed gradient:
-  ExpectMatrixEquals(a_grad, n_grad, 0.0001f, 1);
+      [&fc_layer] (const DeviceMatrix& p) -> void {
+        fc_layer->weights_ = p;
+      },
+      [fc_layer] () -> DeviceMatrix {
+        return fc_layer->weights_gradient_;
+      },
+      0.0001f,
+      1);
 }
 
 TEST(LearnTest, FullyConnectedLayerInputGradient) {
@@ -141,21 +135,10 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
   DeviceMatrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
   fc_layer->weights_ = weights;
 
-  // Compute gradient the analytical way:
-  stack->Forward(training_x);
-  DeviceMatrix dummy;
-  stack->Backward(dummy);
-  DeviceMatrix a_grad = fc_layer->input_gradient();
-
-  // Approximate gradient the numerical way:
-  DeviceMatrix n_grad = ComputeNumericGradient(
+  InputGradientCheck(
+      stack,
       training_x,
-      [&stack, error_layer] (const DeviceMatrix& x) -> float {
-        stack->Forward(x);
-        return error_layer->GetError();
-      });
-  
-  // Compare analytically and numerically computed gradient:
-  ExpectMatrixEquals(a_grad, n_grad, 0.01f, -1  /* :( */);
+      0.0001f,
+      30);
 }
 
