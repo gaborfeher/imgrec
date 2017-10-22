@@ -155,7 +155,11 @@ bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
 
 bin/cnn/batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test.o \
 		bin/cnn/batch_normalization_layer.o \
+		bin/cnn/error_layer.o \
+		bin/cnn/l2_error_layer.o \
 		bin/cnn/layer.o \
+		bin/cnn/layer_stack.o \
+		bin/cnn/layer_test_base.o \
 		bin/linalg/device_matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a

@@ -46,15 +46,45 @@ void ParameterGradientCheck(
   set_param(param);
   stack->Forward(input);
   stack->Backward(DeviceMatrix());
-  DeviceMatrix a_grad = get_param_grad();
+  DeviceMatrix analytic_grad = get_param_grad();
 
-  DeviceMatrix n_grad = ComputeNumericGradient(
+  DeviceMatrix numeric_grad = ComputeNumericGradient(
       param,
       [set_param, &stack, input] (const DeviceMatrix& x) -> float {
         set_param(x);
         stack->Forward(input);
         return stack->GetLayer<ErrorLayer>(-1)->GetError();
       });
-  ExpectMatrixEquals(a_grad, n_grad, absolute_diff, percentage_diff);
+
+  // analytic_grad.Print(); numeric_grad.Print();
+  ExpectMatrixEquals(
+      analytic_grad,
+      numeric_grad,
+      absolute_diff,
+      percentage_diff);
 }
-    
+
+void InputGradientCheck(
+  std::shared_ptr<LayerStack> stack,
+  const DeviceMatrix& input,
+  float absolute_diff,
+  float percentage_diff) {
+
+  stack->Forward(input);
+  stack->Backward(DeviceMatrix());
+  DeviceMatrix analytic_grad = stack->input_gradient();
+
+  DeviceMatrix numeric_grad = ComputeNumericGradient(
+      input,
+      [&stack, input] (const DeviceMatrix& x) -> float {
+        stack->Forward(x);
+        return stack->GetLayer<ErrorLayer>(-1)->GetError();
+      });
+
+  // analytic_grad.Print(); numeric_grad.Print();
+  ExpectMatrixEquals(
+      analytic_grad,
+      numeric_grad,
+      absolute_diff,
+      percentage_diff);
+}

@@ -27,4 +27,13 @@ void ParameterGradientCheck(
   float absolute_diff,
   float percentage_diff);
 
+// Compare numeric and analytic estimates of the gradient of
+// the input of the |stack|.
+// The tolerance for comparison is |absolute_diff|.
+void InputGradientCheck(
+  std::shared_ptr<LayerStack> stack,
+  const DeviceMatrix& input,
+  float absolute_diff,
+  float percentage_diff);
+
 #endif  // _CNN_LAYER_TEST_BASE_H_

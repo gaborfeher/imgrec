@@ -98,14 +98,15 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
 
 void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
 
-  DeviceMatrix normalized_grad = output_gradient.ElementwiseMultiply(gamma_);
+  DeviceMatrix normalized_grad = output_gradient
+      .ElementwiseMultiply(gamma_.Repeat(input_.rows(), input_.cols(), input_.depth()));
   DeviceMatrix variance_grad = normalized_grad
       .ElementwiseMultiply(shifted_)
-      .ElementwiseMultiply(variance_e_.Pow(-1.5))
+      .ElementwiseMultiply(variance_e_.Pow(-1.5).Repeat(input_.rows(), input_.cols(), input_.depth()))
       .Sum(num_layers_per_sample_)
       .Multiply(-0.5);
   DeviceMatrix normalized_grad_over_sqrt_variance_e =
-      normalized_grad.ElementwiseDivide(sqrt_variance_e_);
+      normalized_grad.ElementwiseDivide(sqrt_variance_e_.Repeat(input_.rows(), input_.cols(), input_.depth()));
   DeviceMatrix mean_grad_part1 =
       normalized_grad_over_sqrt_variance_e
           .Sum(num_layers_per_sample_)
@@ -120,7 +121,10 @@ void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
       .Repeat(input_.rows(), input_.cols(), input_.depth())
       .ElementwiseMultiply(shifted_)
       .Multiply(2.0 / num_samples_);
-  DeviceMatrix input_grad_part3 = mean_grad.Multiply(1.0 / num_samples_);
+  DeviceMatrix input_grad_part3 = mean_grad
+      .Multiply(1.0 / num_samples_)
+      .Repeat(input_.rows(), input_.cols(), input_.depth());
+
   input_gradient_ = input_grad_part1
       .Add(input_grad_part2)
       .Add(input_grad_part3);
