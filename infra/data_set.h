@@ -21,7 +21,7 @@ class DataSet {
 
 class InMemoryDataSet : public DataSet {
  public:
-  InMemoryDataSet(
+  explicit InMemoryDataSet(
       int minibatch_size);
   InMemoryDataSet(
       int minibatch_size,

@@ -18,7 +18,8 @@ ActivationFunc LReLU();
 
 class NonlinearityLayer : public Layer {
  public:
-  NonlinearityLayer(::activation_functions::ActivationFunc activation);
+  explicit NonlinearityLayer(
+      ::activation_functions::ActivationFunc activation);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradients);
  private:
