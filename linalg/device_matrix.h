@@ -50,16 +50,9 @@ class DeviceMatrix {
 
   float L2() const;
   float Sum() const;
-  // Computes the sum of elements in each layer. cycle must be
-  // a diviser of the number of layers. The result will have cycle
-  // layers, each with 1 element only. The ith layer in the result
-  // will be the sum of sums of the following layers from the original
-  // matrix: i, i+cycle, i+2cycle, ...
-  DeviceMatrix SumPerLayers(int cycle) const;
-
   // layers > 0: consider this matrix as a series of matrices
   //    of depth |layers|, and summarize them into one matrix
-  //    of depth layer.
+  //    of depth layer. After that, calculate the sum of each layer.
   // layers = 0: summarize the columns of the matrix, the
   //             resulting matrix will have one column. This
   //             matrix must have depth = 1.

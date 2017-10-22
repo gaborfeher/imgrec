@@ -8,6 +8,7 @@ class DeviceMatrix;
 // https://arxiv.org/pdf/1502.03167.pdf
 class BatchNormalizationLayer : public Layer {
  public:
+  BatchNormalizationLayer();
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);

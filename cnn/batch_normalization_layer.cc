@@ -4,6 +4,10 @@
 
 #include "linalg/device_matrix.h"
 
+
+BatchNormalizationLayer::BatchNormalizationLayer() {
+}
+
 void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
 
@@ -13,7 +17,9 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
 
       if (num_layers_per_sample_ > 0) {
         assert(input.depth() % num_layers_per_sample_ == 0);
-        num_samples_ = input.depth() / num_layers_per_sample_;
+        // Each layer is considered rows*cols sample of the same
+        // variable, because they have to be normalized jointly.
+        num_samples_ = input.depth() / num_layers_per_sample_ * input.rows() * input.cols();
       } else {
         num_samples_ = input.cols();
       }

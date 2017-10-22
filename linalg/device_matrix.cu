@@ -424,14 +424,14 @@ float DeviceMatrix::Sum() const {
 __global__ void MatrixSumLayers(
     float* A,
     int a_rows, int a_cols, int a_depth,
-    int cycle,
-    float* B) {
+    float* B,
+    int b_depth) {
   int b_index = threadIdx.x + blockDim.x * blockIdx.x;
-  if (b_index < cycle) {
+  if (b_index < b_depth) {
     float result = 0.0;
     for (int i = 0; i < a_rows; ++i) {
       for (int j = 0; j < a_cols; ++j) {
-        for (int k = b_index; k < a_depth; k += cycle) {
+        for (int k = b_index; k < a_depth; k += b_depth) {
           result += A[Dim3toDim1(i, j, k, a_rows, a_cols, a_depth)];
         }
       }
@@ -440,19 +440,7 @@ __global__ void MatrixSumLayers(
   }
 }
 
-DeviceMatrix DeviceMatrix::SumPerLayers(int cycle) const {
-  assert(depth_ % cycle == 0);
-  DeviceMatrix result(1, 1, cycle);
-  MatrixSumLayers<<<(cycle + 255) / 256, 256>>>(
-      data_.get(),
-      rows_, cols_, depth_,
-      cycle,
-      result.data_.get());
-  return result;
-}
-
-
-__global__ void MatrixSum_Columns(
+__global__ void MatrixSumColumns(
     float* A,
     int rows, int cols,
     float* B) {
@@ -467,42 +455,21 @@ __global__ void MatrixSum_Columns(
   }
 }
 
-__global__ void MatrixSum_Layers(
-    float* A,
-    int rows, int cols, int a_depth,
-    float* B,
-    int b_depth) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  int j = threadIdx.y + blockDim.y * blockIdx.y;
-  int b_k = threadIdx.z + blockDim.z * blockIdx.z;
-
-  if (i < rows && j < cols && b_k < b_depth) {
-    float result = 0.0f;
-    for (int a_k = b_k; a_k < a_depth; a_k += b_depth) {
-      result += A[Dim3toDim1(i, j, a_k, rows, cols, 1)];
-    }
-    B[Dim3toDim1(i, j, b_k, rows, cols, b_depth)] = result;
-  }
-}
-
 DeviceMatrix DeviceMatrix::Sum(int layers) const {
   assert(layers >= 0);
   if (layers == 0) {
     // sum columns
     assert(depth_ == 1);
     DeviceMatrix result(rows_, 1, 1);
-    MatrixSum_Columns<<<(rows_ + 255) / 256, 256>>>(
+    MatrixSumColumns<<<(rows_ + 255) / 256, 256>>>(
         data_.get(),
         rows_, cols_,
         result.data_.get());
     return result;
   } else {
-    // sum layers
     assert(depth_ % layers == 0);
-    DeviceMatrix result(rows_, cols_, layers);
-    dim3 threadsPerBlock(16, 16, 1);
-    dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, layers);
-    MatrixSum_Layers<<<blocks, threadsPerBlock>>>(
+    DeviceMatrix result(1, 1, layers);
+    MatrixSumLayers<<<(layers + 255) / 256, 256>>>(
         data_.get(),
         rows_, cols_, depth_,
         result.data_.get(),
