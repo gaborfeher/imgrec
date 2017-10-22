@@ -16,7 +16,12 @@ class BatchNormalizationLayer : public Layer {
   virtual bool BeginPhase(Phase phase, int phase_sub_id);
   virtual void EndPhase(Phase phase, int phase_sub_id);
  private:
+  float epsilon_;
+
+  int num_samples_;
   int num_layers_per_sample_;  // 0 means each sample is a row
+
+  // Internal parameters and their gradients:
   DeviceMatrix beta_;
   DeviceMatrix beta_gradient_;
   DeviceMatrix gamma_;
@@ -30,11 +35,17 @@ class BatchNormalizationLayer : public Layer {
   DeviceMatrix sqrt_variance_e_;
   DeviceMatrix normalized_;
 
-  int num_samples_;
-
+  // For computing the global mean and variance, needed for inference:
   Phase phase_;
+  int phase_sub_id_;
+
   DeviceMatrix global_mean_;
+  DeviceMatrix global_mean_rep_minus_;
+  int global_num_samples_;
   DeviceMatrix global_variance_;
+
+  DeviceMatrix global_gamma_;
+  DeviceMatrix global_beta_;
 
 };
 

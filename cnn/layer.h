@@ -50,7 +50,4 @@ class Layer {
   DeviceMatrix input_gradient_;
 };
 
-
-
-
 #endif  // _CNN_LAYER_H_

@@ -5,24 +5,49 @@
 #include "linalg/device_matrix.h"
 
 
-BatchNormalizationLayer::BatchNormalizationLayer() {
+BatchNormalizationLayer::BatchNormalizationLayer() :
+    epsilon_(0.0001) {
 }
 
 void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
 
-  switch (phase_) {
-    case TRAIN_PHASE: {
-      float epsilon = 0.0001;
+  if (num_layers_per_sample_ > 0) {
+    assert(input.depth() % num_layers_per_sample_ == 0);
+    // Each layer is considered rows*cols sample of the same
+    // variable, because they have to be normalized jointly.
+    num_samples_ = input.depth() / num_layers_per_sample_ * input.rows() * input.cols();
+  } else {
+    num_samples_ = input.cols();
+  }
 
-      if (num_layers_per_sample_ > 0) {
-        assert(input.depth() % num_layers_per_sample_ == 0);
-        // Each layer is considered rows*cols sample of the same
-        // variable, because they have to be normalized jointly.
-        num_samples_ = input.depth() / num_layers_per_sample_ * input.rows() * input.cols();
-      } else {
-        num_samples_ = input.cols();
+  switch (phase_) {
+    case NONE:
+      break;
+    case PRE_TRAIN_PHASE:
+      break;
+    case POST_TRAIN_PHASE: {
+      // Two passes are needed to get global variance:
+      assert(phase_sub_id_ == 0 || phase_sub_id_ == 1);
+      if (phase_sub_id_ == 0) {
+        DeviceMatrix sum = input.Sum(num_layers_per_sample_);
+        if (global_mean_.is_null()) {
+          global_mean_ = sum;
+          global_num_samples_ = num_samples_;
+        } else {
+          global_mean_ = global_mean_.Add(sum);
+          global_num_samples_ += num_samples_;
+        }
+      } else if (phase_sub_id_ == 1) {
+        DeviceMatrix local = input
+            .Add(global_mean_rep_minus_)
+            .Map(::matrix_mappers::Square())
+            .Sum(num_layers_per_sample_);
+        global_variance_ = global_variance_.Add(local);
       }
+      // break;  // fall through!
+    }
+    case TRAIN_PHASE: {
 
       mean_ = input
           .Sum(num_layers_per_sample_)
@@ -35,7 +60,7 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
           .Map(::matrix_mappers::Square())
           .Sum(num_layers_per_sample_)
           .Multiply(1.0 / num_samples_);
-      variance_e_ = variance_.AddConst(epsilon);
+      variance_e_ = variance_.AddConst(epsilon_);
       sqrt_variance_e_ = variance_e_
           .Map(::matrix_mappers::Sqrt());
       normalized_ = shifted_.ElementwiseDivide(sqrt_variance_e_);
@@ -43,13 +68,12 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
 
       break;
     }
-    case POST_TRAIN_PHASE:
-      // Two passes are needed to get global variance:
-      // 1. Compute mean.
-      // 2. Compute variance.
-      break;
+
     case INFER_PHASE:
-      // Use global variance to infer.
+      output_ = input_
+          .ElementwiseMultiply(global_gamma_)
+          .Add(global_beta_);
+
       break;
   }
 
@@ -97,12 +121,43 @@ void BatchNormalizationLayer::ApplyGradient(float learn_rate) {
 
 bool BatchNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {
   phase_ = phase;
-  return phase == POST_TRAIN_PHASE && phase_sub_id < 2;
+  phase_sub_id_ = phase_sub_id;
+  if (phase == POST_TRAIN_PHASE) {
+    if (phase_sub_id_ == 0) {
+      return true;
+    }
+    if (phase_sub_id_ == 1) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
+  assert(phase_sub_id == phase_sub_id_);
+  assert(phase == phase_);
   if (phase_ == POST_TRAIN_PHASE) {
-    
+    if (phase_sub_id_ == 0) {
+      global_mean_ = global_mean_.Multiply(1.0 / global_num_samples_);
+      global_mean_rep_minus_ = global_mean_
+          .Repeat(input_.rows(), input_.cols(), input_.depth())
+          .Multiply(-1.0);
+    }
+    if (phase_sub_id_ == 1) {
+      global_variance_ = global_variance_
+          .Multiply(1.0 / global_num_samples_);
+
+      global_gamma_ =
+          gamma_.ElementwiseDivide(
+              global_variance_
+                  .AddConst(epsilon_)
+                  .Map(::matrix_mappers::Sqrt()));
+      global_beta_ = beta_
+          .Add(
+              global_gamma_
+                  .ElementwiseMultiply(global_mean_)
+                  .Multiply(-1.0));
+    }
   }
   phase_ = NONE;
 }
