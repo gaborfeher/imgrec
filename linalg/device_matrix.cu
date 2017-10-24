@@ -455,9 +455,10 @@ __global__ void MatrixSumColumns(
   }
 }
 
-DeviceMatrix DeviceMatrix::Sum(int layers) const {
-  assert(layers >= 0);
-  if (layers == 0) {
+DeviceMatrix DeviceMatrix::Sum(bool layered, int layers) const {
+  if (!layered) {
+    // layers is ignored
+    layers = -1;
     // sum columns
     assert(depth_ == 1);
     DeviceMatrix result(rows_, 1, 1);
@@ -467,6 +468,8 @@ DeviceMatrix DeviceMatrix::Sum(int layers) const {
         result.data_.get());
     return result;
   } else {
+    // sum layers
+    assert(layers > 0);
     assert(depth_ % layers == 0);
     DeviceMatrix result(1, 1, layers);
     MatrixSumLayers<<<(layers + 255) / 256, 256>>>(
@@ -507,8 +510,10 @@ __global__ void MatrixRepeatColumns(
   }
 }
 
-DeviceMatrix DeviceMatrix::Repeat(int rows, int cols, int depth) const {
-  if (depth > 1) {
+DeviceMatrix DeviceMatrix::Repeat(
+    bool layered, int rows, int cols, int depth) const {
+  if (layered) {
+    assert(depth > 0);
     assert(depth % depth_ == 0);
     assert(rows_ == 1);
     assert(cols_ == 1);

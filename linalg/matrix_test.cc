@@ -473,7 +473,7 @@ TEST(SmallMatrixTest, Sum_Layers) {
       1, 1, 1, 1,
       0, 1, 1, 1
   });
-  DeviceMatrix s = a.Sum(3);
+  DeviceMatrix s = a.Sum(true, 3);
   EXPECT_EQ(1, s.rows());
   EXPECT_EQ(1, s.cols());
   EXPECT_EQ(3, s.depth());
@@ -494,7 +494,7 @@ TEST(SmallMatrixTest, Sum_Columns) {
       3, 3, 4, 4,
       5, 5, 6, 6,
   });
-  DeviceMatrix s = a.Sum(0);
+  DeviceMatrix s = a.Sum(false, 0);
   DeviceMatrix expected(3, 1, 1, (float[]) {
       6,
       14,
@@ -508,7 +508,7 @@ TEST(SmallMatrixTest, Repeat_Layers) {
       1,
       2,
   });
-  DeviceMatrix b = a.Repeat(2, 3, 6);
+  DeviceMatrix b = a.Repeat(true, 2, 3, 6);
   DeviceMatrix expected(2, 3, 6, (float[]) {
       1, 1, 1,
       1, 1, 1,
@@ -533,7 +533,7 @@ TEST(SmallMatrixTest, Repeat_Columns) {
       2,
       1,
   });
-  DeviceMatrix b = a.Repeat(4, 3, 1);
+  DeviceMatrix b = a.Repeat(false, 4, 3, 1);
   DeviceMatrix expected(4, 3, 1, (float[]) {
       4, 4, 4,
       3, 3, 3,

@@ -51,23 +51,24 @@ class DeviceMatrix {
 
   float L2() const;
   float Sum() const;
-  // layers > 0: consider this matrix as a series of matrices
-  //    of depth |layers|, and summarize them into one matrix
-  //    of depth layer. After that, calculate the sum of each layer.
-  // layers = 0: summarize the columns of the matrix, the
-  //             resulting matrix will have one column. This
-  //             matrix must have depth = 1.
-  DeviceMatrix Sum(int layers) const;
+  // layered = true, layers > 0: consider this matrix as a
+  //    series of matrices of depth |layers|, and summarize them
+  //    into one matrix of depth layer. After that, calculate the
+  //    sum of each layer.
+  // layered = false (layers is ignored): summarize the columns
+  //    of the matrix, the resulting matrix will have one column.
+  //    This matrix must have depth = 1.
+  DeviceMatrix Sum(bool layered, int layers) const;
 
-  // If depth = depth_ * k, rows_ = cols_ = 1:
+  // If layered = true, depth = depth_ * k, rows_ = cols_ = 1:
   //    The result will be a rows x cols x depth
   //    matrix, each layer will be filled with the corresponding
   //    element from this, in a pattern repeating in cycles of
   //    depth.
-  // If cols = cols_ * k, depth = depth_ = cols_ = 1:
+  // If layered = false, cols = cols_ * k, depth = depth_ = cols_ = 1:
   //    The result will be a rows x cols x 1 matrix, each column
   //    is a copy of the original matrix.
-  DeviceMatrix Repeat(int rows, int cols, int depth) const;
+  DeviceMatrix Repeat(bool layered, int rows, int cols, int depth) const;
 
   DeviceMatrix T() const;
   DeviceMatrix Rot180() const;
