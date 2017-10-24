@@ -243,7 +243,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
 
   Random random(42);
   stack->Initialize(&random);
-  
+
   DeviceMatrix beta(4, 1, 1, (float[]) { 0, -1, 1, 2} );
   DeviceMatrix gamma(4, 1, 1, (float[]) { -1, -0.5, 3, 1.2} );
   batch_layer->beta_ = beta;
@@ -289,4 +289,89 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
         0.03f,
         4.0f);
   }
+}
+
+TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
+  DeviceMatrix training_x(2, 3, 4, (float[]) {
+    // img1 layer1
+    1, 1, 1,
+    1, 1, 1,
+    // img1 layer2
+    2, 2, 2,
+    2, 2, 2,
+    // img2 layer1
+    3, 3, 3,
+    3, 3, 3,
+    // img2 layer2
+    4, 4, 4,
+    4, 4, 4,
+  });
+  DeviceMatrix training_y(2, 3, 4, (float[]) {
+    -100, 100, -100,
+    100, -100, 100,
+    -100, 100, -100,
+    100, -100, 100,
+    -100, 100, -100,
+    100, -100, 100,
+    -100, 100, -100,
+    100, -100, 100,
+  });
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(2, true));
+  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  std::shared_ptr<BatchNormalizationLayer> batch_layer = stack->GetLayer<BatchNormalizationLayer>(0);
+  std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
+  batch_layer->BeginPhase(Layer::TRAIN_PHASE, 0);
+  error_layer->SetExpectedValue(training_y);
+
+  Random random(42);
+  stack->Initialize(&random);
+
+  DeviceMatrix beta(1, 1, 2, (float[]) { 2, -1 } );
+  DeviceMatrix gamma(1, 1, 2, (float[]) { -1, -0.5 } );
+  batch_layer->beta_ = beta;
+  batch_layer->gamma_ = gamma;
+
+  {
+    SCOPED_TRACE("beta");
+    ParameterGradientCheck(
+        stack,
+        training_x,
+        beta,
+        [&batch_layer] (const DeviceMatrix& p) -> void {
+            batch_layer->beta_ = p;
+        },
+        [batch_layer] () -> DeviceMatrix {
+            return batch_layer->beta_gradient_;
+        },
+        0.03f,
+        50.0f);
+  }
+
+  {
+    SCOPED_TRACE("gamma");
+    ParameterGradientCheck(
+        stack,
+        training_x,
+        gamma,
+        [&batch_layer] (const DeviceMatrix& p) -> void {
+            batch_layer->gamma_ = p;
+        },
+        [batch_layer] () -> DeviceMatrix {
+            return batch_layer->gamma_gradient_;
+        },
+        0.03f,
+        90.0f);
+  }
+
+  {
+    SCOPED_TRACE("input");
+    InputGradientCheck(
+        stack,
+        training_x,
+        0.01f,
+        5.0f);
+  }
+
 }

@@ -24,6 +24,7 @@ class BatchNormalizationLayer : public Layer {
   FRIEND_TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, Forward_LayerMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode);
+  FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode);
   float epsilon_;
 
   // Input shape and mode description:
