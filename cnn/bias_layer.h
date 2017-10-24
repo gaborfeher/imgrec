@@ -10,7 +10,14 @@ class Random;
 
 class BiasLayer : public Layer {
  public:
-  BiasLayer(int neurons, bool convolutional);
+  // num_neurons: Number of distinct neurons in the previous layer
+  // layered: Determines if input is a single-layer or
+  //          multi-layered matrix. In the multi-layered case,
+  //          each layer is considered a neuron and has a common bias.
+  //          The input can have k*neurons layers, which means that
+  //          the same neurons were applied on several input samples
+  //          in sequence.
+  BiasLayer(int num_neurons, bool layered);
   virtual void Print() const;
   virtual void Initialize(Random* /* generator */);
   virtual void Forward(const DeviceMatrix& input);
@@ -23,7 +30,9 @@ class BiasLayer : public Layer {
   FRIEND_TEST(BiasLayerTest, Forwardpass_LayerMode);
   FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
 
-  bool convolutional_;
+  bool layered_;
+  int num_neurons_;
+
   DeviceMatrix biases_;
   DeviceMatrix biases_gradient_;
 };

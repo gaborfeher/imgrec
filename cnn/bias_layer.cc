@@ -4,14 +4,15 @@
 
 #include "linalg/device_matrix.h"
 
-BiasLayer::BiasLayer(int neurons, bool convolutional) :
-    convolutional_(convolutional) {
-  if (convolutional) {
-    biases_ = DeviceMatrix(1, 1, neurons);
-    biases_gradient_ = DeviceMatrix(1, 1, neurons);
+BiasLayer::BiasLayer(int num_neurons, bool layered) :
+    layered_(layered),
+    num_neurons_(num_neurons) {
+  if (layered) {
+    biases_ = DeviceMatrix(1, 1, num_neurons);
+    biases_gradient_ = DeviceMatrix(1, 1, num_neurons);
   } else {
-    biases_ = DeviceMatrix(neurons, 1, 1);
-    biases_gradient_ = DeviceMatrix(neurons, 1, 1);
+    biases_ = DeviceMatrix(num_neurons, 1, 1);
+    biases_gradient_ = DeviceMatrix(num_neurons, 1, 1);
   }
 }
 
@@ -27,12 +28,12 @@ void BiasLayer::Initialize(Random*) {
 void BiasLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
   output_ = input.Add(
-      biases_.Repeat(convolutional_, input.rows(), input.cols(), input.depth()));
+      biases_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
 }
 
 void BiasLayer::Backward(const DeviceMatrix& output_gradient) {
   input_gradient_ = output_gradient;
-  biases_gradient_ = output_gradient.Sum(convolutional_, biases_.depth());
+  biases_gradient_ = output_gradient.Sum(layered_, num_neurons_);
 }
 
 void BiasLayer::ApplyGradient(float learn_rate) {

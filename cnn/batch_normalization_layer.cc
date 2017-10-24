@@ -5,13 +5,11 @@
 #include "linalg/device_matrix.h"
 
 BatchNormalizationLayer::BatchNormalizationLayer(
-  int num_neurons, bool convolutional) :
+  int num_neurons, bool layered) :
     epsilon_(0.0001),
-    convolutional_(convolutional),
-    num_neurons_(num_neurons),
-    num_layers_per_sample_(convolutional ? num_neurons : 0) {
-
-  if (convolutional) {
+    layered_(layered),
+    num_neurons_(num_neurons) {
+  if (layered) {
     beta_ = DeviceMatrix(1, 1, num_neurons);
     gamma_ = DeviceMatrix(1, 1, num_neurons);
   } else {
@@ -29,12 +27,13 @@ void BatchNormalizationLayer::Initialize(Random*) {
 void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
   input_ = input;
 
-  if (convolutional_) {
-    assert(input.depth() % num_layers_per_sample_ == 0);
+  if (layered_) {
+    assert(input.depth() % num_neurons_ == 0);
     // Each layer is considered rows*cols sample of the same
     // variable, because they have to be normalized jointly.
-    num_samples_ = input.depth() / num_layers_per_sample_ * input.rows() * input.cols();
+    num_samples_ = input.depth() / num_neurons_ * input.rows() * input.cols();
   } else {
+    assert(input.rows() == num_neurons_);
     num_samples_ = input.cols();
   }
 
@@ -47,7 +46,7 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
       // Two passes are needed to get global variance:
       assert(phase_sub_id_ == 0 || phase_sub_id_ == 1);
       if (phase_sub_id_ == 0) {
-        DeviceMatrix sum = input.Sum(convolutional_, num_layers_per_sample_);
+        DeviceMatrix sum = input.Sum(layered_, num_neurons_);
         if (global_mean_.is_null()) {
           global_mean_ = sum;
           global_num_samples_ = num_samples_;
@@ -59,30 +58,30 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
         DeviceMatrix local = input
             .Add(global_mean_rep_minus_)
             .Map(::matrix_mappers::Square())
-            .Sum(convolutional_, num_layers_per_sample_);
+            .Sum(layered_, num_neurons_);
         global_variance_ = global_variance_.Add(local);
       }
       // break;  // fall through!
     }
     case TRAIN_PHASE: {
       mean_ = input
-          .Sum(convolutional_, num_layers_per_sample_)
+          .Sum(layered_, num_neurons_)
           .Multiply(1.0 / num_samples_);
       shifted_ = input.Add(
           mean_
               .Multiply(-1.0)
-              .Repeat(convolutional_, input.rows(), input.cols(), input.depth()));
+              .Repeat(layered_, input.rows(), input.cols(), input.depth()));
       variance_ = shifted_
           .Map(::matrix_mappers::Square())
-          .Sum(convolutional_, num_layers_per_sample_)
+          .Sum(layered_, num_neurons_)
           .Multiply(1.0 / num_samples_);
       variance_e_ = variance_.AddConst(epsilon_);
       sqrt_variance_e_ = variance_e_.Map(::matrix_mappers::Sqrt());
       normalized_ = shifted_.ElementwiseDivide(
-          sqrt_variance_e_.Repeat(convolutional_, input.rows(), input.cols(), input.depth()));
+          sqrt_variance_e_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
       output_ = normalized_
-          .ElementwiseMultiply(gamma_.Repeat(convolutional_, input.rows(), input.cols(), input.depth()))
-          .Add(beta_.Repeat(convolutional_, input.rows(), input.cols(), input.depth()));
+          .ElementwiseMultiply(gamma_.Repeat(layered_, input.rows(), input.cols(), input.depth()))
+          .Add(beta_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
       break;
     }
 
@@ -99,39 +98,39 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
 void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
 
   DeviceMatrix normalized_grad = output_gradient
-      .ElementwiseMultiply(gamma_.Repeat(convolutional_, input_.rows(), input_.cols(), input_.depth()));
+      .ElementwiseMultiply(gamma_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
   DeviceMatrix variance_grad = normalized_grad
       .ElementwiseMultiply(shifted_)
-      .ElementwiseMultiply(variance_e_.Pow(-1.5).Repeat(convolutional_, input_.rows(), input_.cols(), input_.depth()))
-      .Sum(convolutional_, num_layers_per_sample_)
+      .ElementwiseMultiply(variance_e_.Pow(-1.5).Repeat(layered_, input_.rows(), input_.cols(), input_.depth()))
+      .Sum(layered_, num_neurons_)
       .Multiply(-0.5);
   DeviceMatrix normalized_grad_over_sqrt_variance_e =
-      normalized_grad.ElementwiseDivide(sqrt_variance_e_.Repeat(convolutional_, input_.rows(), input_.cols(), input_.depth()));
+      normalized_grad.ElementwiseDivide(sqrt_variance_e_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
   DeviceMatrix mean_grad_part1 =
       normalized_grad_over_sqrt_variance_e
-          .Sum(convolutional_, num_layers_per_sample_)
+          .Sum(layered_, num_neurons_)
           .Multiply(-1.0);
   DeviceMatrix mean_grad_part2 = variance_grad
-      .ElementwiseMultiply(shifted_.Sum(convolutional_, num_layers_per_sample_))
+      .ElementwiseMultiply(shifted_.Sum(layered_, num_neurons_))
       .Multiply(-2.0 / num_samples_);
   DeviceMatrix mean_grad = mean_grad_part1.Add(mean_grad_part2);
 
   DeviceMatrix input_grad_part1 = normalized_grad_over_sqrt_variance_e;
   DeviceMatrix input_grad_part2 = variance_grad
-      .Repeat(convolutional_, input_.rows(), input_.cols(), input_.depth())
+      .Repeat(layered_, input_.rows(), input_.cols(), input_.depth())
       .ElementwiseMultiply(shifted_)
       .Multiply(2.0 / num_samples_);
   DeviceMatrix input_grad_part3 = mean_grad
       .Multiply(1.0 / num_samples_)
-      .Repeat(convolutional_, input_.rows(), input_.cols(), input_.depth());
+      .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
 
   input_gradient_ = input_grad_part1
       .Add(input_grad_part2)
       .Add(input_grad_part3);
   gamma_gradient_ = output_gradient
       .ElementwiseMultiply(normalized_)
-      .Sum(convolutional_, num_layers_per_sample_);
-  beta_gradient_ = output_gradient.Sum(convolutional_, num_layers_per_sample_);
+      .Sum(layered_, num_neurons_);
+  beta_gradient_ = output_gradient.Sum(layered_, num_neurons_);
 
 }
 
@@ -161,7 +160,7 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
     if (phase_sub_id_ == 0) {
       global_mean_ = global_mean_.Multiply(1.0 / global_num_samples_);
       global_mean_rep_minus_ = global_mean_
-          .Repeat(convolutional_, input_.rows(), input_.cols(), input_.depth())
+          .Repeat(layered_, input_.rows(), input_.cols(), input_.depth())
           .Multiply(-1.0);
     }
     if (phase_sub_id_ == 1) {

@@ -11,7 +11,9 @@ class Random;
 // https://arxiv.org/pdf/1502.03167.pdf
 class BatchNormalizationLayer : public Layer {
  public:
-  BatchNormalizationLayer(int num_neurons, bool convolutional);
+  // Same as BiasLayer constructor, see cnn/bias_layer.h
+  // TODO: common superclass?
+  BatchNormalizationLayer(int num_neurons, bool layered);
   virtual void Initialize(Random*);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
@@ -27,17 +29,14 @@ class BatchNormalizationLayer : public Layer {
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode);
   float epsilon_;
 
-  // Input shape and mode description:
-
-  // true= input samples are layers, false= input samples are columns
-  bool convolutional_;
+  bool layered_;
 
   // convolutional_ == true -> number of layers in a sample
   // convolutional_ == false -> number of rows in a sample
   int num_neurons_;
 
   // ...
-  int num_layers_per_sample_;
+  // int num_layers_per_sample_;
 
   int num_samples_;
 
