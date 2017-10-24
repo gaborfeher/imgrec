@@ -5,8 +5,7 @@
 #include "linalg/device_matrix.h"
 
 BiasLayer::BiasLayer(int num_neurons, bool layered) :
-    layered_(layered),
-    num_neurons_(num_neurons) {
+    BiasLikeLayer(num_neurons, layered) {
   if (layered) {
     biases_ = DeviceMatrix(1, 1, num_neurons);
     biases_gradient_ = DeviceMatrix(1, 1, num_neurons);

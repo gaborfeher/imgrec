@@ -6,9 +6,8 @@
 
 BatchNormalizationLayer::BatchNormalizationLayer(
   int num_neurons, bool layered) :
-    epsilon_(0.0001),
-    layered_(layered),
-    num_neurons_(num_neurons) {
+    BiasLikeLayer(num_neurons, layered),
+    epsilon_(0.0001) {
   if (layered) {
     beta_ = DeviceMatrix(1, 1, num_neurons);
     gamma_ = DeviceMatrix(1, 1, num_neurons);

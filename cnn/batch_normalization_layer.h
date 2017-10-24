@@ -1,7 +1,7 @@
 #ifndef _BATCH_NORMALIZATION_LAYER_H_
 #define _BATCH_NORMALIZATION_LAYER_H_
 
-#include "cnn/layer.h"
+#include "cnn/bias_like_layer.h"
 
 #include "gtest/gtest_prod.h"
 
@@ -9,10 +9,9 @@ class DeviceMatrix;
 class Random;
 
 // https://arxiv.org/pdf/1502.03167.pdf
-class BatchNormalizationLayer : public Layer {
+class BatchNormalizationLayer : public BiasLikeLayer {
  public:
-  // Same as BiasLayer constructor, see cnn/bias_layer.h
-  // TODO: common superclass?
+  // See BiasLikeLayer for param docs.
   BatchNormalizationLayer(int num_neurons, bool layered);
   virtual void Initialize(Random*);
   virtual void Forward(const DeviceMatrix& input);
@@ -27,18 +26,9 @@ class BatchNormalizationLayer : public Layer {
   FRIEND_TEST(BatchNormalizationLayerTest, Forward_LayerMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode);
-  float epsilon_;
 
-  bool layered_;
-
-  // convolutional_ == true -> number of layers in a sample
-  // convolutional_ == false -> number of rows in a sample
-  int num_neurons_;
-
-  // ...
-  // int num_layers_per_sample_;
-
-  int num_samples_;
+  float epsilon_;  // Small number used for numerical stability.
+  int num_samples_;  // Number of minibatch samples seen in the last Forward pass.
 
   // Internal parameters and their gradients:
   DeviceMatrix beta_;
