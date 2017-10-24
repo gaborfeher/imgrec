@@ -457,8 +457,7 @@ __global__ void MatrixSumColumns(
 
 DeviceMatrix DeviceMatrix::Sum(bool layered, int layers) const {
   if (!layered) {
-    // layers is ignored
-    layers = -1;
+    assert(rows_ == layers);
     // sum columns
     assert(depth_ == 1);
     DeviceMatrix result(rows_, 1, 1);

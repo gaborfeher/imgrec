@@ -494,7 +494,7 @@ TEST(SmallMatrixTest, Sum_Columns) {
       3, 3, 4, 4,
       5, 5, 6, 6,
   });
-  DeviceMatrix s = a.Sum(false, 0);
+  DeviceMatrix s = a.Sum(false, 3);
   DeviceMatrix expected(3, 1, 1, (float[]) {
       6,
       14,

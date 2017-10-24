@@ -55,9 +55,11 @@ class DeviceMatrix {
   //    series of matrices of depth |layers|, and summarize them
   //    into one matrix of depth layer. After that, calculate the
   //    sum of each layer.
-  // layered = false (layers is ignored): summarize the columns
+  // layered = false, layers > 0: summarize the columns
   //    of the matrix, the resulting matrix will have one column.
-  //    This matrix must have depth = 1.
+  //    This matrix must have depth = 1 and rows = layers. (The
+  //    value of layers is ignored other than the rows=layers
+  //    assertion.)
   DeviceMatrix Sum(bool layered, int layers) const;
 
   // If layered = true, depth = depth_ * k, rows_ = cols_ = 1:
