@@ -278,7 +278,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
             return batch_layer->gamma_gradient_;
         },
         0.01f,
-        40.0f);
+        60.0f);
   }
 
   {
@@ -287,6 +287,6 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
         stack,
         training_x,
         0.03f,
-        3.0f);
+        4.0f);
   }
 }

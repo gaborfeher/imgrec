@@ -25,8 +25,8 @@ void ExpectMatrixEquals(
     if (percentage_diff >= 0.0f) {
       float diff = std::abs(av[i] - bv[i]);
       if (diff < std::numeric_limits<float>::epsilon() ||
-          av[i] < std::numeric_limits<float>::epsilon() ||
-          bv[i] < std::numeric_limits<float>::epsilon()) {
+          std::abs(av[i]) < std::numeric_limits<float>::epsilon() ||
+          std::abs(bv[i]) < std::numeric_limits<float>::epsilon()) {
         // In this case we don't care about percentages, because
         // of float precision woodoo issues.
         continue;

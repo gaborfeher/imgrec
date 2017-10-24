@@ -47,7 +47,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
               return conv_layer->filters_gradient_;
           },
           0.01f,
-          3.0f);
+          10.0f);
     }
 
     conv_layer->filters_ = filters;
@@ -57,7 +57,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           stack,
           training_x,
           0.01f,
-          5.0f);
+          10.0f);
     }
   }
 };
@@ -613,7 +613,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
             return conv_layer->filters_gradient_;
         },
         0.002f,
-        2.0f);
+        6.0f);
   }
   conv_layer->filters_ = filters;
 
