@@ -4,18 +4,27 @@
 
 #include "linalg/device_matrix.h"
 
-BatchNormalizationLayer::BatchNormalizationLayer(
-  int num_neurons, bool layered) :
-    BiasLikeLayer(num_neurons, layered),
-    epsilon_(0.0001) {
-  if (layered) {
-    beta_ = DeviceMatrix(1, 1, num_neurons);
-    gamma_ = DeviceMatrix(1, 1, num_neurons);
-  } else {
-    beta_ = DeviceMatrix(num_neurons, 1, 1);
-    gamma_ = DeviceMatrix(num_neurons, 1, 1);
-  }
+BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons) :
+    BiasLikeLayer(num_neurons, false),
+    layer_rows_(-1),
+    layer_cols_(-1),
+    epsilon_(0.0001),
+    beta_(num_neurons, 1, 1),
+    gamma_(num_neurons, 1, 1),
+    global_mean_(num_neurons, 1, 1),
+    global_variance_(num_neurons, 1, 1) {
+}
 
+BatchNormalizationLayer::BatchNormalizationLayer(
+  int layer_rows, int layer_cols, int num_neurons) :
+    BiasLikeLayer(num_neurons, true),
+    layer_rows_(layer_rows),
+    layer_cols_(layer_cols),
+    epsilon_(0.0001),
+    beta_(1, 1, num_neurons),
+    gamma_(1, 1, num_neurons),
+    global_mean_(layer_rows, layer_cols, num_neurons),
+    global_variance_(layer_rows, layer_cols, num_neurons) {
 }
 
 void BatchNormalizationLayer::Initialize(Random*) {
@@ -46,13 +55,8 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
       assert(phase_sub_id_ == 0 || phase_sub_id_ == 1);
       if (phase_sub_id_ == 0) {
         DeviceMatrix sum = input.Sum(layered_, num_neurons_);
-        if (global_mean_.is_null()) {
-          global_mean_ = sum;
-          global_num_samples_ = num_samples_;
-        } else {
-          global_mean_ = global_mean_.Add(sum);
-          global_num_samples_ += num_samples_;
-        }
+        global_mean_ = global_mean_.Add(sum);
+        global_num_samples_ += num_samples_;
       } else if (phase_sub_id_ == 1) {
         DeviceMatrix local = input
             .Add(global_mean_rep_minus_)
@@ -143,6 +147,9 @@ bool BatchNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {
   phase_sub_id_ = phase_sub_id;
   if (phase == POST_TRAIN_PHASE) {
     if (phase_sub_id_ == 0) {
+      global_num_samples_ = 0;
+      global_mean_.Fill(0.0f);
+      global_variance_.Fill(0.0f);
       return true;
     }
     if (phase_sub_id_ == 1) {
