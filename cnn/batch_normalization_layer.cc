@@ -88,12 +88,16 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
       break;
     }
 
-    case INFER_PHASE:
+    case INFER_PHASE: {
+      DeviceMatrix multiplier = global_multiplier_
+          .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
+      DeviceMatrix shift = global_shift_
+          .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
       output_ = input_
-          .ElementwiseMultiply(global_multiplier_)
-          .Add(global_shift_);
-
+          .ElementwiseMultiply(multiplier)
+          .Add(shift);
       break;
+    }
   }
 
 }

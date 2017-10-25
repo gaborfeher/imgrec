@@ -31,6 +31,8 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode);
+  FRIEND_TEST(BatchNormalizationLayerTest, Infer_ColumnMode);
+  FRIEND_TEST(BatchNormalizationLayerTest, Infer_LayerMode);
 
   int layer_rows_;
   int layer_cols_;

@@ -504,3 +504,70 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
       }),
       batch_layer.global_shift_);
 }
+
+TEST(BatchNormalizationLayerTest, Infer_ColumnMode) {
+  DeviceMatrix training_x1(4, 3, 1, (float[]) {
+    1, 2, 3,
+    1, 1, 1,
+    1, 1, 4,
+   -2, 0, 2,
+  });
+  BatchNormalizationLayer batch_layer(4);
+  batch_layer.Initialize(NULL);
+  batch_layer.global_multiplier_ = DeviceMatrix(4, 1, 1, (float[]) { 1, 1, -1, -1 } );
+  batch_layer.global_shift_ = DeviceMatrix(4, 1, 1, (float[]) { -2, -2, 2, 2 } );
+
+
+  batch_layer.BeginPhase(Layer::INFER_PHASE, 0);
+  batch_layer.Forward(training_x1);
+
+  ExpectMatrixEquals(
+    DeviceMatrix(4, 3, 1, (float[]) {
+      -1,  0,  1,
+      -1, -1, -1,
+       1,  1, -2,
+       4,  2,  0
+    }),
+    batch_layer.output());
+}
+
+TEST(BatchNormalizationLayerTest, Infer_LayerMode) {
+  DeviceMatrix training_x1(2, 3, 4, (float[]) {
+    1, 2, 3,
+    1, 1, 1,
+
+    1, 1, 4,
+   -2, 0, 2,
+
+    1, 1, 1,
+    2, 2, 2,
+
+    3, 3, 3,
+    4, 4, 4,
+  });
+  BatchNormalizationLayer batch_layer(2, 3, 2);
+  batch_layer.Initialize(NULL);
+  batch_layer.global_multiplier_ = DeviceMatrix(1, 1, 2, (float[]) { 1, -1 } );
+  batch_layer.global_shift_ = DeviceMatrix(1, 1, 2, (float[]) { -2, 2 } );
+
+
+  batch_layer.BeginPhase(Layer::INFER_PHASE, 0);
+  batch_layer.Forward(training_x1);
+
+  ExpectMatrixEquals(
+    DeviceMatrix(2, 3, 4, (float[]) {
+      -1, 0, 1,
+      -1, -1, -1,
+
+      1, 1, -2,
+      4, 2, 0,
+
+      -1, -1, -1,
+      0,  0, 0,
+
+      -1, -1, -1,
+      -2, -2, -2,
+    }),
+    batch_layer.output());
+}
+
