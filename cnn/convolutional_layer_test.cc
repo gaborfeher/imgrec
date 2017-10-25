@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 
+#include "cnn/batch_normalization_layer.h"
 #include "cnn/bias_layer.h"
 #include "cnn/convolutional_layer.h"
 #include "cnn/fully_connected_layer.h"
@@ -556,26 +557,36 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase2(
 }
 
 
-std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
+std::shared_ptr<LayerStack> CreateConvolutionalTestEnv(bool use_batch_normalization) {
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  // A function to add either a BiasLayer or a BatchNormalizationLayer to the stack.
+  // (These layers are interchangeable.)
+  std::function< void (int num_neurons, bool layered) > add_bias_layer =
+      [&stack, use_batch_normalization] (int num_neurons, bool layered) -> void {
+        if (use_batch_normalization) {
+          stack->AddLayer(std::make_shared<BatchNormalizationLayer>(num_neurons, layered));
+        } else {
+          stack->AddLayer(std::make_shared<BiasLayer>(num_neurons, layered));
+        }
+      };
+
+
   stack->AddLayer(
       std::make_shared<ConvolutionalLayer>(
           2, 3, 3,
           0, 2, 1));
-  stack->AddLayer(std::make_shared<BiasLayer>(2, true));
+  add_bias_layer(2, true);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
-  stack->AddLayer(std::make_shared<BiasLayer>(2, false));
+  add_bias_layer(2, false);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 10));
-  stack->AddLayer(std::make_shared<BiasLayer>(10, false));
+  add_bias_layer(10, false);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(10, 3));
-  stack->AddLayer(std::make_shared<BiasLayer>(3, false));
+  add_bias_layer(3, false);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
   return stack;
 }
@@ -586,7 +597,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   CreateTestCase1(&training_x, &training_y);
   // TODO: test with bigger batches, investigate stability issues
 
-  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
+  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
   Random random(44);
   stack->Initialize(&random);  // Note: the initialization of the convolutional layer will be overridden, but this is needed for the fully connected layer.
   std::shared_ptr<ConvolutionalLayer> conv_layer =
@@ -648,7 +659,7 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(1000, 20, 142);
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
-  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
+  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
   Model model(stack, 42, true);
   model.Train(
@@ -668,7 +679,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
 TEST(ConvolutionalLayerTest, TrainTest_Big) {
   std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(500, 60, 142);
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
-  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv();
+  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
   Model model(stack, 43, true);
   model.Train(
@@ -685,3 +696,42 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   // stack->Print();
 }
 
+TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Overfit) {
+  std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(1, 5, 142);
+  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
+
+  Model model(stack, 42, true);
+  model.Train(
+      *training_ds,
+      30,  // epochs
+      0.5,  // learn_rate
+      0.0);  // regularization
+
+  float test_error;
+  float test_accuracy;
+  model.Evaluate(*training_ds, &test_error, &test_accuracy);
+  EXPECT_FLOAT_EQ(1.0, test_accuracy);
+  // stack->Print();
+}
+
+TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
+  std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(500, 60, 142);
+  std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
+  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
+
+  // Model model(stack, 42, true);
+  Model model(stack, 52, true);
+  model.Train(
+      *training_ds,
+      5,  // epochs
+      0.006,  // learn_rate
+      0.0);  // regularization
+
+  float test_error;
+  float test_accuracy;
+  model.Evaluate(*test_ds, &test_error, &test_accuracy);
+  // :-(
+  EXPECT_LT(test_error, 0.5);
+  EXPECT_LT(0.9, test_accuracy);
+  // stack->Print();
+}

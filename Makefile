@@ -136,6 +136,7 @@ bin/cnn/error_layer_test: bin/cnn/error_layer_test.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
+		bin/cnn/batch_normalization_layer.o \
 		bin/cnn/bias_layer.o \
 		bin/cnn/convolutional_layer.o \
 		bin/cnn/error_layer.o \
