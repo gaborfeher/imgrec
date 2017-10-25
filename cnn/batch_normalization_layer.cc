@@ -4,27 +4,20 @@
 
 #include "linalg/device_matrix.h"
 
-BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons) :
-    BiasLikeLayer(num_neurons, false),
-    layer_rows_(-1),
-    layer_cols_(-1),
-    epsilon_(0.0001),
-    beta_(num_neurons, 1, 1),
-    gamma_(num_neurons, 1, 1),
-    global_mean_(num_neurons, 1, 1),
-    global_variance_(num_neurons, 1, 1) {
-}
-
-BatchNormalizationLayer::BatchNormalizationLayer(
-  int layer_rows, int layer_cols, int num_neurons) :
-    BiasLikeLayer(num_neurons, true),
-    layer_rows_(layer_rows),
-    layer_cols_(layer_cols),
-    epsilon_(0.0001),
-    beta_(1, 1, num_neurons),
-    gamma_(1, 1, num_neurons),
-    global_mean_(1, 1, num_neurons),
-    global_variance_(1, 1, num_neurons) {
+BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) :
+    BiasLikeLayer(num_neurons, layered),
+    epsilon_(0.0001) {
+  if (layered) {
+    beta_ = DeviceMatrix(1, 1, num_neurons);
+    gamma_ = DeviceMatrix(1, 1, num_neurons);
+    global_mean_ = DeviceMatrix(1, 1, num_neurons);
+    global_variance_ = DeviceMatrix(1, 1, num_neurons);
+  } else {
+    beta_ = DeviceMatrix(num_neurons, 1, 1);
+    gamma_ = DeviceMatrix(num_neurons, 1, 1);
+    global_mean_ = DeviceMatrix(num_neurons, 1, 1);
+    global_variance_ = DeviceMatrix(num_neurons, 1, 1);
+  }
 }
 
 void BatchNormalizationLayer::Initialize(Random*) {

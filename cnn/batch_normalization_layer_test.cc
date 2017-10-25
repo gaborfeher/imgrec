@@ -18,7 +18,7 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
     1, 1, 4,
    -2, 0, 2,
   });
-  BatchNormalizationLayer batch_layer(4);
+  BatchNormalizationLayer batch_layer(4, false);
   batch_layer.Initialize(NULL);
   batch_layer.BeginPhase(Layer::TRAIN_PHASE, 0);
   batch_layer.Forward(training_x);
@@ -83,7 +83,7 @@ TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode) {
       -1, 1,
       1, -1,
   });
-  BatchNormalizationLayer batch_layer(2);
+  BatchNormalizationLayer batch_layer(2, false);
   batch_layer.beta_ = DeviceMatrix(2, 1, 1, (float[]) {
       1, 2,
   });
@@ -131,7 +131,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
     4, 4, 4,
     4, 4, 4,
   });
-  BatchNormalizationLayer batch_layer(2, 3, 2);
+  BatchNormalizationLayer batch_layer(2, true);
   batch_layer.beta_ = DeviceMatrix(1, 1, 2, (float[]) {
       1, 2,
   });
@@ -234,7 +234,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4));
+  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4, false));
   stack->AddLayer(std::make_shared<L2ErrorLayer>());
   std::shared_ptr<BatchNormalizationLayer> batch_layer = stack->GetLayer<BatchNormalizationLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
@@ -318,7 +318,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(2, 3, 2));
+  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(2, true));
   stack->AddLayer(std::make_shared<L2ErrorLayer>());
   std::shared_ptr<BatchNormalizationLayer> batch_layer = stack->GetLayer<BatchNormalizationLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
@@ -389,7 +389,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
     4, 1, 1,
     -2, 0, 2,
   });
-  BatchNormalizationLayer batch_layer(4);
+  BatchNormalizationLayer batch_layer(4, false);
   batch_layer.Initialize(NULL);
   batch_layer.beta_ = DeviceMatrix(4, 1, 1, (float[]) { 1, 1, -1, -1 } );
   batch_layer.gamma_ = DeviceMatrix(4, 1, 1, (float[]) { -2, -2, 2,2 } );
@@ -457,7 +457,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
     -2, 1,
     2, 2,
   });
-  BatchNormalizationLayer batch_layer(1, 2, 2);
+  BatchNormalizationLayer batch_layer(2, true);
   batch_layer.Initialize(NULL);
   batch_layer.beta_ = DeviceMatrix(1, 1, 2, (float[]) { 1, -1 } );
   batch_layer.gamma_ = DeviceMatrix(1, 1, 2, (float[]) { -2, 2 } );
@@ -512,7 +512,7 @@ TEST(BatchNormalizationLayerTest, Infer_ColumnMode) {
     1, 1, 4,
    -2, 0, 2,
   });
-  BatchNormalizationLayer batch_layer(4);
+  BatchNormalizationLayer batch_layer(4, false);
   batch_layer.Initialize(NULL);
   batch_layer.global_multiplier_ = DeviceMatrix(4, 1, 1, (float[]) { 1, 1, -1, -1 } );
   batch_layer.global_shift_ = DeviceMatrix(4, 1, 1, (float[]) { -2, -2, 2, 2 } );
@@ -545,7 +545,7 @@ TEST(BatchNormalizationLayerTest, Infer_LayerMode) {
     3, 3, 3,
     4, 4, 4,
   });
-  BatchNormalizationLayer batch_layer(2, 3, 2);
+  BatchNormalizationLayer batch_layer(2, true);
   batch_layer.Initialize(NULL);
   batch_layer.global_multiplier_ = DeviceMatrix(1, 1, 2, (float[]) { 1, -1 } );
   batch_layer.global_shift_ = DeviceMatrix(1, 1, 2, (float[]) { -2, 2 } );

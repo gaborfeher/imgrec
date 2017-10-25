@@ -12,10 +12,7 @@ class Random;
 class BatchNormalizationLayer : public BiasLikeLayer {
  public:
   // See BiasLikeLayer for param docs.
-  // non-layered:
-  explicit BatchNormalizationLayer(int num_neurons);
-  // layered:
-  BatchNormalizationLayer(int layer_rows, int layer_cols, int num_neurons);
+  BatchNormalizationLayer(int num_neurons, bool layered);
   virtual void Initialize(Random*);
   virtual void Forward(const DeviceMatrix& input);
   virtual void Backward(const DeviceMatrix& output_gradient);
@@ -33,9 +30,6 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   FRIEND_TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode);
   FRIEND_TEST(BatchNormalizationLayerTest, Infer_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, Infer_LayerMode);
-
-  int layer_rows_;
-  int layer_cols_;
 
   float epsilon_;  // Small number used for numerical stability.
   int num_samples_;  // Number of minibatch samples seen in the last Forward pass.
