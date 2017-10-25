@@ -391,6 +391,10 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
   });
   BatchNormalizationLayer batch_layer(4);
   batch_layer.Initialize(NULL);
+  batch_layer.beta_ = DeviceMatrix(4, 1, 1, (float[]) { 1, 1, -1, -1 } );
+  batch_layer.gamma_ = DeviceMatrix(4, 1, 1, (float[]) { -2, -2, 2,2 } );
+
+
   EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 0));
   batch_layer.Forward(training_x1);
   batch_layer.Forward(training_x2);
@@ -401,5 +405,43 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
   batch_layer.EndPhase(Layer::POST_TRAIN_PHASE, 1);
   EXPECT_FALSE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 2));
 
-  EXPECT_TRUE(false);
+  ExpectMatrixEquals(
+      DeviceMatrix(4, 1, 1, (float[]) {
+        10.0f / 6.0f,
+        1.5f,
+        2.0f,
+        0.0f
+      }),
+      batch_layer.global_mean_);
+  ExpectMatrixEquals(
+      DeviceMatrix(4, 1, 1, (float[]) {
+        192.0f / 216.0f,
+        0.25f,
+        2.0f,
+        16.0f / 6.0f,
+      }),
+      batch_layer.global_variance_);
+
+  float epsilon = batch_layer.epsilon_;
+  ExpectMatrixEquals(
+      DeviceMatrix(4, 1, 1, (float[]) {
+        static_cast<float>(-2.0f / sqrt(192.0f / 216.0f + epsilon)),
+        static_cast<float>(-2.0f / sqrt(0.25f + epsilon)),
+        static_cast<float>(2.0f / sqrt(2.0f + epsilon)),
+        static_cast<float>(2.0f / sqrt(16.0f / 6.0f + epsilon))
+      }),
+      batch_layer.global_multiplier_);
+  ExpectMatrixEquals(
+      DeviceMatrix(4, 1, 1, (float[]) {
+        static_cast<float>(
+          1.0f - -2.0f * 10.0f / 6.0f / sqrt(192.0f / 216.0f + epsilon)),
+        static_cast<float>(
+          1.0f - -2.0f * 1.5f / sqrt(0.25f + epsilon)),
+        static_cast<float>(
+          -1.0f - 2.0f * 2.0f / sqrt(2.0f + epsilon)),
+        static_cast<float>(-1.0f - 2.0f * 0.0f)
+      }),
+      batch_layer.global_shift_);
+
+  //EXPECT_TRUE(false);
 }

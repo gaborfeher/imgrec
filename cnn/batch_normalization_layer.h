@@ -29,6 +29,7 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   FRIEND_TEST(BatchNormalizationLayerTest, Forward_LayerMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode);
+  FRIEND_TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode);
 
   int layer_rows_;
   int layer_cols_;
@@ -55,12 +56,12 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   int phase_sub_id_;
 
   DeviceMatrix global_mean_;
-  DeviceMatrix global_mean_rep_minus_;
+  DeviceMatrix global_mean_negative_repeated_;
   int global_num_samples_;
   DeviceMatrix global_variance_;
 
-  DeviceMatrix global_gamma_;
-  DeviceMatrix global_beta_;
+  DeviceMatrix global_multiplier_;
+  DeviceMatrix global_shift_;
 
 };
 

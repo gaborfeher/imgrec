@@ -59,7 +59,7 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
         global_num_samples_ += num_samples_;
       } else if (phase_sub_id_ == 1) {
         DeviceMatrix local = input
-            .Add(global_mean_rep_minus_)
+            .Add(global_mean_negative_repeated_)
             .Map(::matrix_mappers::Square())
             .Sum(layered_, num_neurons_);
         global_variance_ = global_variance_.Add(local);
@@ -90,8 +90,8 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
 
     case INFER_PHASE:
       output_ = input_
-          .ElementwiseMultiply(global_gamma_)
-          .Add(global_beta_);
+          .ElementwiseMultiply(global_multiplier_)
+          .Add(global_shift_);
 
       break;
   }
@@ -165,7 +165,7 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
   if (phase_ == POST_TRAIN_PHASE) {
     if (phase_sub_id_ == 0) {
       global_mean_ = global_mean_.Multiply(1.0 / global_num_samples_);
-      global_mean_rep_minus_ = global_mean_
+      global_mean_negative_repeated_ = global_mean_
           .Repeat(layered_, input_.rows(), input_.cols(), input_.depth())
           .Multiply(-1.0);
     }
@@ -173,16 +173,18 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
       global_variance_ = global_variance_
           .Multiply(1.0 / global_num_samples_);
 
-      global_gamma_ =
-          gamma_.ElementwiseDivide(
-              global_variance_
-                  .AddConst(epsilon_)
-                  .Map(::matrix_mappers::Sqrt()));
-      global_beta_ = beta_
+      DeviceMatrix global_variance_sqrt_e_ =
+          global_variance_
+              .AddConst(epsilon_)
+              .Map(::matrix_mappers::Sqrt());
+      global_multiplier_ =
+          gamma_.ElementwiseDivide(global_variance_sqrt_e_);
+      global_shift_ = beta_
           .Add(
-              global_gamma_
+              gamma_
                   .ElementwiseMultiply(global_mean_)
-                  .Multiply(-1.0));
+                  .Multiply(-1.0)
+                  .ElementwiseDivide(global_variance_sqrt_e_));
     }
   }
   phase_ = NONE;
