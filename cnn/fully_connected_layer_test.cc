@@ -111,7 +111,7 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
       [fc_layer] () -> Matrix {
         return fc_layer->weights_gradient_;
       },
-      0.0001f,
+      0.001f,
       1);
 }
 
@@ -138,7 +138,7 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
   InputGradientCheck(
       stack,
       training_x,
-      0.0001f,
-      30);
+      0.001f,
+      55);
 }
 

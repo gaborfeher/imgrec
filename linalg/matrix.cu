@@ -545,7 +545,7 @@ __global__ void VecL2(float* A, int len, float* B) {
   for (int i = 0; i < len; ++i) {
     result += A[i] * A[i];
   }
-  B[0] = sqrt(result);
+  B[0] = result;
 }
 
 float Matrix::L2() const {

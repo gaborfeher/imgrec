@@ -145,7 +145,7 @@ TEST(SmallMatrixTest, SigmoidGradient) {
 
 TEST(SmallMatrixTest, L2) {
   Matrix a(2, 2, 1, (float[]){1, 1, 2, 0.5});
-  EXPECT_FLOAT_EQ(2.5, a.L2());
+  EXPECT_FLOAT_EQ(6.25f, a.L2());
 }
 
 TEST(SmallMatrixTest, Softmax1) {

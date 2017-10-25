@@ -6,6 +6,9 @@
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
+#include "infra/data_set.h"
+#include "infra/model.h"
+#include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
 #include "gtest/gtest.h"
@@ -222,15 +225,15 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
 TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
   Matrix training_x(4, 3, 1, (float[]) {
     1, 2, 3,
-    1, 1, 1,
+    2, -2, 1,
     1, 1, 2,
     1, 2, 3,
   });
   Matrix training_y(4, 3, 1, (float[]) {
-    -100, 100, -100,
-    100, -100, 100,
-    -100, 100, -100,
-    100, -100, 100,
+    -1, 1, -1,
+    1, -1, 1,
+    -1, 1, -1,
+    1, -1, 1,
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
@@ -262,7 +265,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
             return batch_layer->beta_gradient_;
         },
         0.01f,
-        3.0f);
+        0.1f);
   }
 
   {
@@ -278,7 +281,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
             return batch_layer->gamma_gradient_;
         },
         0.01f,
-        60.0f);
+        0.1f);
   }
 
   {
@@ -286,35 +289,36 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
     InputGradientCheck(
         stack,
         training_x,
-        0.03f,
-        4.0f);
+        0.01f,
+        1.0f);
   }
+
 }
 
 TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
   Matrix training_x(2, 3, 4, (float[]) {
     // img1 layer1
-    1, 1, 1,
-    1, 1, 1,
+    1, 2, 3,
+    3, 2, 1,
     // img1 layer2
-    2, 2, 2,
-    2, 2, 2,
+    2, 4, 6,
+    6, 4, 2,
     // img2 layer1
-    3, 3, 3,
-    3, 3, 3,
+    3, 6, 9,
+    9, 6, 3,
     // img2 layer2
-    4, 4, 4,
-    4, 4, 4,
+    4, 8, 12,
+    12, 8, 4,
   });
   Matrix training_y(2, 3, 4, (float[]) {
-    -100, 100, -100,
-    100, -100, 100,
-    -100, 100, -100,
-    100, -100, 100,
-    -100, 100, -100,
-    100, -100, 100,
-    -100, 100, -100,
-    100, -100, 100,
+    -10, 10, -10,
+    10, -10, 10,
+    -10, 10, -10,
+    10, -10, 10,
+    -10, 10, -10,
+    10, -10, 10,
+    -10, 10, -10,
+    10, -10, 10,
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
@@ -346,7 +350,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
             return batch_layer->beta_gradient_;
         },
         0.03f,
-        50.0f);
+        1.0f);
   }
 
   {
@@ -361,8 +365,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
         [batch_layer] () -> Matrix {
             return batch_layer->gamma_gradient_;
         },
-        0.03f,
-        90.0f);
+        0.1f,
+        1.0f);
   }
 
   {
@@ -370,8 +374,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
     InputGradientCheck(
         stack,
         training_x,
-        0.01f,
-        5.0f);
+        0.03f,
+        1.0f);
   }
 
 }
@@ -571,3 +575,65 @@ TEST(BatchNormalizationLayerTest, Infer_LayerMode) {
     batch_layer.output());
 }
 
+
+TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
+  InMemoryDataSet training_ds(
+      4,
+      Matrix(4, 4, 1, (float[]) {
+        1, -1, 1, -1,
+        1, 1, 1,  2,
+        1, 1, 2,  3,
+        1, 2, 3, -2,
+      }),  // inputs
+      Matrix(4, 4, 1, (float[]) {
+         2, -2,  2, -2,   // * 2 + 1
+        -1, -1, -1,  2,   // - 2
+        -1, -1, -4, -7,   // * -3 + 2
+        -0.5, 0, 0.5, -2,  // / 2 - 1
+      }));  // outputs
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4, false));
+  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+
+  Model model(stack, 111, false);  // random seed is not used
+  model.Train(
+      training_ds,
+      20,
+      0.1,
+      0);
+  float test_error, test_accuracy;
+  model.Evaluate(training_ds, &test_error, &test_accuracy);
+  EXPECT_GT(1e-13, test_error);
+}
+
+TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
+  InMemoryDataSet training_ds(
+      4,
+      Matrix(1, 4, 4, (float[]) {
+        1, -1, 1, -1,
+        1, 1, 1,  2,
+        1, 1, 2,  3,
+        1, 2, 3, -2,
+      }),  // inputs
+      Matrix(1, 4, 4, (float[]) {
+         2, -2,  2, -2,   // * 2 + 1
+        -1, -1, -1,  2,   // - 2
+        -1, -1, -4, -7,   // * -3 + 2
+        -0.5, 0, 0.5, -2,  // / 2 - 1
+      }));  // outputs
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4, true));
+  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+
+  Model model(stack, 111, false);  // random seed is not used
+  model.Train(
+      training_ds,
+      20,
+      0.1,
+      0);
+  float test_error, test_accuracy;
+  model.Evaluate(training_ds, &test_error, &test_accuracy);
+  EXPECT_GT(1e-13, test_error);
+}

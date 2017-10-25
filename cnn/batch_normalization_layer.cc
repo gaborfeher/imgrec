@@ -1,6 +1,7 @@
 #include "cnn/batch_normalization_layer.h"
 
 #include <cassert>
+#include <iostream>
 
 #include "linalg/matrix.h"
 
@@ -18,6 +19,14 @@ BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) 
     global_mean_ = Matrix(num_neurons, 1, 1);
     global_variance_ = Matrix(num_neurons, 1, 1);
   }
+    }
+
+void BatchNormalizationLayer::Print() const {
+  std::cout << "Batch Normalization Layer" << std::endl;
+  std::cout << " Multiplier:" << std::endl;
+  global_multiplier_.Print();
+  std::cout << " Shift:" << std::endl;
+  global_shift_.Print();
 }
 
 void BatchNormalizationLayer::Initialize(Random*) {
@@ -96,7 +105,6 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
 }
 
 void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
-
   Matrix normalized_grad = output_gradient
       .ElementwiseMultiply(gamma_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
   Matrix variance_grad = normalized_grad
@@ -131,12 +139,11 @@ void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
       .ElementwiseMultiply(normalized_)
       .Sum(layered_, num_neurons_);
   beta_gradient_ = output_gradient.Sum(layered_, num_neurons_);
-
 }
 
 void BatchNormalizationLayer::ApplyGradient(float learn_rate) {
-  beta_.Add(beta_gradient_.Multiply(-learn_rate));
-  gamma_.Add(gamma_gradient_.Multiply(-learn_rate));
+  beta_ = beta_.Add(beta_gradient_.Multiply(-learn_rate));
+  gamma_ = gamma_.Add(gamma_gradient_.Multiply(-learn_rate));
 }
 
 bool BatchNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {

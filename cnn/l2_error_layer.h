@@ -4,6 +4,11 @@
 #include "cnn/error_layer.h"
 #include "linalg/matrix.h"
 
+// Note: this implements L2^2, because its gradient is "nicely"
+// going to zero near its zero value, unlike L2, which just
+// jumps to zero. (The main motivation for this change was
+// to make overfitting in BatchNormalizationLayerTest.TrainTest_*
+// work.)
 class L2ErrorLayer : public ErrorLayer {
  public:
   L2ErrorLayer();

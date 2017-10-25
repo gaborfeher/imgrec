@@ -16,7 +16,7 @@ Matrix ComputeNumericGradient(
 
   Matrix result(x0.rows(), x0.cols(), x0.depth());
 
-  float delta = 0.001f;  // I am not super-happy that this is a carefully-tuned value to make all the test pass.
+  float delta = 0.01f;  // I am not super-happy that this is a carefully-tuned value to make all the test pass.
   for (int k = 0; k < x0.depth(); k++) {
     for (int i = 0; i < x0.rows(); i++) {
       for (int j = 0; j < x0.cols(); j++) {

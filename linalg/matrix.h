@@ -48,7 +48,7 @@ class Matrix {
   Matrix SoftmaxGradient(const Matrix& expected_class) const;
   float NumMatches(const Matrix& expected_class) const;
 
-  float L2() const;
+  float L2() const;  // L2^2, actually
   float Sum() const;
   // layered = true, layers > 0: consider this matrix as a
   //    series of matrices of depth |layers|, and summarize them

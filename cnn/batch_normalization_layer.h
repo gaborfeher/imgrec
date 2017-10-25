@@ -13,6 +13,7 @@ class BatchNormalizationLayer : public BiasLikeLayer {
  public:
   // See BiasLikeLayer for param docs.
   BatchNormalizationLayer(int num_neurons, bool layered);
+  virtual void Print() const;
   virtual void Initialize(Random*);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);

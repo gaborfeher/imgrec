@@ -162,6 +162,8 @@ bin/cnn/batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test.o
 		bin/cnn/layer.o \
 		bin/cnn/layer_stack.o \
 		bin/cnn/layer_test_base.o \
+		bin/infra/data_set.o \
+		bin/infra/model.o \
 		bin/linalg/matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a

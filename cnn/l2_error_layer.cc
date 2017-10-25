@@ -16,14 +16,10 @@ void L2ErrorLayer::Backward(const Matrix& output_gradient) {
   // output_gradient is not used, we assume that this is the last
   // layer.
   output_gradient.AssertDimensions(0, 0, 0);
-  float multiplier = 0.0f;
-  if (error_ != 0.0f) {
-    multiplier = 1.0f / error_;
-  }
 
   input_gradient_ = input_
       .Add(expected_value_.Multiply(-1))
-      .Multiply(multiplier);
+      .Multiply(2.0f);
 }
 
 float L2ErrorLayer::GetAccuracy() const {
