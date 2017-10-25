@@ -23,8 +23,8 @@ BatchNormalizationLayer::BatchNormalizationLayer(
     epsilon_(0.0001),
     beta_(1, 1, num_neurons),
     gamma_(1, 1, num_neurons),
-    global_mean_(layer_rows, layer_cols, num_neurons),
-    global_variance_(layer_rows, layer_cols, num_neurons) {
+    global_mean_(1, 1, num_neurons),
+    global_variance_(1, 1, num_neurons) {
 }
 
 void BatchNormalizationLayer::Initialize(Random*) {

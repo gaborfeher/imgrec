@@ -442,6 +442,65 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
         static_cast<float>(-1.0f - 2.0f * 0.0f)
       }),
       batch_layer.global_shift_);
+}
 
-  //EXPECT_TRUE(false);
+TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
+  DeviceMatrix training_x1(1, 2, 4, (float[]) {
+    1, 2,
+    2, 1,
+    1, 1,
+    -1, 1,
+  });
+  DeviceMatrix training_x2(1, 2, 4, (float[]) {
+    1, 1,
+    -1, 2,
+    -2, 1,
+    2, 2,
+  });
+  BatchNormalizationLayer batch_layer(1, 2, 2);
+  batch_layer.Initialize(NULL);
+  batch_layer.beta_ = DeviceMatrix(1, 1, 2, (float[]) { 1, -1 } );
+  batch_layer.gamma_ = DeviceMatrix(1, 1, 2, (float[]) { -2, 2 } );
+
+
+  EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 0));
+  batch_layer.Forward(training_x1);
+  batch_layer.Forward(training_x2);
+  batch_layer.EndPhase(Layer::POST_TRAIN_PHASE, 0);
+  EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 1));
+  batch_layer.Forward(training_x1);
+  batch_layer.Forward(training_x2);
+  batch_layer.EndPhase(Layer::POST_TRAIN_PHASE, 1);
+  EXPECT_FALSE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 2));
+
+  ExpectMatrixEquals(
+      DeviceMatrix(1, 1, 2, (float[]) {
+        6.0f / 8.0f,
+        8.0f / 8.0f,
+      }),
+      batch_layer.global_mean_);
+
+  ExpectMatrixEquals(
+      DeviceMatrix(1, 1, 2, (float[]) {
+        608.0f / 512.0f,
+        12.f / 8.0f,
+      }),
+      batch_layer.global_variance_);
+
+  float epsilon = batch_layer.epsilon_;
+  ExpectMatrixEquals(
+      DeviceMatrix(1, 1, 2, (float[]) {
+        static_cast<float>(-2.0f / sqrt(608.0f / 512.0f + epsilon)),
+        static_cast<float>(2.0f / sqrt(12.0f / 8.0f + epsilon)),
+      }),
+      batch_layer.global_multiplier_);
+
+  ExpectMatrixEquals(
+      DeviceMatrix(1, 1, 2, (float[]) {
+        static_cast<float>(
+          1.0f - -2.0f * 6.0f / 8.0f / sqrt(608.0f / 512.0f + epsilon)),
+        static_cast<float>(
+          -1.0f - 2.0f * 1.0f / sqrt(12.0f / 8.0f + epsilon))
+      }),
+      batch_layer.global_shift_);
 }
