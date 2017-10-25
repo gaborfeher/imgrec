@@ -2,18 +2,18 @@
 #define _CNN_L2_ERROR_LAYER_H_
 
 #include "cnn/error_layer.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 class L2ErrorLayer : public ErrorLayer {
  public:
   L2ErrorLayer();
-  virtual void SetExpectedValue(const DeviceMatrix& expected_value);
-  virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradient);
+  virtual void SetExpectedValue(const Matrix& expected_value);
+  virtual void Forward(const Matrix& input);
+  virtual void Backward(const Matrix& output_gradient);
   virtual float GetAccuracy() const;
 
  private:
-  DeviceMatrix expected_value_;
+  Matrix expected_value_;
 };
 
 #endif  // _CNN_L2_ERROR_LAYER_H_

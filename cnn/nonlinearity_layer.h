@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "cnn/layer.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 namespace activation_functions {
 
@@ -20,8 +20,8 @@ class NonlinearityLayer : public Layer {
  public:
   explicit NonlinearityLayer(
       ::activation_functions::ActivationFunc activation);
-  virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradient);
+  virtual void Forward(const Matrix& input);
+  virtual void Backward(const Matrix& output_gradient);
  private:
   ::matrix_mappers::MapperFunc activation_function_;
   ::matrix_mappers::MapperFunc activation_function_gradient_;

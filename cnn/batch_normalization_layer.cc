@@ -2,21 +2,21 @@
 
 #include <cassert>
 
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) :
     BiasLikeLayer(num_neurons, layered),
     epsilon_(0.0001) {
   if (layered) {
-    beta_ = DeviceMatrix(1, 1, num_neurons);
-    gamma_ = DeviceMatrix(1, 1, num_neurons);
-    global_mean_ = DeviceMatrix(1, 1, num_neurons);
-    global_variance_ = DeviceMatrix(1, 1, num_neurons);
+    beta_ = Matrix(1, 1, num_neurons);
+    gamma_ = Matrix(1, 1, num_neurons);
+    global_mean_ = Matrix(1, 1, num_neurons);
+    global_variance_ = Matrix(1, 1, num_neurons);
   } else {
-    beta_ = DeviceMatrix(num_neurons, 1, 1);
-    gamma_ = DeviceMatrix(num_neurons, 1, 1);
-    global_mean_ = DeviceMatrix(num_neurons, 1, 1);
-    global_variance_ = DeviceMatrix(num_neurons, 1, 1);
+    beta_ = Matrix(num_neurons, 1, 1);
+    gamma_ = Matrix(num_neurons, 1, 1);
+    global_mean_ = Matrix(num_neurons, 1, 1);
+    global_variance_ = Matrix(num_neurons, 1, 1);
   }
 }
 
@@ -25,7 +25,7 @@ void BatchNormalizationLayer::Initialize(Random*) {
   beta_.Fill(0.0);
 }
 
-void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
+void BatchNormalizationLayer::Forward(const Matrix& input) {
   input_ = input;
 
   if (layered_) {
@@ -47,11 +47,11 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
       // Two passes are needed to get global variance:
       assert(phase_sub_id_ == 0 || phase_sub_id_ == 1);
       if (phase_sub_id_ == 0) {
-        DeviceMatrix sum = input.Sum(layered_, num_neurons_);
+        Matrix sum = input.Sum(layered_, num_neurons_);
         global_mean_ = global_mean_.Add(sum);
         global_num_samples_ += num_samples_;
       } else if (phase_sub_id_ == 1) {
-        DeviceMatrix local = input
+        Matrix local = input
             .Add(global_mean_negative_repeated_)
             .Map(::matrix_mappers::Square())
             .Sum(layered_, num_neurons_);
@@ -82,9 +82,9 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
     }
 
     case INFER_PHASE: {
-      DeviceMatrix multiplier = global_multiplier_
+      Matrix multiplier = global_multiplier_
           .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
-      DeviceMatrix shift = global_shift_
+      Matrix shift = global_shift_
           .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
       output_ = input_
           .ElementwiseMultiply(multiplier)
@@ -95,32 +95,32 @@ void BatchNormalizationLayer::Forward(const DeviceMatrix& input) {
 
 }
 
-void BatchNormalizationLayer::Backward(const DeviceMatrix& output_gradient) {
+void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
 
-  DeviceMatrix normalized_grad = output_gradient
+  Matrix normalized_grad = output_gradient
       .ElementwiseMultiply(gamma_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
-  DeviceMatrix variance_grad = normalized_grad
+  Matrix variance_grad = normalized_grad
       .ElementwiseMultiply(shifted_)
       .ElementwiseMultiply(variance_e_.Pow(-1.5).Repeat(layered_, input_.rows(), input_.cols(), input_.depth()))
       .Sum(layered_, num_neurons_)
       .Multiply(-0.5);
-  DeviceMatrix normalized_grad_over_sqrt_variance_e =
+  Matrix normalized_grad_over_sqrt_variance_e =
       normalized_grad.ElementwiseDivide(sqrt_variance_e_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
-  DeviceMatrix mean_grad_part1 =
+  Matrix mean_grad_part1 =
       normalized_grad_over_sqrt_variance_e
           .Sum(layered_, num_neurons_)
           .Multiply(-1.0);
-  DeviceMatrix mean_grad_part2 = variance_grad
+  Matrix mean_grad_part2 = variance_grad
       .ElementwiseMultiply(shifted_.Sum(layered_, num_neurons_))
       .Multiply(-2.0 / num_samples_);
-  DeviceMatrix mean_grad = mean_grad_part1.Add(mean_grad_part2);
+  Matrix mean_grad = mean_grad_part1.Add(mean_grad_part2);
 
-  DeviceMatrix input_grad_part1 = normalized_grad_over_sqrt_variance_e;
-  DeviceMatrix input_grad_part2 = variance_grad
+  Matrix input_grad_part1 = normalized_grad_over_sqrt_variance_e;
+  Matrix input_grad_part2 = variance_grad
       .Repeat(layered_, input_.rows(), input_.cols(), input_.depth())
       .ElementwiseMultiply(shifted_)
       .Multiply(2.0 / num_samples_);
-  DeviceMatrix input_grad_part3 = mean_grad
+  Matrix input_grad_part3 = mean_grad
       .Multiply(1.0 / num_samples_)
       .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
 
@@ -170,7 +170,7 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
       global_variance_ = global_variance_
           .Multiply(1.0 / global_num_samples_);
 
-      DeviceMatrix global_variance_sqrt_e_ =
+      Matrix global_variance_sqrt_e_ =
           global_variance_
               .AddConst(epsilon_)
               .Map(::matrix_mappers::Sqrt());

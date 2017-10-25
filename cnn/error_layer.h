@@ -8,7 +8,7 @@ class ErrorLayer : public Layer {
   ErrorLayer();
   virtual float GetError() const;
   virtual float GetAccuracy() const = 0;
-  virtual void SetExpectedValue(const DeviceMatrix& expected_value) = 0;
+  virtual void SetExpectedValue(const Matrix& expected_value) = 0;
 
  protected:
   float error_;

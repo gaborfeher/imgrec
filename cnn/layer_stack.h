@@ -21,17 +21,17 @@ class LayerStack : public Layer {
   }
   virtual void Print() const;
   virtual void Initialize(Random* random);
-  virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradient);
+  virtual void Forward(const Matrix& input);
+  virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
   virtual void Regularize(float lambda);
   virtual bool BeginPhase(Phase phase, int phase_sub_id);
   virtual void EndPhase(Phase phase, int phase_sub_id);
 
-  virtual DeviceMatrix output() {
+  virtual Matrix output() {
     return layers_.back()->output();
   }
-  virtual DeviceMatrix input_gradient() {
+  virtual Matrix input_gradient() {
     return layers_.front()->input_gradient();
   }
 

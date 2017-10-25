@@ -4,11 +4,11 @@
 
 #include "gtest/gtest.h"
 
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 void ExpectMatrixEquals(
-    const DeviceMatrix& a,
-    const DeviceMatrix& b,
+    const Matrix& a,
+    const Matrix& b,
     float absolute_diff,
     float percentage_diff) {
   EXPECT_EQ(a.rows(), b.rows());
@@ -46,8 +46,8 @@ void ExpectMatrixEquals(
 }
 
 void ExpectMatrixEquals(
-    const DeviceMatrix& a,
-    const DeviceMatrix& b) {
+    const Matrix& a,
+    const Matrix& b) {
   EXPECT_EQ(a.rows(), b.rows());
   EXPECT_EQ(a.cols(), b.cols());
   EXPECT_EQ(a.depth(), b.depth());

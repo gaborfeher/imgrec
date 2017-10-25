@@ -10,7 +10,7 @@
 #include "cnn/nonlinearity_layer.h"
 #include "infra/data_set.h"
 #include "infra/model.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
 #include "gtest/gtest.h"
@@ -19,7 +19,7 @@
 std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
   return std::make_shared<InMemoryDataSet>(
       8,
-      DeviceMatrix(8, 3, 1, (float[]) {
+      Matrix(8, 3, 1, (float[]) {
         -1,  2, 1,
          0,  1, 1,
          1,  0, 1,
@@ -29,7 +29,7 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
          0, -1, 1,
          1, -2, 1,
       }).T(),
-      DeviceMatrix(8, 1, 1, (float[]) {
+      Matrix(8, 1, 1, (float[]) {
           0,
           0,
           0,
@@ -44,11 +44,11 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
 std::shared_ptr<InMemoryDataSet> CreateTestCase1_TestData() {
   return std::make_shared<InMemoryDataSet>(
       2,
-      DeviceMatrix(2, 3, 1, (float[]) {
+      Matrix(2, 3, 1, (float[]) {
           -1, -1, 1,
            1,  1, 1,
       }).T(),
-      DeviceMatrix(2, 1, 1, (float[]) {
+      Matrix(2, 1, 1, (float[]) {
           1,
           0,
       }).T());
@@ -84,8 +84,8 @@ TEST(LearnTest, FullyConnectedTrain) {
 
 TEST(LearnTest, FullyConnectedLayerWeightGradient) {
   std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
-  DeviceMatrix training_x = training->GetBatchInput(0);
-  DeviceMatrix training_y = training->GetBatchOutput(0);
+  Matrix training_x = training->GetBatchInput(0);
+  Matrix training_y = training->GetBatchOutput(0);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
@@ -100,15 +100,15 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 
   error_layer->SetExpectedValue(training_y);
 
-  DeviceMatrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
+  Matrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
   ParameterGradientCheck(
       stack,
       training_x,
       weights,
-      [&fc_layer] (const DeviceMatrix& p) -> void {
+      [&fc_layer] (const Matrix& p) -> void {
         fc_layer->weights_ = p;
       },
-      [fc_layer] () -> DeviceMatrix {
+      [fc_layer] () -> Matrix {
         return fc_layer->weights_gradient_;
       },
       0.0001f,
@@ -117,8 +117,8 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 
 TEST(LearnTest, FullyConnectedLayerInputGradient) {
   std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
-  DeviceMatrix training_x = training->GetBatchInput(0);
-  DeviceMatrix training_y = training->GetBatchOutput(0);
+  Matrix training_x = training->GetBatchInput(0);
+  Matrix training_y = training->GetBatchOutput(0);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
@@ -132,7 +132,7 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
   stack->AddLayer(error_layer);
 
   error_layer->SetExpectedValue(training_y);
-  DeviceMatrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
+  Matrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
   fc_layer->weights_ = weights;
 
   InputGradientCheck(

@@ -31,7 +31,7 @@ void ConvolutionalLayer::Initialize(Random* random) {
   filters_.RandomFill(random, &dist);
 }
 
-void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
+void ConvolutionalLayer::Forward(const Matrix& input) {
   input_ = input;
   output_ = input
       .AddPadding(padding_, padding_)
@@ -41,7 +41,7 @@ void ConvolutionalLayer::Forward(const DeviceMatrix& input) {
           stride_);
 }
 
-void ConvolutionalLayer::Backward(const DeviceMatrix& output_gradient) {
+void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   // This implementation is based on the following article, plus
   // additions.
   // http://www.jefkine.com/general/2016/09/05/backpropagation-in-convolutional-neural-networks/

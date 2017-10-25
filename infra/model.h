@@ -6,7 +6,7 @@
 #include "cnn/layer.h"
 
 class DataSet;
-class DeviceMatrix;
+class Matrix;
 class ErrorLayer;
 class LayerStack;
 class Random;

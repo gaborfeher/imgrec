@@ -2,16 +2,16 @@
 
 #include <iostream>
 
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 BiasLayer::BiasLayer(int num_neurons, bool layered) :
     BiasLikeLayer(num_neurons, layered) {
   if (layered) {
-    biases_ = DeviceMatrix(1, 1, num_neurons);
-    biases_gradient_ = DeviceMatrix(1, 1, num_neurons);
+    biases_ = Matrix(1, 1, num_neurons);
+    biases_gradient_ = Matrix(1, 1, num_neurons);
   } else {
-    biases_ = DeviceMatrix(num_neurons, 1, 1);
-    biases_gradient_ = DeviceMatrix(num_neurons, 1, 1);
+    biases_ = Matrix(num_neurons, 1, 1);
+    biases_gradient_ = Matrix(num_neurons, 1, 1);
   }
 }
 
@@ -24,13 +24,13 @@ void BiasLayer::Initialize(Random*) {
   biases_.Fill(0);
 }
 
-void BiasLayer::Forward(const DeviceMatrix& input) {
+void BiasLayer::Forward(const Matrix& input) {
   input_ = input;
   output_ = input.Add(
       biases_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
 }
 
-void BiasLayer::Backward(const DeviceMatrix& output_gradient) {
+void BiasLayer::Backward(const Matrix& output_gradient) {
   input_gradient_ = output_gradient;
   biases_gradient_ = output_gradient.Sum(layered_, num_neurons_);
 }

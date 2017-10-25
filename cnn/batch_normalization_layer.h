@@ -5,7 +5,7 @@
 
 #include "gtest/gtest_prod.h"
 
-class DeviceMatrix;
+class Matrix;
 class Random;
 
 // https://arxiv.org/pdf/1502.03167.pdf
@@ -14,8 +14,8 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   // See BiasLikeLayer for param docs.
   BatchNormalizationLayer(int num_neurons, bool layered);
   virtual void Initialize(Random*);
-  virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& output_gradient);
+  virtual void Forward(const Matrix& input);
+  virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
 
   virtual bool BeginPhase(Phase phase, int phase_sub_id);
@@ -35,30 +35,30 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   int num_samples_;  // Number of minibatch samples seen in the last Forward pass.
 
   // Internal parameters and their gradients:
-  DeviceMatrix beta_;
-  DeviceMatrix beta_gradient_;
-  DeviceMatrix gamma_;
-  DeviceMatrix gamma_gradient_;
+  Matrix beta_;
+  Matrix beta_gradient_;
+  Matrix gamma_;
+  Matrix gamma_gradient_;
 
   // Intermediate values shared between Forward and Backward.
-  DeviceMatrix mean_;
-  DeviceMatrix shifted_;
-  DeviceMatrix variance_;
-  DeviceMatrix variance_e_;
-  DeviceMatrix sqrt_variance_e_;
-  DeviceMatrix normalized_;
+  Matrix mean_;
+  Matrix shifted_;
+  Matrix variance_;
+  Matrix variance_e_;
+  Matrix sqrt_variance_e_;
+  Matrix normalized_;
 
   // For computing the global mean and variance, needed for inference:
   Phase phase_;
   int phase_sub_id_;
 
-  DeviceMatrix global_mean_;
-  DeviceMatrix global_mean_negative_repeated_;
+  Matrix global_mean_;
+  Matrix global_mean_negative_repeated_;
   int global_num_samples_;
-  DeviceMatrix global_variance_;
+  Matrix global_variance_;
 
-  DeviceMatrix global_multiplier_;
-  DeviceMatrix global_shift_;
+  Matrix global_multiplier_;
+  Matrix global_shift_;
 
 };
 

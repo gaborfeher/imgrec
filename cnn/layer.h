@@ -1,7 +1,7 @@
 #ifndef _CNN_LAYER_H_
 #define _CNN_LAYER_H_
 
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 class Random;
 
@@ -20,8 +20,8 @@ class Layer {
 
   virtual void Print() const {};
   virtual void Initialize(Random* /* generator */) {};
-  virtual void Forward(const DeviceMatrix& input) = 0;
-  virtual void Backward(const DeviceMatrix& ouotput_gradient) = 0;
+  virtual void Forward(const Matrix& input) = 0;
+  virtual void Backward(const Matrix& ouotput_gradient) = 0;
   virtual void ApplyGradient(float /* learn_rate */) {};
   virtual void Regularize(float /* lambda */) {};
 
@@ -37,17 +37,17 @@ class Layer {
   };
   virtual void EndPhase(Phase /* phase */, int /* phase_sub_id */) {};
 
-  virtual DeviceMatrix output() { return output_; }
-  virtual DeviceMatrix input_gradient() { return input_gradient_; }
+  virtual Matrix output() { return output_; }
+  virtual Matrix input_gradient() { return input_gradient_; }
 
   // Prevent copy and assignment.
   Layer(const Layer&) = delete;
   Layer& operator=(const Layer&) = delete;
 
  protected:
-  DeviceMatrix input_;
-  DeviceMatrix output_;
-  DeviceMatrix input_gradient_;
+  Matrix input_;
+  Matrix output_;
+  Matrix input_gradient_;
 };
 
 #endif  // _CNN_LAYER_H_

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class DeviceMatrix;
+class Matrix;
 
 class DataSet {
  public:
@@ -11,8 +11,8 @@ class DataSet {
   virtual ~DataSet() {}
   virtual int NumBatches() const = 0;
   virtual int MiniBatchSize() const = 0;
-  virtual DeviceMatrix GetBatchInput(int batch) const = 0;
-  virtual DeviceMatrix GetBatchOutput(int batch) const = 0;
+  virtual Matrix GetBatchInput(int batch) const = 0;
+  virtual Matrix GetBatchOutput(int batch) const = 0;
 
   // Prevent copy and assignment.
   DataSet(const DataSet&) = delete;
@@ -25,20 +25,20 @@ class InMemoryDataSet : public DataSet {
       int minibatch_size);
   InMemoryDataSet(
       int minibatch_size,
-      const DeviceMatrix& x,
-      const DeviceMatrix& y);
+      const Matrix& x,
+      const Matrix& y);
 
   virtual int NumBatches() const;
   virtual int MiniBatchSize() const;
-  virtual DeviceMatrix GetBatchInput(int batch) const;
-  virtual DeviceMatrix GetBatchOutput(int batch) const;
-  void AddBatch(const DeviceMatrix& x, const DeviceMatrix& y);
+  virtual Matrix GetBatchInput(int batch) const;
+  virtual Matrix GetBatchOutput(int batch) const;
+  void AddBatch(const Matrix& x, const Matrix& y);
 
  private:
   int num_batches_;
   int minibatch_size_;
-  std::vector<DeviceMatrix> x_;
-  std::vector<DeviceMatrix> y_;
+  std::vector<Matrix> x_;
+  std::vector<Matrix> y_;
 };
 
 #endif  // _INFRA_DATA_SET_H_

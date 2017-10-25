@@ -25,14 +25,14 @@ void FullyConnectedLayer::Initialize(Random* random) {
   weights_.RandomFill(random, &dist);
 }
 
-void FullyConnectedLayer::Forward(const DeviceMatrix& input) {
+void FullyConnectedLayer::Forward(const Matrix& input) {
   input_ = input;
   input_.AssertRows(input_size_);
   input_.AssertDepth(1);
   output_ = weights_.Dot(input_);
 }
 
-void FullyConnectedLayer::Backward(const DeviceMatrix& output_gradient) {
+void FullyConnectedLayer::Backward(const Matrix& output_gradient) {
   output_gradient.AssertRows(output_size_);
   weights_gradient_ = output_gradient.Dot(input_.T());
 

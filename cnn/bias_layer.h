@@ -5,7 +5,7 @@
 
 #include "gtest/gtest_prod.h"
 
-class DeviceMatrix;
+class Matrix;
 class Random;
 
 class BiasLayer : public BiasLikeLayer {
@@ -14,8 +14,8 @@ class BiasLayer : public BiasLikeLayer {
   BiasLayer(int num_neurons, bool layered);
   virtual void Print() const;
   virtual void Initialize(Random* /* generator */);
-  virtual void Forward(const DeviceMatrix& input);
-  virtual void Backward(const DeviceMatrix& ouotput_gradient);
+  virtual void Forward(const Matrix& input);
+  virtual void Backward(const Matrix& ouotput_gradient);
   virtual void ApplyGradient(float learn_rate);
  private:
   FRIEND_TEST(BiasLayerTest, GradientCheck_ColumnMode);
@@ -24,8 +24,8 @@ class BiasLayer : public BiasLikeLayer {
   FRIEND_TEST(BiasLayerTest, Forwardpass_LayerMode);
   FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
 
-  DeviceMatrix biases_;
-  DeviceMatrix biases_gradient_;
+  Matrix biases_;
+  Matrix biases_gradient_;
 };
 
 #endif  // _CNN_BIAS_LAYER_H_

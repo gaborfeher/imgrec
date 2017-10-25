@@ -1,5 +1,5 @@
-#ifndef _LINALG_DEVICE_MATRIX_H_
-#define _LINALG_DEVICE_MATRIX_H_
+#ifndef _LINALG_MATRIX_H_
+#define _LINALG_MATRIX_H_
 
 #include <memory>
 #include <random>
@@ -22,12 +22,12 @@ MapperFunc Sqrt();
 
 }  // namespace matrix_mappers
 
-class DeviceMatrix {
+class Matrix {
  public:
-  DeviceMatrix();  // "NULL" matrix
-  DeviceMatrix(int rows, int cols, int depth);  // rows x cols x depth un-initialized values
-  DeviceMatrix(int rows, int cols, int depth, float* data);
-  DeviceMatrix(int rows, int cols, int depth, const std::vector<float>& data);
+  Matrix();  // "NULL" matrix
+  Matrix(int rows, int cols, int depth);  // rows x cols x depth un-initialized values
+  Matrix(int rows, int cols, int depth, float* data);
+  Matrix(int rows, int cols, int depth, const std::vector<float>& data);
 
   int rows() const { return rows_; }
   int cols() const { return cols_; }
@@ -38,15 +38,15 @@ class DeviceMatrix {
   void SetVector(const std::vector<float>& data);
   void Print() const;
 
-  DeviceMatrix Add(const DeviceMatrix& other) const;
-  DeviceMatrix AddConst(float c) const;
-  DeviceMatrix Pow(float exp) const;
-  DeviceMatrix ElementwiseMultiply(const DeviceMatrix& other) const;
-  DeviceMatrix ElementwiseDivide(const DeviceMatrix& other) const;
-  DeviceMatrix Multiply(float) const;
-  float Softmax(const DeviceMatrix& expected_class) const;
-  DeviceMatrix SoftmaxGradient(const DeviceMatrix& expected_class) const;
-  float NumMatches(const DeviceMatrix& expected_class) const;
+  Matrix Add(const Matrix& other) const;
+  Matrix AddConst(float c) const;
+  Matrix Pow(float exp) const;
+  Matrix ElementwiseMultiply(const Matrix& other) const;
+  Matrix ElementwiseDivide(const Matrix& other) const;
+  Matrix Multiply(float) const;
+  float Softmax(const Matrix& expected_class) const;
+  Matrix SoftmaxGradient(const Matrix& expected_class) const;
+  float NumMatches(const Matrix& expected_class) const;
 
   float L2() const;
   float Sum() const;
@@ -59,7 +59,7 @@ class DeviceMatrix {
   //    This matrix must have depth = 1 and rows = layers. (The
   //    value of layers is ignored other than the rows=layers
   //    assertion.)
-  DeviceMatrix Sum(bool layered, int layers) const;
+  Matrix Sum(bool layered, int layers) const;
 
   // If layered = true, depth = depth_ * k, rows_ = cols_ = 1:
   //    The result will be a rows x cols x depth
@@ -69,27 +69,27 @@ class DeviceMatrix {
   // If layered = false, cols = cols_ * k, depth = depth_ = cols_ = 1:
   //    The result will be a rows x cols x 1 matrix, each column
   //    is a copy of the original matrix.
-  DeviceMatrix Repeat(bool layered, int rows, int cols, int depth) const;
+  Matrix Repeat(bool layered, int rows, int cols, int depth) const;
 
-  DeviceMatrix T() const;
-  DeviceMatrix Rot180() const;
-  DeviceMatrix Dot(const DeviceMatrix&) const;
-  DeviceMatrix Map(::matrix_mappers::MapperFunc map) const;
-  DeviceMatrix AddPadding(int row_padding, int col_padding) const;
-  DeviceMatrix ReshapeToColumns(int unit_depth) const;
-  DeviceMatrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
+  Matrix T() const;
+  Matrix Rot180() const;
+  Matrix Dot(const Matrix&) const;
+  Matrix Map(::matrix_mappers::MapperFunc map) const;
+  Matrix AddPadding(int row_padding, int col_padding) const;
+  Matrix ReshapeToColumns(int unit_depth) const;
+  Matrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
   // Assuming that the matrix has n images, k layers each,
   // roerders the layers to have k images with n layers each.
   // The first new image will consist of the first layers of each
   // original image (in the same order), the second img will
   // consist of the second image of each layer, etc.
   // TODO: integrate this into Convolution to get rid of copies
-  DeviceMatrix ReorderLayers(int layers_per_image) const;
+  Matrix ReorderLayers(int layers_per_image) const;
 
   // depth of filters must be a multiple of depth of this matrix,
   // and it contains that many filters.
-  DeviceMatrix Convolution(
-      const DeviceMatrix& filters,
+  Matrix Convolution(
+      const Matrix& filters,
       int layers_per_image,
       int stride) const;
 
@@ -105,13 +105,13 @@ class DeviceMatrix {
     SetVector(result);
   }
 
-  DeviceMatrix DeepCopy() const;
+  Matrix DeepCopy() const;
 
   float GetValue(int row, int col, int depth) const;
   void SetValue(int row, int col, int depth, float value);
 
   void AssertDimensions(int rows, int cols, int depth) const;
-  void AssertSameDimensions(const DeviceMatrix& other) const;
+  void AssertSameDimensions(const Matrix& other) const;
   void AssertRows(int rows) const;
   void AssertDepth(int depth) const;
 
@@ -128,4 +128,4 @@ class DeviceMatrix {
   std::shared_ptr<float> data_;
 };
 
-#endif // _LINALG_DEVICE_MATRIX_H_
+#endif // _LINALG_MATRIX_H_

@@ -27,12 +27,12 @@ NonlinearityLayer::NonlinearityLayer(
   activation_function_(activation.first),
   activation_function_gradient_(activation.second) {}
 
-void NonlinearityLayer::Forward(const DeviceMatrix& input) {
+void NonlinearityLayer::Forward(const Matrix& input) {
   input_ = input;
   output_ = input.Map(activation_function_);
 }
 
-void NonlinearityLayer::Backward(const DeviceMatrix& output_gradient) {
+void NonlinearityLayer::Backward(const Matrix& output_gradient) {
   input_gradient_ = input_
       .Map(activation_function_gradient_)
       .ElementwiseMultiply(output_gradient);

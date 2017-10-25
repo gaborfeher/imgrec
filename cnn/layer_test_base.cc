@@ -6,21 +6,21 @@
 
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
-DeviceMatrix ComputeNumericGradient(
-    const DeviceMatrix& x0,
-    std::function< float (const DeviceMatrix&) > runner
+Matrix ComputeNumericGradient(
+    const Matrix& x0,
+    std::function< float (const Matrix&) > runner
 ) {
 
-  DeviceMatrix result(x0.rows(), x0.cols(), x0.depth());
+  Matrix result(x0.rows(), x0.cols(), x0.depth());
 
   float delta = 0.001f;  // I am not super-happy that this is a carefully-tuned value to make all the test pass.
   for (int k = 0; k < x0.depth(); k++) {
     for (int i = 0; i < x0.rows(); i++) {
       for (int j = 0; j < x0.cols(); j++) {
-        DeviceMatrix x1(x0.DeepCopy());
+        Matrix x1(x0.DeepCopy());
         x1.SetValue(i, j, k, x0.GetValue(i, j, k) + delta);
         float error1 = runner(x1);
         x1.SetValue(i, j, k, x0.GetValue(i, j, k) - delta);
@@ -36,21 +36,21 @@ DeviceMatrix ComputeNumericGradient(
 
 void ParameterGradientCheck(
   std::shared_ptr<LayerStack> stack,
-  const DeviceMatrix& input,
-  const DeviceMatrix& param,
-  std::function< void (const DeviceMatrix&) > set_param,
-  std::function< DeviceMatrix() > get_param_grad,
+  const Matrix& input,
+  const Matrix& param,
+  std::function< void (const Matrix&) > set_param,
+  std::function< Matrix() > get_param_grad,
   float absolute_diff,
   float percentage_diff) {
 
   set_param(param);
   stack->Forward(input);
-  stack->Backward(DeviceMatrix());
-  DeviceMatrix analytic_grad = get_param_grad();
+  stack->Backward(Matrix());
+  Matrix analytic_grad = get_param_grad();
 
-  DeviceMatrix numeric_grad = ComputeNumericGradient(
+  Matrix numeric_grad = ComputeNumericGradient(
       param,
-      [set_param, &stack, input] (const DeviceMatrix& x) -> float {
+      [set_param, &stack, input] (const Matrix& x) -> float {
         set_param(x);
         stack->Forward(input);
         return stack->GetLayer<ErrorLayer>(-1)->GetError();
@@ -66,17 +66,17 @@ void ParameterGradientCheck(
 
 void InputGradientCheck(
   std::shared_ptr<LayerStack> stack,
-  const DeviceMatrix& input,
+  const Matrix& input,
   float absolute_diff,
   float percentage_diff) {
 
   stack->Forward(input);
-  stack->Backward(DeviceMatrix());
-  DeviceMatrix analytic_grad = stack->input_gradient();
+  stack->Backward(Matrix());
+  Matrix analytic_grad = stack->input_gradient();
 
-  DeviceMatrix numeric_grad = ComputeNumericGradient(
+  Matrix numeric_grad = ComputeNumericGradient(
       input,
-      [&stack, input] (const DeviceMatrix& x) -> float {
+      [&stack, input] (const Matrix& x) -> float {
         stack->Forward(x);
         return stack->GetLayer<ErrorLayer>(-1)->GetError();
       });

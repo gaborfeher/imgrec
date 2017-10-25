@@ -16,16 +16,16 @@
 #include "cnn/softmax_error_layer.h"
 #include "infra/data_set.h"
 #include "infra/model.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
 
 class ConvolutionalLayerGradientTest : public ::testing::Test {
  protected:
   void SimpleConvolutionGradientTest(
-      const DeviceMatrix& training_x,
-      const DeviceMatrix& training_y,
-      const DeviceMatrix& filters,
+      const Matrix& training_x,
+      const Matrix& training_y,
+      const Matrix& filters,
       std::shared_ptr<ConvolutionalLayer> conv_layer) {
     std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
     stack->AddLayer(conv_layer);
@@ -40,10 +40,10 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           stack,
           training_x,
           filters,
-          [&conv_layer] (const DeviceMatrix& p) -> void {
+          [&conv_layer] (const Matrix& p) -> void {
               conv_layer->filters_ = p;
           },
-          [conv_layer] () -> DeviceMatrix {
+          [conv_layer] () -> Matrix {
               return conv_layer->filters_gradient_;
           },
           0.01f,
@@ -63,15 +63,15 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
 };
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
-  DeviceMatrix training_x(3, 3, 1, (float[]) {
+  Matrix training_x(3, 3, 1, (float[]) {
       -1, 1, -2,
       2, -0.5, 0,
       -3, 2, 0
   });
-  DeviceMatrix training_y(1, 1, 1, (float[]) {
+  Matrix training_y(1, 1, 1, (float[]) {
       42.0
   });
-  DeviceMatrix filters(3, 3, 1, (float[]) {
+  Matrix filters(3, 3, 1, (float[]) {
       3, -2, 1,
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -87,16 +87,16 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
-  DeviceMatrix training_x(3, 3, 1, (float[]) {
+  Matrix training_x(3, 3, 1, (float[]) {
       -1, 1, -2,
       2, -0.5, 0,
       -3, 2, 0
   });
-  DeviceMatrix training_y(2, 2, 1, (float[]) {
+  Matrix training_y(2, 2, 1, (float[]) {
       42.0, -43.0,
       44.0, 45.0,
   });
-  DeviceMatrix filters(2, 2, 1, (float[]) {
+  Matrix filters(2, 2, 1, (float[]) {
       3, -2,
       0, -0.5,
   });
@@ -111,18 +111,18 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
-  DeviceMatrix training_x(4, 5, 1, (float[]) {
+  Matrix training_x(4, 5, 1, (float[]) {
       -1,  1,  -2,  1,  -0.5,
        2, -0.5, 0, -1,  -2,
       -3,  2,   0, -1,   2,
        0, -2,   3,  1,  -0.5,
   });
-  DeviceMatrix training_y(3, 3, 1, (float[]) {
+  Matrix training_y(3, 3, 1, (float[]) {
        42.0, -43.0, 21.0,
        44.0,  45.0, 22.0,
       -14.0,  32.0, 27.0
   });
-  DeviceMatrix filters(2, 3, 1, (float[]) {
+  Matrix filters(2, 3, 1, (float[]) {
       3, -2  , -1,
       0, -0.5,  1.5
   });
@@ -137,7 +137,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
-  DeviceMatrix training_x(3, 3, 2, (float[]) {
+  Matrix training_x(3, 3, 2, (float[]) {
       -1, 1, -2,  // Layer1
       2, -0.5, 0,
       -3, 2, 0,
@@ -145,10 +145,10 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
       0, 1, -2,
       -3, 0, 1,
   });
-  DeviceMatrix training_y(1, 1, 1, (float[]) {
+  Matrix training_y(1, 1, 1, (float[]) {
       42.0
   });
-  DeviceMatrix filters(3, 3, 2, (float[]) {
+  Matrix filters(3, 3, 2, (float[]) {
       3, -2, 1,  // Layer1
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -167,7 +167,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
-  DeviceMatrix training_x(3, 3, 2 * 2, (float[]) {
+  Matrix training_x(3, 3, 2 * 2, (float[]) {
       -1, 1, -2,  // Img1. Layer1
       2, -0.5, 0,
       -3, 2, 0,
@@ -181,11 +181,11 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
       -1, 0, -1,
       0, -3, 0,
   });
-  DeviceMatrix training_y(1, 1, 2, (float[]) {
+  Matrix training_y(1, 1, 2, (float[]) {
       42.0,
       -42.0,
   });
-  DeviceMatrix filters(3, 3, 2, (float[]) {
+  Matrix filters(3, 3, 2, (float[]) {
       3, -2, 1,  // Filter Layer1
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -204,7 +204,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
-  DeviceMatrix training_x(4, 5, 6, (float[]) {
+  Matrix training_x(4, 5, 6, (float[]) {
       -1,  1, -2,  1,  0,  // Img1. layer 1
        2, -0,  0, -1, -2,
       -3,  2,  0, -1,  2,
@@ -231,7 +231,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
       -3,  2,  0, -1,  2,
        0, -2,  3,  1,  0,
   });
-  DeviceMatrix training_y(3, 3, 2, (float[]) {
+  Matrix training_y(3, 3, 2, (float[]) {
         2.0,  -3.0,  1.0,  // Img1. output
         4.0,   5.0,  2.0,
        -4.0,   2.0,  7.0,
@@ -239,7 +239,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
         4.0,  -5.0,  1.0,
         8.0,   9.0,  2.0
   });
-  DeviceMatrix filters(2, 3, 3, (float[]) {
+  Matrix filters(2, 3, 3, (float[]) {
       3, -2, -1,  // Filter Layer1
       1, -1,  1,
       2, -1, -2, // Filter Layer2
@@ -258,7 +258,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
-  DeviceMatrix training_x(4, 5, 6, (float[]) {
+  Matrix training_x(4, 5, 6, (float[]) {
       -1,  1, -2,  1,  0,  // Img1. layer 1
        2, -0,  0, -1, -2,
       -3,  2,  0, -1,  2,
@@ -285,7 +285,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
       -3,  2,  0, -1,  2,
        0, -2,  3,  1,  0,
   });
-  DeviceMatrix training_y(3, 3, 4, (float[]) {
+  Matrix training_y(3, 3, 4, (float[]) {
         2.0,  -3.0,  1.0,  // Img1. filter1. output
         4.0,   5.0,  2.0,
        -4.0,   2.0,  7.0,
@@ -299,7 +299,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
        -5.0,   1.0,  4.0,
         9.0,   2.0,  8.0,
   });
-  DeviceMatrix filters(2, 3, 6, (float[]) {
+  Matrix filters(2, 3, 6, (float[]) {
       3, -2, -1,  // Filter1 Layer1
       1, -1,  1,
       2, -1, -2,  // Filter1 Layer2
@@ -324,7 +324,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
-  DeviceMatrix training_x(2, 2, 2 * 4, (float[]) {
+  Matrix training_x(2, 2, 2 * 4, (float[]) {
       -1, 1,  // Img1. Layer1
       2, -1,
       2, 3,  // Img1. Layer2
@@ -343,7 +343,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
       0, -1,
 
   });
-  DeviceMatrix training_y(1, 1, 12, (float[]) {
+  Matrix training_y(1, 1, 12, (float[]) {
     3,
     1,
     -1,
@@ -357,7 +357,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
     2,
     1,
   });
-  DeviceMatrix filters(2, 2, 6, (float[]) {
+  Matrix filters(2, 2, 6, (float[]) {
       2, 0,  // Filter1 Layer1
       0, -2,
       1, -1,  // Filter1 Layer2
@@ -383,8 +383,8 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
 
 // For convolutional
 void CreateTestCase1(
-    DeviceMatrix* training_x,
-    DeviceMatrix* training_y) {
+    Matrix* training_x,
+    Matrix* training_y) {
 
   // We want to teach the convolutional layer to detect two patterns:
   // Patern1 (layer1+layer2):
@@ -396,7 +396,7 @@ void CreateTestCase1(
   // 111 101
   // 010 111
   //
-  *training_x = DeviceMatrix(3, 6, 8 * 2, (float[]) {
+  *training_x = Matrix(3, 6, 8 * 2, (float[]) {
       // Image 1: pattern1 on the left, slightly damaged pattern2 on the right
       1, 0, 0, 0, 1, 0,  // layer1
       0, 1, 0, 1, 0, 1,
@@ -462,7 +462,7 @@ void CreateTestCase1(
       1, 0, 1, 0, 0, 1,
   });
   // 1=pattern1, 2=pattern2, 0=junk
-  *training_y = DeviceMatrix(1, 8, 1, (float[]) {
+  *training_y = Matrix(1, 8, 1, (float[]) {
       1, 2, 1, 2, 1, 2, 0, 0,
   });
 }
@@ -547,8 +547,8 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase2(
     }
 
     training_ds->AddBatch(
-        DeviceMatrix(3, 6, num_samples_per_batch * 2, x),
-        DeviceMatrix(1, num_samples_per_batch, 1, y));
+        Matrix(3, 6, num_samples_per_batch * 2, x),
+        Matrix(1, num_samples_per_batch, 1, y));
 
   }
 
@@ -581,8 +581,8 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv() {
 }
 
 TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
-  DeviceMatrix training_x;
-  DeviceMatrix training_y;
+  Matrix training_x;
+  Matrix training_y;
   CreateTestCase1(&training_x, &training_y);
   // TODO: test with bigger batches, investigate stability issues
 
@@ -597,8 +597,8 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 
   error_layer->SetExpectedValue(training_y);
   // We will check the gradient of filters at this point:
-  DeviceMatrix filters = conv_layer->filters_;
-  DeviceMatrix biases = bias_layer->biases_;
+  Matrix filters = conv_layer->filters_;
+  Matrix biases = bias_layer->biases_;
 
   {
     SCOPED_TRACE("gradient check on filters");
@@ -606,10 +606,10 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         stack,
         training_x,
         filters,
-        [&conv_layer] (const DeviceMatrix& p) -> void {
+        [&conv_layer] (const Matrix& p) -> void {
             conv_layer->filters_ = p;
         },
-        [conv_layer] () -> DeviceMatrix {
+        [conv_layer] () -> Matrix {
             return conv_layer->filters_gradient_;
         },
         0.002f,
@@ -624,10 +624,10 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         stack,
         training_x,
         biases,
-        [&bias_layer] (const DeviceMatrix& p) -> void {
+        [&bias_layer] (const Matrix& p) -> void {
             bias_layer->biases_ = p;
         },
-        [bias_layer] () -> DeviceMatrix {
+        [bias_layer] () -> Matrix {
             return bias_layer->biases_gradient_;
         },
         0.001f,

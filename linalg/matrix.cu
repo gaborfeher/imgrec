@@ -1,4 +1,4 @@
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 
 #include <cassert>  // TODO: release-mode assert
 #include <iostream>
@@ -13,11 +13,11 @@ __device__ int Dim3toDim1(
   return k * rows * cols + i * cols + j;
 }
 
-int DeviceMatrix::Index(int i, int j, int k) const {
+int Matrix::Index(int i, int j, int k) const {
   return k * rows_ * cols_ + i * cols_ + j;
 }
 
-DeviceMatrix::DeviceMatrix() :
+Matrix::Matrix() :
     rows_(0),
     cols_(0),
     depth_(0),
@@ -40,7 +40,7 @@ std::shared_ptr<float> ImportData(float size, const float* host_data) {
   return device_data;
 }
 
-DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, float* data) :
+Matrix::Matrix(int rows, int cols, int depth, float* data) :
     rows_(rows),
     cols_(cols),
     depth_(depth),
@@ -48,7 +48,7 @@ DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, float* data) :
   data_ = ImportData(size_, data);
 }
 
-DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, const std::vector<float>& data) :
+Matrix::Matrix(int rows, int cols, int depth, const std::vector<float>& data) :
     rows_(rows),
     cols_(cols),
     depth_(depth),
@@ -56,7 +56,7 @@ DeviceMatrix::DeviceMatrix(int rows, int cols, int depth, const std::vector<floa
   SetVector(data);
 }
 
-DeviceMatrix::DeviceMatrix(int rows, int cols, int depth) :
+Matrix::Matrix(int rows, int cols, int depth) :
     rows_(rows),
     cols_(cols),
     depth_(depth),
@@ -65,7 +65,7 @@ DeviceMatrix::DeviceMatrix(int rows, int cols, int depth) :
   Fill(0);
 }
 
-std::shared_ptr<float> DeviceMatrix::get_host_data() const {
+std::shared_ptr<float> Matrix::get_host_data() const {
   std::shared_ptr<float> host_data;
   host_data.reset(new float[size_], std::default_delete<float[]>() );
   cudaMemcpy(
@@ -76,12 +76,12 @@ std::shared_ptr<float> DeviceMatrix::get_host_data() const {
   return host_data;
 }
 
-void DeviceMatrix::SetVector(const std::vector<float>& data) {
+void Matrix::SetVector(const std::vector<float>& data) {
   assert(data.size() == size_);
   data_ = ImportData(size_, &data[0]);
 }
 
-std::vector<float> DeviceMatrix::GetVector() const {
+std::vector<float> Matrix::GetVector() const {
   std::shared_ptr<float> host_data(get_host_data());
   std::vector<float> v;
   for (int k = 0; k < depth_; ++k) {
@@ -94,7 +94,7 @@ std::vector<float> DeviceMatrix::GetVector() const {
   return v;
 }
 
-void DeviceMatrix::Print() const {
+void Matrix::Print() const {
   std::cout << std::fixed << std::setw( 6 ) << std::setprecision( 4 );
   std::shared_ptr<float> host_data(get_host_data());
   std::cout << "Matrix " 
@@ -113,19 +113,19 @@ void DeviceMatrix::Print() const {
   }
 }
 
-void DeviceMatrix::AssertDimensions(int rows, int cols, int depth) const {
+void Matrix::AssertDimensions(int rows, int cols, int depth) const {
   assert(rows_ == rows && cols_ == cols && depth_ == depth);
 }
 
-void DeviceMatrix::AssertSameDimensions(const DeviceMatrix& other) const {
+void Matrix::AssertSameDimensions(const Matrix& other) const {
   assert(rows_ == other.rows_ && cols_ == other.cols_ && depth_ == other.depth_);
 }
 
-void DeviceMatrix::AssertRows(int rows) const {
+void Matrix::AssertRows(int rows) const {
   assert(rows_ == rows);
 }
 
-void DeviceMatrix::AssertDepth(int depth) const {
+void Matrix::AssertDepth(int depth) const {
   assert(depth_ == depth);
 }
 
@@ -136,9 +136,9 @@ __global__ void VecAdd(float* A, float* B, float* C, int size) {
   }
 }
 
-DeviceMatrix DeviceMatrix::Add(const DeviceMatrix& other) const {
+Matrix Matrix::Add(const Matrix& other) const {
   AssertSameDimensions(other);
-  DeviceMatrix result(rows_, cols_, depth_);
+  Matrix result(rows_, cols_, depth_);
   VecAdd<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
   return result;
 }
@@ -150,8 +150,8 @@ __global__ void VecAddConst(float* A, float b, float* B, int size) {
   }
 }
 
-DeviceMatrix DeviceMatrix::AddConst(float c) const {
-  DeviceMatrix result(rows_, cols_, depth_);
+Matrix Matrix::AddConst(float c) const {
+  Matrix result(rows_, cols_, depth_);
   VecAddConst<<<(size_ + 255) / 256, 256>>>(data_.get(), c, result.data_.get(), size_);
   return result;
 }
@@ -163,8 +163,8 @@ __global__ void VecPow(float* A, float exp, float* B, int size) {
   }
 }
 
-DeviceMatrix DeviceMatrix::Pow(float exp) const {
-  DeviceMatrix result(rows_, cols_, depth_);
+Matrix Matrix::Pow(float exp) const {
+  Matrix result(rows_, cols_, depth_);
   VecPow<<<(size_ + 255) / 256, 256>>>(data_.get(), exp, result.data_.get(), size_);
   return result;
 }
@@ -176,9 +176,9 @@ __global__ void VecMult(float* A, float* B, float* C, int size) {
   }
 }
 
-DeviceMatrix DeviceMatrix::ElementwiseMultiply(const DeviceMatrix& other) const {
+Matrix Matrix::ElementwiseMultiply(const Matrix& other) const {
   AssertSameDimensions(other);
-  DeviceMatrix result(rows_, cols_, depth_);
+  Matrix result(rows_, cols_, depth_);
   VecMult<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
   return result;
 }
@@ -190,9 +190,9 @@ __global__ void VecDivide(float* A, float* B, float* C, int size) {
   }
 }
 
-DeviceMatrix DeviceMatrix::ElementwiseDivide(const DeviceMatrix& other) const {
+Matrix Matrix::ElementwiseDivide(const Matrix& other) const {
   AssertSameDimensions(other);
-  DeviceMatrix result(rows_, cols_, depth_);
+  Matrix result(rows_, cols_, depth_);
   VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
   return result;
 }
@@ -203,9 +203,9 @@ __global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
   T[t_index] = A[a_index];
 }
 
-DeviceMatrix DeviceMatrix::T() const {
+Matrix Matrix::T() const {
   assert(depth_ == 1);
-  DeviceMatrix result(cols_, rows_, depth_);
+  Matrix result(cols_, rows_, depth_);
 
   dim3 grid(1, 1);
   dim3 threads(rows_, cols_);
@@ -226,8 +226,8 @@ __global__ void MatrixRot180(
   R[r_index] = A[a_index];
 }
 
-DeviceMatrix DeviceMatrix::Rot180() const {
-  DeviceMatrix result(rows_, cols_, depth_);
+Matrix Matrix::Rot180() const {
+  Matrix result(rows_, cols_, depth_);
 
   dim3 grid(1, 1, 1);
   dim3 threads(rows_, cols_, depth_);
@@ -245,8 +245,8 @@ __global__ void VecMultiply(float* A, float m, float* B, int size) {
   }
 }
 
-DeviceMatrix DeviceMatrix::Multiply(float m) const {
-  DeviceMatrix result(rows_, cols_, depth_);
+Matrix Matrix::Multiply(float m) const {
+  Matrix result(rows_, cols_, depth_);
   VecMultiply<<<(size_ + 255) / 256, 256>>>(data_.get(), m, result.data_.get(), size_);
   return result;
 }
@@ -275,12 +275,12 @@ void GetConfigForMatrix(
   *blocks = dim3((rows + 15) / 16, (cols + 15) / 16);
 }
 
-DeviceMatrix DeviceMatrix::Dot(const DeviceMatrix& other) const {
+Matrix Matrix::Dot(const Matrix& other) const {
   assert(cols_ == other.rows_);
   assert(depth_ == 1);
   int c_rows = rows_;
   int c_cols = other.cols_;
-  DeviceMatrix result(c_rows, c_cols, 1);
+  Matrix result(c_rows, c_cols, 1);
 
   dim3 threadsPerBlock, blocks;
   GetConfigForMatrix(c_rows, c_cols, 1, &threadsPerBlock, &blocks);
@@ -397,8 +397,8 @@ MapperFunc Sqrt() {
 
 }  // namespacce matrix_mappers
 
-DeviceMatrix DeviceMatrix::Map(::matrix_mappers::MapperFunc map) const {
-  DeviceMatrix result(rows_, cols_, depth_);
+Matrix Matrix::Map(::matrix_mappers::MapperFunc map) const {
+  Matrix result(rows_, cols_, depth_);
   map<<<(size_ + 255) / 256, 256>>>(
       data_.get(),
       result.data_.get(),
@@ -414,8 +414,8 @@ __global__ void VecSum(float* A, int len, float* B) {
   B[0] = result;
 }
 
-float DeviceMatrix::Sum() const {
-  DeviceMatrix result(1, 1, 1);
+float Matrix::Sum() const {
+  Matrix result(1, 1, 1);
   VecSum<<<1, 1>>>(data_.get(), size_, result.data_.get());
   return result.GetValue(0, 0, 0);
 }
@@ -455,12 +455,12 @@ __global__ void MatrixSumColumns(
   }
 }
 
-DeviceMatrix DeviceMatrix::Sum(bool layered, int layers) const {
+Matrix Matrix::Sum(bool layered, int layers) const {
   if (!layered) {
     assert(rows_ == layers);
     // sum columns
     assert(depth_ == 1);
-    DeviceMatrix result(rows_, 1, 1);
+    Matrix result(rows_, 1, 1);
     MatrixSumColumns<<<(rows_ + 255) / 256, 256>>>(
         data_.get(),
         rows_, cols_,
@@ -470,7 +470,7 @@ DeviceMatrix DeviceMatrix::Sum(bool layered, int layers) const {
     // sum layers
     assert(layers > 0);
     assert(depth_ % layers == 0);
-    DeviceMatrix result(1, 1, layers);
+    Matrix result(1, 1, layers);
     MatrixSumLayers<<<(layers + 255) / 256, 256>>>(
         data_.get(),
         rows_, cols_, depth_,
@@ -509,14 +509,14 @@ __global__ void MatrixRepeatColumns(
   }
 }
 
-DeviceMatrix DeviceMatrix::Repeat(
+Matrix Matrix::Repeat(
     bool layered, int rows, int cols, int depth) const {
   if (layered) {
     assert(depth > 0);
     assert(depth % depth_ == 0);
     assert(rows_ == 1);
     assert(cols_ == 1);
-    DeviceMatrix result(rows, cols, depth);
+    Matrix result(rows, cols, depth);
     dim3 threads_per_block(16, 16, 1);
     dim3 blocks((rows + 15) / 16, (cols + 15) / 16, depth);
     MatrixRepeatLayers<<<blocks, threads_per_block>>>(
@@ -528,7 +528,7 @@ DeviceMatrix DeviceMatrix::Repeat(
     assert(depth == 1);
     assert(depth_ == 1);
     assert(cols_ == 1);
-    DeviceMatrix result(rows, cols, depth);
+    Matrix result(rows, cols, depth);
     dim3 threads_per_block(16, 16, 1);
     dim3 blocks((rows + 15) / 16, (cols + 15) / 16, 1);
     MatrixRepeatColumns<<<blocks, threads_per_block>>>(
@@ -548,8 +548,8 @@ __global__ void VecL2(float* A, int len, float* B) {
   B[0] = sqrt(result);
 }
 
-float DeviceMatrix::L2() const {
-  DeviceMatrix result(1, 1, 1);
+float Matrix::L2() const {
+  Matrix result(1, 1, 1);
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
   return result.GetValue(0, 0, 0);
   // TODO: use the following, but figure out while it fails the tests now:
@@ -586,7 +586,7 @@ __global__ void VecSoftmax(float* A, int a_rows, int a_cols, float* B, float* C)
   }
 }
 
-float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
+float Matrix::Softmax(const Matrix& expected_class) const {
   assert(depth_ == 1);
   // rows_ = number of classes
   // cols_ = number of samples (we run the same algorithm for each sample)
@@ -594,7 +594,7 @@ float DeviceMatrix::Softmax(const DeviceMatrix& expected_class) const {
   assert(expected_class.cols_ == cols_);
   assert(expected_class.depth_ == 1);
 
-  DeviceMatrix result(1, cols_, 1);
+  Matrix result(1, cols_, 1);
   VecSoftmax<<<(cols_ + 255) / 256, 256>>>(
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
@@ -636,7 +636,7 @@ __global__ void VecSoftmaxGradient(float* A, int a_rows, int a_cols, float* B, f
   }
 }
 
-DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) const {
+Matrix Matrix::SoftmaxGradient(const Matrix& expected_class) const {
   // Covered in cnn/error_layer_test.cc.
 
   assert(depth_ == 1);
@@ -646,7 +646,7 @@ DeviceMatrix DeviceMatrix::SoftmaxGradient(const DeviceMatrix& expected_class) c
   assert(expected_class.cols_ == cols_);
   assert(expected_class.depth_ == 1);
 
-  DeviceMatrix result(rows_, cols_, 1);
+  Matrix result(rows_, cols_, 1);
   VecSoftmaxGradient<<<(cols_ + 255) / 256, 256>>>(
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
@@ -685,7 +685,7 @@ __global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float*
   }
 }
 
-float DeviceMatrix::NumMatches(const DeviceMatrix& expected_class) const {
+float Matrix::NumMatches(const Matrix& expected_class) const {
   assert(depth_ == 1);
   // rows_ = number of classes
   // cols_ = number of samples (we run the same algorithm for each sample)
@@ -693,7 +693,7 @@ float DeviceMatrix::NumMatches(const DeviceMatrix& expected_class) const {
   assert(expected_class.cols_ == cols_);
   assert(expected_class.depth_ == 1);
 
-  DeviceMatrix result(1, cols_, 1);
+  Matrix result(1, cols_, 1);
   VecNumMatches<<<(cols_ + 255) / 256, 256>>>(
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
@@ -709,7 +709,7 @@ __global__ void VecFill(float value, float* A, int a_size) {
   }
 }
 
-void DeviceMatrix::Fill(float value) {
+void Matrix::Fill(float value) {
   VecFill<<<(size_ + 255) / 256, 256>>>(value, data_.get(), size_);
 }
 
@@ -733,13 +733,13 @@ __global__ void MatrixPadding(
   }
 }
 
-DeviceMatrix DeviceMatrix::AddPadding(
+Matrix Matrix::AddPadding(
     int row_padding, int col_padding) const {
   if (row_padding <= 0 && col_padding <= 0) {
     return *this;
   }
 
-  DeviceMatrix result(
+  Matrix result(
       rows_ + 2 * row_padding,
       cols_ + 2 * col_padding,
       depth_);  // filled with zeros
@@ -801,8 +801,8 @@ __global__ void MatrixConvolution(
   }
 }
 
-DeviceMatrix DeviceMatrix::Convolution(
-    const DeviceMatrix& filters,
+Matrix Matrix::Convolution(
+    const Matrix& filters,
     int layers_per_image,
     int stride) const {
   int row_slots = rows_ - filters.rows() + 1;
@@ -813,7 +813,7 @@ DeviceMatrix DeviceMatrix::Convolution(
   assert(depth() % layers_per_image == 0);
 
   assert(stride == 1);  // TODO
-  DeviceMatrix result(
+  Matrix result(
       row_slots / stride,
       col_slots / stride,
       filters.depth() / layers_per_image * depth() / layers_per_image);
@@ -828,29 +828,29 @@ DeviceMatrix DeviceMatrix::Convolution(
   return result;
 }
 
-DeviceMatrix DeviceMatrix::ReshapeToColumns(int unit_depth) const {
+Matrix Matrix::ReshapeToColumns(int unit_depth) const {
   assert(depth_ % unit_depth == 0);
-  DeviceMatrix rows(*this);
+  Matrix rows(*this);
   rows.cols_ = rows_ * cols_ * unit_depth;
   rows.rows_ = depth_ / unit_depth;
   rows.depth_ = 1;
   return rows.T();
 }
 
-DeviceMatrix DeviceMatrix::ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const {
+Matrix Matrix::ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const {
 
   assert(unit_rows * unit_cols * unit_depth == rows_);
 
-  DeviceMatrix rows(this->T());
+  Matrix rows(this->T());
   rows.depth_ = rows.rows_ * rows.cols_ / (unit_rows * unit_cols);
   rows.rows_ = unit_rows;
   rows.cols_ = unit_cols;
   return rows;
 }
 
-DeviceMatrix DeviceMatrix::ReorderLayers(int layers_per_image) const {
+Matrix Matrix::ReorderLayers(int layers_per_image) const {
   assert(depth_ % layers_per_image == 0);
-  DeviceMatrix result(rows_, cols_, depth_);
+  Matrix result(rows_, cols_, depth_);
   int layer_size = rows_ * cols_;
   int num_images = depth_ / layers_per_image;
   for (int src = 0; src < depth_; ++src) {
@@ -867,8 +867,8 @@ DeviceMatrix DeviceMatrix::ReorderLayers(int layers_per_image) const {
   return result;
 }
 
-DeviceMatrix DeviceMatrix::DeepCopy() const {
-  DeviceMatrix result(rows_, cols_, depth_);
+Matrix Matrix::DeepCopy() const {
+  Matrix result(rows_, cols_, depth_);
   cudaMemcpy(
       result.data_.get(),
       data_.get(),
@@ -877,7 +877,7 @@ DeviceMatrix DeviceMatrix::DeepCopy() const {
   return result;
 }
 
-float DeviceMatrix::GetValue(int row, int col, int depth) const {
+float Matrix::GetValue(int row, int col, int depth) const {
   float result;
   cudaMemcpy(
       &result,
@@ -887,7 +887,7 @@ float DeviceMatrix::GetValue(int row, int col, int depth) const {
   return result;
 }
 
-void DeviceMatrix::SetValue(int row, int col, int depth, float value) {
+void Matrix::SetValue(int row, int col, int depth, float value) {
   cudaMemcpy(
       data_.get() + Index(row, col, depth),
       &value,

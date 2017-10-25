@@ -4,7 +4,7 @@
 #include <functional>
 #include <memory>
 
-class DeviceMatrix;
+class Matrix;
 class LayerStack;
 
 // Compare numeric and analytic estimates of the gradient of
@@ -14,10 +14,10 @@ class LayerStack;
 // |percentage_diff|.
 void ParameterGradientCheck(
   std::shared_ptr<LayerStack> stack,
-  const DeviceMatrix& input,
-  const DeviceMatrix& param,
-  std::function< void (const DeviceMatrix&) > set_param,
-  std::function< DeviceMatrix() > get_param_grad,
+  const Matrix& input,
+  const Matrix& param,
+  std::function< void (const Matrix&) > set_param,
+  std::function< Matrix() > get_param_grad,
   float absolute_diff,
   float percentage_diff);
 
@@ -26,7 +26,7 @@ void ParameterGradientCheck(
 // The tolerance for comparison is |absolute_diff|.
 void InputGradientCheck(
   std::shared_ptr<LayerStack> stack,
-  const DeviceMatrix& input,
+  const Matrix& input,
   float absolute_diff,
   float percentage_diff);
 

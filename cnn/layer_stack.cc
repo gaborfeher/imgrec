@@ -20,16 +20,16 @@ void LayerStack::Initialize(Random* random) {
   }
 }
 
-void LayerStack::Forward(const DeviceMatrix& input) {
-  DeviceMatrix last_input = input;
+void LayerStack::Forward(const Matrix& input) {
+  Matrix last_input = input;
   for (std::shared_ptr<Layer> layer : layers_) {
     layer->Forward(last_input);
     last_input = layer->output();
   }
 }
 
-void LayerStack::Backward(const DeviceMatrix& output_gradient) {
-  DeviceMatrix last_output_gradient = output_gradient;
+void LayerStack::Backward(const Matrix& output_gradient) {
+  Matrix last_output_gradient = output_gradient;
   for (int i = layers_.size() - 1; i >= 0; i--) {
     layers_[i]->Backward(last_output_gradient);
     last_output_gradient = layers_[i]->input_gradient();

@@ -5,20 +5,20 @@
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 #include "util/random.h"
 
 #include "gtest/gtest.h"
 
 TEST(BiasLayerTest, GradientCheck_ColumnMode) {
-  DeviceMatrix training_x(4, 3, 1, (float[]) {
+  Matrix training_x(4, 3, 1, (float[]) {
     1, 2, 3,
     1, 1, 1,
     1, 1, 2,
     1, 2, 3,
   });
-  DeviceMatrix training_y(4, 3, 1, (float[]) {
+  Matrix training_y(4, 3, 1, (float[]) {
     2, 3, 4,
     -1, -1, -1,
     2, 2, 1,
@@ -35,16 +35,16 @@ TEST(BiasLayerTest, GradientCheck_ColumnMode) {
   Random random(42);
   stack->Initialize(&random);  // (Bias layer always inits to zero.)
   
-  DeviceMatrix biases(4, 1, 1, (float[]) { 0, -1, 1, 2} );
+  Matrix biases(4, 1, 1, (float[]) { 0, -1, 1, 2} );
 
   ParameterGradientCheck(
       stack,
       training_x,
       biases,
-      [&bias_layer] (const DeviceMatrix& p) -> void {
+      [&bias_layer] (const Matrix& p) -> void {
           bias_layer->biases_ = p;
       },
-      [bias_layer] () -> DeviceMatrix {
+      [bias_layer] () -> Matrix {
           return bias_layer->biases_gradient_;
       },
       0.001f,
@@ -52,14 +52,14 @@ TEST(BiasLayerTest, GradientCheck_ColumnMode) {
 }
 
 TEST(BiasLayerTest, GradientCheck_LayerMode) {
-  DeviceMatrix training_x(2, 3, 2, (float[]) {
+  Matrix training_x(2, 3, 2, (float[]) {
     1, 2, 3,
     1, 1, 1,
 
     2, 1, 2,
     3, 3, 1,
   });
-  DeviceMatrix training_y(2, 3, 2, (float[]) {
+  Matrix training_y(2, 3, 2, (float[]) {
     0, -1, -1,
     2, 1, 1,
 
@@ -77,16 +77,16 @@ TEST(BiasLayerTest, GradientCheck_LayerMode) {
   Random random(42);
   stack->Initialize(&random);  // (Bias layer always inits to zero.)
   
-  DeviceMatrix biases(1, 1, 2, (float[]) { -1, 1 } );
+  Matrix biases(1, 1, 2, (float[]) { -1, 1 } );
 
   ParameterGradientCheck(
       stack,
       training_x,
       biases,
-      [&bias_layer] (const DeviceMatrix& p) -> void {
+      [&bias_layer] (const Matrix& p) -> void {
           bias_layer->biases_ = p;
       },
-      [bias_layer] () -> DeviceMatrix {
+      [bias_layer] () -> Matrix {
           return bias_layer->biases_gradient_;
       },
       0.001f,
@@ -94,20 +94,20 @@ TEST(BiasLayerTest, GradientCheck_LayerMode) {
 }
 
 TEST(BiasLayerTest, Forwardpass_ColumnMode) {
-  DeviceMatrix training_x(4, 3, 1, (float[]) {
+  Matrix training_x(4, 3, 1, (float[]) {
     1, 2, 3,
     1, 1, 1,
     1, 1, 2,
     1, 2, 3,
   });
-  DeviceMatrix biases(4, 1, 1, (float[]) { 1, -1, 1, 2} );
+  Matrix biases(4, 1, 1, (float[]) { 1, -1, 1, 2} );
 
   BiasLayer bias_layer(4, false);
   bias_layer.biases_ = biases;
 
   bias_layer.Forward(training_x);
   ExpectMatrixEquals(
-      DeviceMatrix(4, 3, 1, (float[]) {
+      Matrix(4, 3, 1, (float[]) {
           2, 3, 4,
           0, 0, 0,
           2, 2, 3,
@@ -119,7 +119,7 @@ TEST(BiasLayerTest, Forwardpass_ColumnMode) {
 }
 
 TEST(BiasLayerTest, Forwardpass_LayerMode) {
-  DeviceMatrix training_x(2, 3, 4, (float[]) {
+  Matrix training_x(2, 3, 4, (float[]) {
       1, 1, 2,
       1, 1, 2,
 
@@ -132,14 +132,14 @@ TEST(BiasLayerTest, Forwardpass_LayerMode) {
       4, 4, 5,
       4, 4, 5,
   });
-  DeviceMatrix biases(1, 1, 2, (float[]) { 1, -1 } );
+  Matrix biases(1, 1, 2, (float[]) { 1, -1 } );
 
   BiasLayer bias_layer(2, true);
   bias_layer.biases_ = biases;
 
   bias_layer.Forward(training_x);
   ExpectMatrixEquals(
-      DeviceMatrix(2, 3, 4, (float[]) {
+      Matrix(2, 3, 4, (float[]) {
           2, 2, 3,
           2, 2, 3,
 

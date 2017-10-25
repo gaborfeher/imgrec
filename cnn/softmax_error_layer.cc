@@ -3,16 +3,16 @@
 
 SoftmaxErrorLayer::SoftmaxErrorLayer() {}
 
-void SoftmaxErrorLayer::SetExpectedValue(const DeviceMatrix& expected_value) {
+void SoftmaxErrorLayer::SetExpectedValue(const Matrix& expected_value) {
   expected_value_ = expected_value;
 }
 
-void SoftmaxErrorLayer::Forward(const DeviceMatrix& input) {
+void SoftmaxErrorLayer::Forward(const Matrix& input) {
   input_ = input;
   error_ = input.Softmax(expected_value_);
 }
 
-void SoftmaxErrorLayer::Backward(const DeviceMatrix& output_gradient) {
+void SoftmaxErrorLayer::Backward(const Matrix& output_gradient) {
   // output_gradient is not used, we assume that this is the last
   // layer.
   output_gradient.AssertDimensions(0, 0, 0);

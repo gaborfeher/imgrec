@@ -5,7 +5,7 @@
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
 #include "infra/data_set.h"
-#include "linalg/device_matrix.h"
+#include "linalg/matrix.h"
 #include "util/random.h"
 
 void Initialize(std::shared_ptr<LayerStack> model, int random_seed) {
@@ -43,7 +43,7 @@ void Model::Train(
       model_->Forward(data_set.GetBatchInput(j));
       total_error += error_->GetError();
       total_accuracy += error_->GetAccuracy();
-      DeviceMatrix dummy;
+      Matrix dummy;
       model_->Backward(dummy);
       model_->ApplyGradient(learn_rate);
       model_->Regularize(regularization_lambda);
