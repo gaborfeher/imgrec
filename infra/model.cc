@@ -27,6 +27,11 @@ Model::Model(std::shared_ptr<LayerStack> model, int random_seed, bool logging) :
   Initialize(model, random_seed);
 }
 
+void Model::ForwardPass(const DataSet& data_set, int batch_id) {
+  error_->SetExpectedValue(data_set.GetBatchOutput(batch_id));
+  model_->Forward(data_set.GetBatchInput(batch_id));
+}
+
 void Model::Train(
     const DataSet& data_set,
     int epochs,
@@ -39,8 +44,7 @@ void Model::Train(
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
     for (int j = 0; j < data_set.NumBatches(); ++j) {
-      error_->SetExpectedValue(data_set.GetBatchOutput(j));
-      model_->Forward(data_set.GetBatchInput(j));
+      ForwardPass(data_set, j);
       total_error += error_->GetError();
       total_accuracy += error_->GetAccuracy();
       Matrix dummy;
@@ -69,7 +73,7 @@ void Model::RunPhase(
   int phase_sub_id = 0;
   while (model_->BeginPhase(phase, phase_sub_id)) {
     for (int j = 0; j < data_set.NumBatches(); ++j) {
-      model_->Forward(data_set.GetBatchInput(j));
+      ForwardPass(data_set, j);
     }
     model_->EndPhase(phase, phase_sub_id);
     phase_sub_id++;

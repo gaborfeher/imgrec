@@ -49,8 +49,7 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
 
   switch (phase_) {
     case NONE:
-      break;
-    case PRE_TRAIN_PHASE:
+      assert(false);
       break;
     case POST_TRAIN_PHASE: {
       // Two passes are needed to get global variance:
@@ -66,8 +65,9 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
             .Sum(layered_, num_neurons_);
         global_variance_ = global_variance_.Add(local);
       }
-      // break;  // fall through!
+      // break;  // fall through
     }
+    case PRE_TRAIN_PHASE:  // fall through
     case TRAIN_PHASE: {
       mean_ = input
           .Sum(layered_, num_neurons_)

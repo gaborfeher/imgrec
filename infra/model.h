@@ -37,6 +37,7 @@ class Model {
   std::shared_ptr<ErrorLayer> error_;
 
   void RunPhase(const DataSet& data_set, Layer::Phase phase);
+  void ForwardPass(const DataSet& data_set, int batch_id);
 };
 
 

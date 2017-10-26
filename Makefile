@@ -145,6 +145,7 @@ bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
 		bin/cnn/convolutional_layer.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/fully_connected_layer.o \
+		bin/cnn/input_image_normalization_layer.o \
 		bin/cnn/l2_error_layer.o \
 		bin/cnn/layer.o \
 		bin/cnn/layer_stack.o \

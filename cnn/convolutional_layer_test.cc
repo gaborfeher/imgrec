@@ -9,6 +9,7 @@
 #include "cnn/bias_layer.h"
 #include "cnn/convolutional_layer.h"
 #include "cnn/fully_connected_layer.h"
+#include "cnn/input_image_normalization_layer.h"
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
@@ -475,7 +476,7 @@ void Copy3x3VectorBlock(
   for (int layer = 0; layer < 2; ++layer) {
     for (int row = 0; row < 3; ++row) {
       for (int col = 0; col < 3; ++col) {
-        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = 2 * src[layer * 3 * 3 + row * 3 + col] - 1;
+        (*dst)[layer * 6 * 3 + row * 6 + col + dst_pos] = 2 * src[layer * 3 * 3 + row * 3 + col];
       }
     }
   }
@@ -524,7 +525,7 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase2(
     std::vector<float> x;
     std::vector<float> y;
 
-    std::uniform_int_distribution<> dist01(-1, 1);
+    std::uniform_int_distribution<> dist01(0, 2);
     std::uniform_int_distribution<> dist3(0, 2);
     std::uniform_int_distribution<> dist4(0, 3);
     for (int i = 0; i < num_samples_per_batch; ++i) {
@@ -570,11 +571,11 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv(bool use_batch_normalizat
         }
       };
 
-
-  stack->AddLayer(
-      std::make_shared<ConvolutionalLayer>(
-          2, 3, 3,
-          0, 2, 1));
+  stack->AddLayer(std::make_shared<InputImageNormalizationLayer>(
+      3, 6, 2));
+  stack->AddLayer(std::make_shared<ConvolutionalLayer>(
+      2, 3, 3,
+      0, 2, 1));
   add_bias_layer(2, true);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
@@ -601,9 +602,9 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
   Random random(44);
   stack->Initialize(&random);  // Note: the initialization of the convolutional layer will be overridden, but this is needed for the fully connected layer.
   std::shared_ptr<ConvolutionalLayer> conv_layer =
-      stack->GetLayer<ConvolutionalLayer>(0);
+      stack->GetLayer<ConvolutionalLayer>(1);
   std::shared_ptr<BiasLayer> bias_layer =
-      stack->GetLayer<BiasLayer>(1);
+      stack->GetLayer<BiasLayer>(2);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(-1);
 
   error_layer->SetExpectedValue(training_y);
@@ -661,7 +662,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 42, true);
+  Model model(stack, 43, true);
   model.Train(
       *training_ds,
       5,  // epochs

@@ -105,6 +105,16 @@ TEST(SmallMatrixTest, Multiply) {
   EXPECT_EQ(3, am.cols());
 }
 
+TEST(SmallMatrixTest, Divide) {
+  Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
+  Matrix am(a.Divide(0.5));
+  EXPECT_EQ(
+      (std::vector<float> {2, 4, 6, 8, 10, 12}),
+      am.GetVector());
+  EXPECT_EQ(2, am.rows());
+  EXPECT_EQ(3, am.cols());
+}
+
 TEST(SmallMatrixTest, DotProduct) {
   Matrix a(2, 3, 1, (float[]){
       1, 2, 3,

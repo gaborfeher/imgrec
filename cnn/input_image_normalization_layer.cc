@@ -20,10 +20,8 @@ void InputImageNormalizationLayer::Forward(const Matrix& input) {
   if (phase_ == PRE_TRAIN_PHASE && phase_sub_id_ == 0) {
     output_ = input;
     mean_ = mean_.Add(
-        input_
-            .PerLayerSum(mean_.depth())
-            .Multiply(1.0f * mean_.depth() / input_.depth()));
-    num_samples_ += 1;
+        input_.PerLayerSum(mean_.depth()));
+    num_samples_ += input_.depth() / mean_.depth();
   } else {
     assert(input_.depth() % mean_.depth() == 0);
     output_ = input_.Add(

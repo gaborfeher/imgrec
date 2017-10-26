@@ -251,6 +251,19 @@ Matrix Matrix::Multiply(float m) const {
   return result;
 }
 
+__global__ void VecDivide(float* A, float d, float* B, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    B[i] = A[i] / d;
+  }
+}
+
+Matrix Matrix::Divide(float d) const {
+  Matrix result(rows_, cols_, depth_);
+  VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), d, result.data_.get(), size_);
+  return result;
+}
+
 __global__ void MatrixDotProd(
     float* A, int a_rows, int a_cols,
     float* B, int b_rows, int b_cols,

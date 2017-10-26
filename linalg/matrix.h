@@ -44,6 +44,7 @@ class Matrix {
   Matrix ElementwiseMultiply(const Matrix& other) const;
   Matrix ElementwiseDivide(const Matrix& other) const;
   Matrix Multiply(float) const;
+  Matrix Divide(float) const;
   float Softmax(const Matrix& expected_class) const;
   Matrix SoftmaxGradient(const Matrix& expected_class) const;
   float NumMatches(const Matrix& expected_class) const;
