@@ -19,15 +19,15 @@
 std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
   return std::make_shared<InMemoryDataSet>(
       8,
-      Matrix(8, 3, 1, (float[]) {
-        -1,  2, 1,
-         0,  1, 1,
-         1,  0, 1,
-         2, -1, 1,
-        -2,  1, 1,
-        -1,  0, 1,
-         0, -1, 1,
-         1, -2, 1,
+      Matrix(8, 2, 1, (float[]) {
+        -1,  2,
+         0,  1,
+         1,  0,
+         2, -1,
+        -2,  1,
+        -1,  0,
+         0, -1,
+         1, -2,
       }).T(),
       Matrix(8, 1, 1, (float[]) {
           0,
@@ -44,9 +44,9 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
 std::shared_ptr<InMemoryDataSet> CreateTestCase1_TestData() {
   return std::make_shared<InMemoryDataSet>(
       2,
-      Matrix(2, 3, 1, (float[]) {
-          -1, -1, 1,
-           1,  1, 1,
+      Matrix(2, 2, 1, (float[]) {
+          -1, -1,
+           1,  1,
       }).T(),
       Matrix(2, 1, 1, (float[]) {
           1,
@@ -61,18 +61,27 @@ TEST(LearnTest, FullyConnectedTrain) {
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(3, 1));
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
   stack->AddLayer(std::make_shared<BiasLayer>(1, false));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       ::activation_functions::Sigmoid()));
   stack->AddLayer(error_layer);
-  Model model(stack, 42);
-
+  Model model(stack, 42, false);
   model.Train(
       *training,
-      100,
-      40,
-      0);
+      1000,
+      1,
+      0.0);
+  // stack->Print();
+
+  float training_error;
+  float training_accuracy;
+  model.Evaluate(
+      *training,
+      &training_error,
+      &training_accuracy);
+  EXPECT_LT(training_error, 0.0001);
+
   float test_error;
   float test_accuracy;
   model.Evaluate(
@@ -89,7 +98,7 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
-      std::make_shared<FullyConnectedLayer>(3, 1);
+      std::make_shared<FullyConnectedLayer>(2, 1);
   stack->AddLayer(fc_layer);
   stack->AddLayer(std::make_shared<BiasLayer>(1, false));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
@@ -100,7 +109,7 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
 
   error_layer->SetExpectedValue(training_y);
 
-  Matrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
+  Matrix weights(1, 2, 1, (float[]) { 4.2, -3.0 });
   ParameterGradientCheck(
       stack,
       training_x,
@@ -122,7 +131,7 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   std::shared_ptr<FullyConnectedLayer> fc_layer =
-      std::make_shared<FullyConnectedLayer>(3, 1);
+      std::make_shared<FullyConnectedLayer>(2, 1);
   stack->AddLayer(fc_layer);
   stack->AddLayer(std::make_shared<BiasLayer>(1, false));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
@@ -132,13 +141,13 @@ TEST(LearnTest, FullyConnectedLayerInputGradient) {
   stack->AddLayer(error_layer);
 
   error_layer->SetExpectedValue(training_y);
-  Matrix weights(1, 3, 1, (float[]) { 4.2, -3.0, 1.7});
+  Matrix weights(1, 2, 1, (float[]) { 4.2, -3.0 });
   fc_layer->weights_ = weights;
 
   InputGradientCheck(
       stack,
       training_x,
       0.001f,
-      55);
+      7);
 }
 
