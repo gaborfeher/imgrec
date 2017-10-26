@@ -19,9 +19,9 @@ TEST_OBJS := $(addprefix bin/,$(subst .cc,.o,$(TEST_SOURCES)))
 # PHONY targets
 #######
 
-.PHONY: clean clean_all test matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test bias_layer_test
+.PHONY: clean clean_all test matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test
 
-test: $(MAIN_GTEST_HEADER) matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test bias_layer_test
+test: $(MAIN_GTEST_HEADER) matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test
 
 clean:
 	rm -Rf bin
@@ -42,6 +42,9 @@ convolutional_layer_test: bin/cnn/convolutional_layer_test
 	$<
 
 batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test
+	$<
+
+input_image_normalization_layer_test: bin/cnn/input_image_normalization_layer_test
 	$<
 
 bias_layer_test: bin/cnn/bias_layer_test
@@ -165,6 +168,14 @@ bin/cnn/batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test.o
 		bin/cnn/layer_test_base.o \
 		bin/infra/data_set.o \
 		bin/infra/model.o \
+		bin/linalg/matrix.cu.o \
+		bin/linalg/matrix_test_util.o \
+		bin/googletest/gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
+
+bin/cnn/input_image_normalization_layer_test: bin/cnn/input_image_normalization_layer_test.o \
+		bin/cnn/input_image_normalization_layer.o \
+		bin/cnn/layer.o \
 		bin/linalg/matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
 		bin/googletest/gtest_main.a

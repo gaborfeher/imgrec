@@ -420,7 +420,6 @@ float Matrix::Sum() const {
   return result.GetValue(0, 0, 0);
 }
 
-
 __global__ void MatrixSumLayers(
     float* A,
     int a_rows, int a_cols, int a_depth,
@@ -538,6 +537,61 @@ Matrix Matrix::Repeat(
 
     return result;
   }
+}
+
+__global__ void MatrixPerLayerSum(
+    float* A,
+    int rows, int cols, int a_depth,
+    float* B,
+    int b_depth) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+  if (i < rows && j < cols && k < b_depth) {
+    float sum = 0.0f;
+    for (int k1 = k; k1 < a_depth; k1 += b_depth) {
+      int a_index = Dim3toDim1(i, j, k1, rows, cols, a_depth);
+      sum += A[a_index];
+    }
+    int b_index = Dim3toDim1(i, j, k, rows, cols, b_depth);
+    B[b_index] = sum;
+  }
+}
+Matrix Matrix::PerLayerSum(int layers) const {
+  assert(depth_ % layers == 0);
+  Matrix result(rows_, cols_, layers);
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, layers);
+  MatrixPerLayerSum<<<blocks, threads_per_block>>>(
+        data_.get(), rows_, cols_, depth_,
+        result.data_.get(), layers);
+  return result;
+}
+
+__global__ void MatrixPerLayerRepeat(
+    float* A,
+    int rows, int cols, int a_depth,
+    float* B,
+    int b_depth) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+  if (i < rows && j < cols && k < b_depth) {
+    int a_index = Dim3toDim1(i, j, k % a_depth, rows, cols, a_depth);
+    int b_index = Dim3toDim1(i, j, k, rows, cols, b_depth);
+    B[b_index] = A[a_index];
+  }
+}
+Matrix Matrix::PerLayerRepeat(int times) const {
+  Matrix result(rows_, cols_, depth_ * times);
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, result.depth());
+  MatrixPerLayerRepeat<<<blocks, threads_per_block>>>(
+        data_.get(), rows_, cols_, depth_,
+        result.data_.get(), result.depth());
+  return result;
 }
 
 __global__ void VecL2(float* A, int len, float* B) {

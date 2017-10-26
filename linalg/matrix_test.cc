@@ -444,7 +444,6 @@ TEST(SmallMatrixTest, CopyGetSet) {
       b.GetVector());
 }
 
-
 TEST(SmallMatrixTest, Sum_Layers) {
   // Two 3x4 images with 3 "color channels" each:
   Matrix a(3, 4, 6, (float[]) {
@@ -488,6 +487,78 @@ TEST(SmallMatrixTest, Sum_Layers) {
       s.GetValue(0, 0, 2));
 }
 
+TEST(SmallMatrixTest, PerLayerSum) {
+  // Two 3x4 images with 3 "color channels" each:
+  Matrix a(3, 4, 6, (float[]) {
+      // layer1:
+      1, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+      // layer2:
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6,
+      // layer3:
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      // layer4:
+      0, 1, 2, 2,
+      3, 3, 4, 4,
+      5, 5, 6, 6,
+      // layer5:
+      1.1, 1.1, 2.2, 2.2,
+      3.3, 3.3, 4.4, 4.4,
+      5.5, 5.5, 6.6, 6.6,
+      // layer6:
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      0, 1, 1, 1
+  });
+  Matrix s = a.PerLayerSum(3);
+  ExpectMatrixEquals(
+    Matrix(3, 4, 3, (float[]) {
+      // layer1 + layer4:
+      1, 2, 4, 4,
+      6, 6, 8, 8,
+      10, 10, 12, 12,
+      // layer2 + layer5:
+      2.2, 2.2, 4.4, 4.4,
+      6.6, 6.6, 8.8, 8.8,
+      11.0, 11.0, 13.2, 13.2,
+      // layer3 + layer6:
+      2, 2, 2, 2,
+      2, 2, 2, 2,
+      1, 2, 2, 2,
+    }),
+    s);
+}
+
+TEST(SmallMatrixTest, PerLayerRepeat) {
+  Matrix a(2, 3, 2, (float[]) {
+    1, 2, 3,
+    4, 5, 6,
+    7, 8, 9,
+    10, 11, 12,
+  });
+  Matrix s = a.PerLayerRepeat(3);
+  ExpectMatrixEquals(
+    Matrix(2, 3, 6, (float[]) {
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9,
+        10, 11, 12,
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9,
+        10, 11, 12,
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9,
+        10, 11, 12,
+    }),
+    s);
+}
 TEST(SmallMatrixTest, Sum_Columns) {
   Matrix a(3, 4, 1, (float[]) {
       1, 1, 2, 2,

@@ -53,7 +53,7 @@ class Matrix {
   // layered = true, layers > 0: consider this matrix as a
   //    series of matrices of depth |layers|, and summarize them
   //    into one matrix of depth layer. After that, calculate the
-  //    sum of each layer.
+  //    sum of each layer, so the result becomes 1x1x|layers|.
   // layered = false, layers > 0: summarize the columns
   //    of the matrix, the resulting matrix will have one column.
   //    This matrix must have depth = 1 and rows = layers. (The
@@ -70,6 +70,13 @@ class Matrix {
   //    The result will be a rows x cols x 1 matrix, each column
   //    is a copy of the original matrix.
   Matrix Repeat(bool layered, int rows, int cols, int depth) const;
+
+  // Consider this matrix as a series of matrices of depth |layers|
+  // and summarize them into one matrix of depth |layer|.
+  Matrix PerLayerSum(int layers) const;
+  // Take this matrix and repeat it |times| times, and put the
+  // repeated instances into the result along the depth axis.
+  Matrix PerLayerRepeat(int times) const;
 
   Matrix T() const;
   Matrix Rot180() const;
