@@ -8,13 +8,11 @@
 
 ConvolutionalLayer::ConvolutionalLayer(
     int num_filters, int filter_rows, int filter_cols,
-    int padding, int layers_per_image, int stride) :
+    int padding, int layers_per_image) :
         padding_(padding),
         layers_per_image_(layers_per_image),
-        stride_(stride),
         filters_(filter_rows, filter_cols, num_filters * layers_per_image),
         filters_gradient_(filter_rows, filter_cols, num_filters * layers_per_image) {
-  assert(stride_ == 1);  // Backprop doesn't support other values uet.
 }
 
 void ConvolutionalLayer::Print() const {
@@ -36,8 +34,7 @@ void ConvolutionalLayer::Forward(const Matrix& input) {
       .AddPadding(padding_, padding_)
       .Convolution(
           filters_,
-          layers_per_image_,
-          stride_);
+          layers_per_image_);
 }
 
 void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
@@ -65,8 +62,7 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
           filters_
               .ReorderLayers(layers_per_image_)
               .Rot180(),
-          num_filters,
-          1)
+          num_filters)
       .RemovePadding(padding_, padding_);
   // Layer-wise this means:
   //  output_gradient_ is
@@ -88,9 +84,8 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
           input_
               .ReorderLayers(layers_per_image_)
               .AddPadding(padding_, padding_),
-          num_input_images,
-          1
-      ).Rot180();
+          num_input_images)
+      .Rot180();
   // Layer-wise this means:
   //  output_gradient after reordering is:
   //     img1-filter1, img2-filter1,

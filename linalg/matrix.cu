@@ -913,8 +913,8 @@ __global__ void MatrixConvolution(
 
 Matrix Matrix::Convolution(
     const Matrix& filters,
-    int layers_per_image,
-    int stride) const {
+    int layers_per_image) const {
+  int stride = 1;
   int row_slots = rows_ - filters.rows() + 1;
   int col_slots = cols_ - filters.cols() + 1;
   assert(row_slots % stride == 0 && col_slots % stride == 0);
@@ -922,7 +922,6 @@ Matrix Matrix::Convolution(
   assert(filters.depth() % layers_per_image == 0);
   assert(depth() % layers_per_image == 0);
 
-  assert(stride == 1);  // TODO
   Matrix result(
       row_slots / stride,
       col_slots / stride,

@@ -85,7 +85,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 1, 1));
+          0, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient1_Padding) {
@@ -111,7 +111,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1_Padding) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          1, 1, 1));
+          1, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
@@ -135,7 +135,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 2, 2,
-          0, 1, 1));
+          0, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
@@ -161,7 +161,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
-          0, 1, 1));
+          0, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
@@ -191,7 +191,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 2, 1));
+          0, 2));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
@@ -228,7 +228,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
-          0, 2, 1));
+          0, 2));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
@@ -282,7 +282,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
       filters,
       std::make_shared<ConvolutionalLayer>(
           1, 3, 2,
-          0, 3, 1));
+          0, 3));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
@@ -348,7 +348,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
       filters,
       std::make_shared<ConvolutionalLayer>(
           2, 3, 2,
-          0, 3, 1));
+          0, 3));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
@@ -406,7 +406,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
       filters,
       std::make_shared<ConvolutionalLayer>(
           3, 2, 2,
-          0, 2, 1));
+          0, 2));
 }
 
 // For convolutional
@@ -601,7 +601,7 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv(bool use_batch_normalizat
       3, 6, 2));
   stack->AddLayer(std::make_shared<ConvolutionalLayer>(
       2, 3, 3,
-      0, 2, 1));
+      0, 2));
   add_bias_layer(2, true);
   stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
   stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));

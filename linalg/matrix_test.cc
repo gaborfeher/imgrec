@@ -301,7 +301,7 @@ TEST(SmallMatrixTest, Convolution) {
     2, 2, 2,
   });
 
-  Matrix ac(a.Convolution(c, 3, 1));
+  Matrix ac(a.Convolution(c, 3));
   EXPECT_EQ(2, ac.rows());
   EXPECT_EQ(2, ac.cols());
   EXPECT_EQ(4, ac.depth());
