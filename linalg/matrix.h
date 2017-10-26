@@ -99,6 +99,19 @@ class Matrix {
   // and it contains that many filters.
   Matrix Convolution(const Matrix& filters, int layers_per_image) const;
 
+  // On each layer, independently: slices the matrix into
+  // pool_rows x pool_cols sub-matrices and takes the max value
+  // from them into the first result. The second result matrix
+  // will contain the indices of the max values. (col + row + pool_cols).
+  std::pair<Matrix, Matrix> Pooling(int pool_rows, int pool_cols) const;
+  // Creates a bigger matrix of size
+  // (rows*pool_rows, cols*pool_cols, depth). The values of this
+  // matrix are copied into the result according to the positions
+  // defined in switches. (The places of max values if switches was
+  // the second result of Pooling.) switches should have the same
+  // dimensions as this matrix.
+  Matrix PoolingSwitch(const Matrix& switches, int pool_rows, int pool_cols) const;
+
   void Fill(float value);
 
   template <class Distribution>

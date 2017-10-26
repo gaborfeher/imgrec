@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include <utility>
+
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
@@ -621,6 +623,70 @@ TEST(SmallMatrixTest, Repeat_Columns) {
       1, 1, 1,
   });
   ExpectMatrixEquals(expected, b);
+}
+
+TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
+  Matrix a(4, 6, 2, (float[]) {
+      1, 2, 3, 4, 5, 6,
+      7, 8, 9, 10, 11, 12,
+      4, -2, 3, -2, -1, -5,
+      2, 1, -3, -2, -3, -4,
+
+      4, -2, 3, -2, -1, -5,
+      2, 1, -3, -2, -3, -4,
+      1, 2, 3, 4, 5, 6,
+      7, 8, 9, 10, 11, 12,
+  });
+  std::pair<Matrix, Matrix> res = a.Pooling(2, 3);
+  {
+    SCOPED_TRACE("res.first");
+    ExpectMatrixEquals(
+        Matrix(2, 2, 2, (float[]) {
+            9, 12,
+            4, -1,
+
+            4, -1,
+            9, 12,
+        }),
+        res.first);
+  }
+  {
+    SCOPED_TRACE("res.second");
+    ExpectMatrixEquals(
+        Matrix(2, 2, 2, (float[]) {
+            5, 5,
+            0, 1,
+
+            0, 1,
+            5, 5,
+        }),
+        res.second);
+  }
+
+  // Test PoolingSwitch
+  Matrix b(2, 2, 2, (float[]) {
+    1, 2,
+    3, 4,
+    5, 6,
+    7, 8
+  });
+  Matrix switched = b.PoolingSwitch(res.second, 2, 3);
+  {
+    SCOPED_TRACE("switched");
+    ExpectMatrixEquals(
+        Matrix(4, 6, 2, (float[]) {
+            0, 0, 0, 0, 0, 0,
+            0, 0, 1, 0, 0, 2,
+            3, 0, 0, 0, 4, 0,
+            0, 0, 0, 0, 0, 0,
+
+            5, 0, 0, 0, 6, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 7, 0, 0, 8,
+        }),
+        switched);
+  }
 }
 
 TEST(BigMatrixTest, DotProduct) {

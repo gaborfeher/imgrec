@@ -937,6 +937,104 @@ Matrix Matrix::Convolution(
   return result;
 }
 
+
+
+__global__ void MatrixPooling(
+    int pool_rows, int pool_cols,
+    float* A,
+    int a_rows, int a_cols, int a_depth,
+    float* pooled,
+    float* switches,
+    int pooled_rows, int pooled_cols, int pooled_depth) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+  if (i < pooled_rows && j < pooled_cols && k < pooled_depth) {
+    int best_sub_index = -1;
+    float best_value = 0;
+    for (int a_sub_index = 0; a_sub_index < pool_rows * pool_cols; a_sub_index++) {
+      float value = A[Dim3toDim1(
+          i * pool_rows + a_sub_index / pool_cols,
+          j * pool_cols + a_sub_index % pool_cols,
+          k,
+          a_rows, a_cols, a_depth)];
+      if (best_sub_index < 0 || value > best_value) {
+        best_sub_index = a_sub_index;
+        best_value = value;
+      }
+
+    }
+
+    int pooled_index = Dim3toDim1(
+        i, j, k, pooled_rows, pooled_cols, pooled_depth);
+    pooled[pooled_index] = best_value;
+    switches[pooled_index] = best_sub_index;
+  }
+}
+
+std::pair<Matrix, Matrix> Matrix::Pooling(
+    int pool_rows, int pool_cols) const {
+  assert(rows_ % pool_rows == 0);
+  assert(cols_ % pool_cols == 0);
+
+  Matrix pooled(rows_ / pool_rows, cols_ / pool_cols, depth_);
+  Matrix switches(rows_ / pool_rows, cols_ / pool_cols, depth_);
+
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((pooled.rows() + 15) / 16, (pooled.cols() + 15) / 16, pooled.depth());
+  MatrixPooling<<<blocks, threadsPerBlock>>>(
+      pool_rows, pool_cols,
+      data_.get(),
+      rows_, cols_, depth_,
+      pooled.data_.get(),
+      switches.data_.get(),
+      pooled.rows_, pooled.cols_, pooled.depth_);
+
+  return std::make_pair(pooled, switches);
+}
+
+__global__ void MatrixPoolingSwitch(
+    int pool_rows, int pool_cols,
+    float* switches,
+    float* input,
+    int rows, int cols, int depth,
+    float* result) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+  if (i < rows && j < cols && k < depth) {
+    int input_index = Dim3toDim1(i, j, k, rows, cols, depth);
+    int sub_index = switches[input_index];
+    int result_index = Dim3toDim1(
+        i * pool_rows + sub_index / pool_cols,
+        j * pool_cols + sub_index % pool_cols,
+        k,
+        rows * pool_rows,
+        cols * pool_cols,
+        depth);
+    result[result_index] = input[input_index];
+  }
+}
+
+Matrix Matrix::PoolingSwitch(
+    const Matrix& switches,
+    int pool_rows, int pool_cols) const {
+  AssertSameDimensions(switches);
+
+  Matrix result(rows_ * pool_rows, cols_ * pool_cols, depth_);  // Zero-filled.
+
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((switches.rows() + 15) / 16, (switches.cols() + 15) / 16, depth_);
+  MatrixPoolingSwitch<<<blocks, threadsPerBlock>>>(
+      pool_rows, pool_cols,
+      switches.data_.get(),
+      data_.get(),
+      rows_, cols_, depth_,
+      result.data_.get());
+
+  return result;
+}
+
 Matrix Matrix::ReshapeToColumns(int unit_depth) const {
   assert(depth_ % unit_depth == 0);
   Matrix rows(*this);

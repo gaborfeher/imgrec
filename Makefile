@@ -19,9 +19,9 @@ TEST_OBJS := $(addprefix bin/,$(subst .cc,.o,$(TEST_SOURCES)))
 # PHONY targets
 #######
 
-.PHONY: clean clean_all test matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test
+.PHONY: clean clean_all test matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test
 
-test: $(MAIN_GTEST_HEADER) matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test
+test: $(MAIN_GTEST_HEADER) matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test
 
 clean:
 	rm -Rf bin
@@ -48,6 +48,9 @@ input_image_normalization_layer_test: bin/cnn/input_image_normalization_layer_te
 	$<
 
 bias_layer_test: bin/cnn/bias_layer_test
+	$<
+
+pooling_layer_test: bin/cnn/pooling_layer_test
 	$<
 
 # Make sure GoogleTest is downloaded before compiling test targets:
@@ -194,3 +197,14 @@ bin/cnn/bias_layer_test: bin/cnn/bias_layer_test.o \
 		bin/googletest/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
+bin/cnn/pooling_layer_test: bin/cnn/pooling_layer_test.o \
+		bin/cnn/error_layer.o \
+		bin/cnn/layer.o \
+		bin/cnn/layer_stack.o \
+		bin/cnn/layer_test_base.o \
+		bin/cnn/l2_error_layer.o \
+		bin/cnn/pooling_layer.o \
+		bin/linalg/matrix.cu.o \
+		bin/linalg/matrix_test_util.o \
+		bin/googletest/gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@

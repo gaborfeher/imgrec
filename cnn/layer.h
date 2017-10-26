@@ -21,7 +21,7 @@ class Layer {
   virtual void Print() const {};
   virtual void Initialize(Random* /* generator */) {};
   virtual void Forward(const Matrix& input) = 0;
-  virtual void Backward(const Matrix& ouotput_gradient) = 0;
+  virtual void Backward(const Matrix& output_gradient) = 0;
   virtual void ApplyGradient(float /* learn_rate */) {};
   virtual void Regularize(float /* lambda */) {};
 
