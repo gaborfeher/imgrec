@@ -18,8 +18,8 @@ class FullyConnectedLayer : public Layer {
   virtual void Regularize(float lambda);
 
  private:
-  FRIEND_TEST(LearnTest, FullyConnectedLayerWeightGradient);
-  FRIEND_TEST(LearnTest, FullyConnectedLayerInputGradient);
+  FRIEND_TEST(FullyConnectedLayerTest, WeightGradient);
+  FRIEND_TEST(FullyConnectedLayerTest, InputGradient);
 
   int input_size_;
   int output_size_;

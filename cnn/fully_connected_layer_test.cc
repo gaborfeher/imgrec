@@ -55,7 +55,7 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase1_TestData() {
       }).T());
 }
 
-TEST(LearnTest, FullyConnectedTrain) {
+TEST(FullyConnectedLayerTest, Train_L2) {
   std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
   std::shared_ptr<InMemoryDataSet> test = CreateTestCase1_TestData();
 
@@ -92,7 +92,7 @@ TEST(LearnTest, FullyConnectedTrain) {
   EXPECT_LT(test_error, 0.0001);
 }
 
-TEST(LearnTest, FullyConnectedTrain_BatchNorm) {
+TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
   std::shared_ptr<InMemoryDataSet> test = CreateTestCase1_TestData();
 
@@ -129,7 +129,7 @@ TEST(LearnTest, FullyConnectedTrain_BatchNorm) {
   EXPECT_LT(test_error, 0.0001);
 }
 
-TEST(LearnTest, FullyConnectedLayerWeightGradient) {
+TEST(FullyConnectedLayerTest, WeightGradient) {
   std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
   Matrix training_x = training->GetBatchInput(0);
   Matrix training_y = training->GetBatchOutput(0);
@@ -162,7 +162,7 @@ TEST(LearnTest, FullyConnectedLayerWeightGradient) {
       1);
 }
 
-TEST(LearnTest, FullyConnectedLayerInputGradient) {
+TEST(FullyConnectedLayerTest, InputGradient) {
   std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
   Matrix training_x = training->GetBatchInput(0);
   Matrix training_y = training->GetBatchOutput(0);
