@@ -211,7 +211,7 @@ TEST(SmallMatrixTest, ZeroInit) {
   EXPECT_EQ(2, a.cols());
 }
 
-TEST(SmallMatrixTest, AddPadding) {
+TEST(SmallMatrixTest, AddRemovePadding) {
   Matrix a(3, 4, 2, (float[]) {
       1, 1, 2, 2,
       3, 3, 4, 4,
@@ -224,11 +224,8 @@ TEST(SmallMatrixTest, AddPadding) {
   EXPECT_EQ(4, a.cols());
   EXPECT_EQ(2, a.depth());
   Matrix ap(a.AddPadding(2, 1));
-  EXPECT_EQ(7, ap.rows());
-  EXPECT_EQ(6, ap.cols());
-  EXPECT_EQ(2, ap.depth());
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(7, 6, 2, (float[]) {
           0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0,
           0, 1, 1, 2, 2, 0,
@@ -245,7 +242,9 @@ TEST(SmallMatrixTest, AddPadding) {
           0,   0,   0,   0,   0, 0,
           0,   0,   0,   0,   0, 0,
       }),
-      ap.GetVector());
+      ap);
+  Matrix arp = ap.RemovePadding(2, 1);
+  ExpectMatrixEquals(a, arp);
 }
 
 TEST(SmallMatrixTest, Convolution) {

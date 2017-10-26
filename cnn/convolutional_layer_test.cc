@@ -49,7 +49,7 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
               return conv_layer->filters_gradient_;
           },
           0.08f,
-          10.0f);
+          0.5f);
     }
 
     conv_layer->filters_ = filters;
@@ -58,8 +58,8 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
       InputGradientCheck(
           stack,
           training_x,
-          0.1f,
-          10.0f);
+          0.05f,
+          1.0f);
     }
   }
 };
@@ -86,6 +86,32 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
       std::make_shared<ConvolutionalLayer>(
           1, 3, 3,
           0, 1, 1));
+}
+
+TEST_F(ConvolutionalLayerGradientTest, Gradient1_Padding) {
+  Matrix training_x(3, 3, 1, (float[]) {
+      -1, 1, -2,
+      2, -0.5, 0,
+      -3, 2, 0
+  });
+  Matrix training_y(3, 3, 1, (float[]) {
+      4.2, -4.2, 4.2,
+      -4.2, 4.2, -4.2,
+      4.2, -4.2, 4.2,
+  });
+  Matrix filters(3, 3, 1, (float[]) {
+      3, -2, 1,
+      0, -0.5, 0.5,
+      -1, 0.5, 0,
+  });
+
+  SimpleConvolutionGradientTest(
+      training_x,
+      training_y,
+      filters,
+      std::make_shared<ConvolutionalLayer>(
+          1, 3, 3,
+          1, 1, 1));
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient2) {

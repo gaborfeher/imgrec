@@ -780,7 +780,7 @@ void Matrix::Fill(float value) {
   VecFill<<<(size_ + 255) / 256, 256>>>(value, data_.get(), size_);
 }
 
-__global__ void MatrixPadding(
+__global__ void MatrixAddPadding(
     float* A,
     int rows, int cols, int depth,
     int row_padding, int col_padding,
@@ -813,13 +813,56 @@ Matrix Matrix::AddPadding(
 
   dim3 threadsPerBlock(16, 16, 1);
   dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, depth_);
-  MatrixPadding<<<blocks, threadsPerBlock>>>(
+  MatrixAddPadding<<<blocks, threadsPerBlock>>>(
       data_.get(), rows_, cols_, depth_,
       row_padding, col_padding,
       result.data_.get());
   return result;
 }
 
+__global__ void MatrixRemovePadding(
+    float* A,
+    int rows, int cols, int depth,
+    int row_padding, int col_padding,
+    float* B) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+  if (i < rows && j < cols && k < depth) {
+    int a_index = Dim3toDim1(
+        i + row_padding, j + col_padding, k,
+        rows + 2 * row_padding,
+        cols + 2 * col_padding,
+        depth);
+    int b_index = Dim3toDim1(i, j, k, rows, cols, depth);
+    B[b_index] = A[a_index];
+  }
+}
+
+Matrix Matrix::RemovePadding(
+    int row_padding, int col_padding) const {
+  if (row_padding == 0 && col_padding == 0) {
+    return *this;
+  }
+  assert(row_padding >= 0);
+  assert(col_padding >= 0);
+  assert(rows_ - 2 * row_padding > 0);
+  assert(cols_ - 2 * col_padding > 0);
+
+  Matrix result(
+      rows_ - 2 * row_padding,
+      cols_ - 2 * col_padding,
+      depth_);
+
+  dim3 threadsPerBlock(16, 16, 1);
+  dim3 blocks((result.rows() + 15) / 16, (result.cols() + 15) / 16, depth_);
+  MatrixRemovePadding<<<blocks, threadsPerBlock>>>(
+      data_.get(), result.rows(), result.cols(), depth_,
+      row_padding, col_padding,
+      result.data_.get());
+  return result;
+}
 __global__ void MatrixConvolution(
     int layers_per_image,
     float* A, int a_rows, int a_cols, int a_depth,
