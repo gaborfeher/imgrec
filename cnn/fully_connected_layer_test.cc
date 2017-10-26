@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "cnn/batch_normalization_layer.h"
 #include "cnn/bias_layer.h"
 #include "cnn/convolutional_layer.h"
 #include "cnn/fully_connected_layer.h"
@@ -63,6 +64,43 @@ TEST(LearnTest, FullyConnectedTrain) {
 
   stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
   stack->AddLayer(std::make_shared<BiasLayer>(1, false));
+  stack->AddLayer(std::make_shared<NonlinearityLayer>(
+      ::activation_functions::Sigmoid()));
+  stack->AddLayer(error_layer);
+  Model model(stack, 42, false);
+  model.Train(
+      *training,
+      1000,
+      1,
+      0.0);
+  // stack->Print();
+
+  float training_error;
+  float training_accuracy;
+  model.Evaluate(
+      *training,
+      &training_error,
+      &training_accuracy);
+  EXPECT_LT(training_error, 0.0001);
+
+  float test_error;
+  float test_accuracy;
+  model.Evaluate(
+      *test,
+      &test_error,
+      &test_accuracy);
+  EXPECT_LT(test_error, 0.0001);
+}
+
+TEST(LearnTest, FullyConnectedTrain_BatchNorm) {
+  std::shared_ptr<InMemoryDataSet> training = CreateTestCase1_TrainingData();
+  std::shared_ptr<InMemoryDataSet> test = CreateTestCase1_TestData();
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
+
+  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
+  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(1, false));
   stack->AddLayer(std::make_shared<NonlinearityLayer>(
       ::activation_functions::Sigmoid()));
   stack->AddLayer(error_layer);

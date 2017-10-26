@@ -108,6 +108,7 @@ bin/linalg/matrix_test: bin/linalg/matrix_test.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/fully_connected_layer_test: bin/cnn/fully_connected_layer_test.o \
+		bin/cnn/batch_normalization_layer.o \
 		bin/cnn/bias_layer.o \
 		bin/cnn/error_layer.o \
 		bin/cnn/fully_connected_layer.o \
