@@ -33,9 +33,6 @@ class Matrix {
   int cols() const { return cols_; }
   int depth() const { return depth_; }
 
-  std::shared_ptr<float> get_host_data() const;
-  std::vector<float> GetVector() const;
-  void SetVector(const std::vector<float>& data);
   void Print() const;
 
   Matrix Add(const Matrix& other) const;
@@ -138,7 +135,14 @@ class Matrix {
   // copy constructor and assignment operator.
 
  private:
+  // TODO: use public API for these tests.
+  friend void ExpectMatrixEquals(const Matrix&, const Matrix&);
+  friend void ExpectMatrixEquals(const Matrix&, const Matrix&, float, float);
+
   int Index(int i, int j, int k) const;
+  std::shared_ptr<float> get_host_data() const;
+  std::vector<float> GetVector() const;
+  void SetVector(const std::vector<float>& data);
 
   int rows_;
   int cols_;

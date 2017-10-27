@@ -7,16 +7,18 @@
 
 TEST(SmallMatrixTest, HostDeviceTransfer) {
   Matrix a(2, 2, 1, (float[]){1, 6, 7, 42});
-  EXPECT_EQ((std::vector<float> {1, 6, 7, 42}), a.GetVector());
+  ExpectMatrixEquals(
+      Matrix(2, 2, 1, (float[]) {1, 6, 7, 42}),
+      a);
 }
 
 TEST(SmallMatrixTest, Add) {
   Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
   Matrix b(2, 2, 1, (float[]){1, 1, 2, 2});
   Matrix c(a.Add(b));
-  EXPECT_EQ((std::vector<float> {6, 3, 5, 6}), c.GetVector());
-  EXPECT_EQ(2, c.rows());
-  EXPECT_EQ(2, c.cols());
+  ExpectMatrixEquals(
+      Matrix(2, 2, 1, (float[]) {6, 3, 5, 6}),
+      c);
 }
 
 TEST(SmallMatrixTest, AddConst) {
@@ -51,9 +53,9 @@ TEST(SmallMatrixTest, ElementwiseMultiply) {
   Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
   Matrix b(2, 2, 1, (float[]){1, 1, 2, 2});
   Matrix c(a.ElementwiseMultiply(b));
-  EXPECT_EQ((std::vector<float> {5, 2, 6, 8}), c.GetVector());
-  EXPECT_EQ(2, c.rows());
-  EXPECT_EQ(2, c.cols());
+  ExpectMatrixEquals(
+      Matrix(2, 2, 1, (float[]) { 5, 2, 6, 8 }),
+      c);
 }
 
 TEST(SmallMatrixTest, ElementwiseDivide) {
@@ -67,11 +69,11 @@ TEST(SmallMatrixTest, ElementwiseDivide) {
 TEST(SmallMatrixTest, Transpose) {
   Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
   Matrix at(a.T());
-  EXPECT_EQ(
-      (std::vector<float> {1, 4, 2, 5, 3, 6}),
-      at.GetVector());
-  EXPECT_EQ(3, at.rows());
-  EXPECT_EQ(2, at.cols());
+  ExpectMatrixEquals(
+      Matrix(3, 2, 1, (float[]) {
+          1, 4, 2, 5, 3, 6
+      }),
+      at);
 }
 
 TEST(SmallMatrixTest, Rot180) {
@@ -83,38 +85,35 @@ TEST(SmallMatrixTest, Rot180) {
       -0.5, 1, 0
   });
   Matrix ar(a.Rot180());
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(2, 3, 2, (float[]) {
           6, 5, 4,
           3, 2, 1,
 
           0, 1, -0.5,
           0, 1, -0.5
       }),
-      ar.GetVector());
-  EXPECT_EQ(2, ar.rows());
-  EXPECT_EQ(3, ar.cols());
-  EXPECT_EQ(2, ar.depth());
+      ar);
 }
 
 TEST(SmallMatrixTest, Multiply) {
   Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
   Matrix am(a.Multiply(2));
-  EXPECT_EQ(
-      (std::vector<float> {2, 4, 6, 8, 10, 12}),
-      am.GetVector());
-  EXPECT_EQ(2, am.rows());
-  EXPECT_EQ(3, am.cols());
+  ExpectMatrixEquals(
+      Matrix(2, 3, 1, (float[]) {
+          2, 4, 6, 8, 10, 12
+      }),
+      am);
 }
 
 TEST(SmallMatrixTest, Divide) {
   Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
-  Matrix am(a.Divide(0.5));
-  EXPECT_EQ(
-      (std::vector<float> {2, 4, 6, 8, 10, 12}),
-      am.GetVector());
-  EXPECT_EQ(2, am.rows());
-  EXPECT_EQ(3, am.cols());
+  Matrix ad(a.Divide(0.5));
+  ExpectMatrixEquals(
+      Matrix(2, 3, 1, (float[]) {
+          2, 4, 6, 8, 10, 12
+      }),
+      ad);
 }
 
 TEST(SmallMatrixTest, DotProduct) {
@@ -127,32 +126,36 @@ TEST(SmallMatrixTest, DotProduct) {
       9, 10, 11, 12});
 
   Matrix c(a.Dot(b));
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(2, 4, 1, (float[]) {
           38, 44,  50,  56,
           83, 98, 113, 128
       }),
-      c.GetVector());
-  EXPECT_EQ(2, c.rows());
-  EXPECT_EQ(4, c.cols());
+      c);
 }
 
 TEST(SmallMatrixTest, Sigmoid) {
   Matrix a(1, 2, 1, (float[]){0, 1});
   Matrix as(a.Map(matrix_mappers::Sigmoid()));
-  EXPECT_FLOAT_EQ(0.5, as.GetVector()[0]);
-  EXPECT_NEAR(0.73105, as.GetVector()[1], 0.00001);
-  EXPECT_EQ(1, as.rows());
-  EXPECT_EQ(2, as.cols());
+  ExpectMatrixEquals(
+      Matrix(1, 2, 1, (float[]) {
+          0.5, 0.73105
+      }),
+      as,
+      0.00001,
+      0.01);
 }
 
 TEST(SmallMatrixTest, SigmoidGradient) {
   Matrix a(1, 2, 1, (float[]){0, 1});
   Matrix as(a.Map(matrix_mappers::SigmoidGradient()));
-  EXPECT_FLOAT_EQ(0.25, as.GetVector()[0]);
-  EXPECT_NEAR(0.19661, as.GetVector()[1], 0.00001);
-  EXPECT_EQ(1, as.rows());
-  EXPECT_EQ(2, as.cols());
+  ExpectMatrixEquals(
+      Matrix(1, 2, 1, (float[]) {
+          0.25, 0.19661
+      }),
+      as,
+      0.00001,
+      0.01);
 }
 
 TEST(SmallMatrixTest, L2) {
@@ -191,26 +194,22 @@ TEST(SmallMatrixTest, NumMatches) {
 TEST(SmallMatrixTest, Fill) {
   Matrix a(2, 2, 1, (float[]){1, 1, 2, 0.5});
   a.Fill(4.2);
-  EXPECT_EQ(
-      (std::vector<float> {
-        4.2, 4.2,
-        4.2, 4.2
+  ExpectMatrixEquals(
+      Matrix(2, 2, 1, (float[]) {
+          4.2, 4.2,
+          4.2, 4.2
       }),
-      a.GetVector());
-  EXPECT_EQ(2, a.rows());
-  EXPECT_EQ(2, a.cols());
+      a);
 }
 
 TEST(SmallMatrixTest, ZeroInit) {
   Matrix a(2, 2, 1);
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(2, 2, 1, (float[]) {
           0.0, 0.0,
           0.0, 0.0
       }),
-      a.GetVector());
-  EXPECT_EQ(2, a.rows());
-  EXPECT_EQ(2, a.cols());
+      a);
 }
 
 TEST(SmallMatrixTest, AddRemovePadding) {
@@ -304,28 +303,22 @@ TEST(SmallMatrixTest, Convolution) {
   });
 
   Matrix ac(a.Convolution(c, 3));
-  EXPECT_EQ(2, ac.rows());
-  EXPECT_EQ(2, ac.cols());
-  EXPECT_EQ(4, ac.depth());
-  std::vector<float> expected_vector {
-      // Result of the 1st filter on 1st image:
-      14 + 15.4 + 6, 16 + 17.6 + 6,
-      26 + 28.6 + 6, 28 + 30.8 + 6,
-      // Result of the 2nd filter on 1st image:
-      6.5 - 4.4 + 6, 8 - 5.5 + 6,
-      12.5 - 11 + 6, 14 - 12.1 + 6,
-      // Result of the 1st filter on 2nd image:
-      14 + 15.4 + 6 - 1, 16 + 17.6 + 6,
-      26 + 28.6 + 6 - 1, 28 + 30.8 + 6,
-      // Result of the 2nd filter on 2nd image:
-      6.5 - 4.4 + 6 - 1, 8 - 5.5 + 6,
-      12.5 - 11 + 6 - 2, 14 - 12.1 + 6,
-  };
-  std::vector<float> computed_vector = ac.GetVector();
-  EXPECT_EQ(expected_vector.size(), computed_vector.size());
-  for (size_t i = 0; i < expected_vector.size(); ++i) {
-    EXPECT_FLOAT_EQ(expected_vector[i], computed_vector[i]);
-  }
+  ExpectMatrixEquals(
+      Matrix(2, 2, 4, (float[]) {
+          // Result of the 1st filter on 1st image:
+          14 + 15.4 + 6, 16 + 17.6 + 6,
+          26 + 28.6 + 6, 28 + 30.8 + 6,
+          // Result of the 2nd filter on 1st image:
+          6.5 - 4.4 + 6, 8 - 5.5 + 6,
+          12.5 - 11 + 6, 14 - 12.1 + 6,
+          // Result of the 1st filter on 2nd image:
+          14 + 15.4 + 6 - 1, 16 + 17.6 + 6,
+          26 + 28.6 + 6 - 1, 28 + 30.8 + 6,
+          // Result of the 2nd filter on 2nd image:
+          6.5 - 4.4 + 6 - 1, 8 - 5.5 + 6,
+          12.5 - 11 + 6 - 2, 14 - 12.1 + 6,
+      }),
+      ac);
 }
 
 TEST(SmallMatrixTest, Reshape) {
@@ -344,11 +337,8 @@ TEST(SmallMatrixTest, Reshape) {
   });
 
   Matrix r(m.ReshapeToColumns(2));
-  EXPECT_EQ(12, r.rows());
-  EXPECT_EQ(2, r.cols());
-  EXPECT_EQ(1, r.depth());
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(12, 2, 1, (float[]) {
           1, 13,
           2, 14,
           3, 15,
@@ -362,12 +352,9 @@ TEST(SmallMatrixTest, Reshape) {
           11, 23,
           12, 24,
       }),
-      r.GetVector());
+      r);
   Matrix rr(r.ReshapeFromColumns(2, 3, 2));
-  EXPECT_EQ(m.rows(), rr.rows());
-  EXPECT_EQ(m.cols(), rr.cols());
-  EXPECT_EQ(m.depth(), rr.depth());
-  EXPECT_EQ(m.GetVector(), rr.GetVector());
+  ExpectMatrixEquals(m, rr);
 }
 
 TEST(SmallMatrixTest, ReorderLayers) {
@@ -392,11 +379,8 @@ TEST(SmallMatrixTest, ReorderLayers) {
     34, 35, 36,
   });
   Matrix rl(m.ReorderLayers(3));
-  EXPECT_EQ(2, rl.rows());
-  EXPECT_EQ(3, rl.cols());
-  EXPECT_EQ(6, rl.depth());
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(2, 3, 6, (float[]) {
           // new image1, layer1
           1, 2, 3,
           4, 5, 6,
@@ -416,7 +400,7 @@ TEST(SmallMatrixTest, ReorderLayers) {
           31, 32, 33,
           34, 35, 36,
       }),
-      rl.GetVector());
+      rl);
 }
 
 
@@ -435,24 +419,24 @@ TEST(SmallMatrixTest, CopyGetSet) {
   EXPECT_EQ(8, a.GetValue(0, 1, 1));
   EXPECT_EQ(42, b.GetValue(0, 1, 1));
 
-  EXPECT_EQ(
-      (std::vector<float> {
+  ExpectMatrixEquals(
+      Matrix(2, 3, 2, (float[]) {
           1, 2, 3,
           4, 5, 6,
 
           7, 8, 9,
           10, 11, 12,
       }),
-      a.GetVector());
-  EXPECT_EQ(
-      (std::vector<float> {
+      a);
+  ExpectMatrixEquals(
+      Matrix(2, 3, 2, (float[]) {
           1, 2, 3,
           4, 5, 6,
 
           7, 42, 9,
           10, 11, 12,
       }),
-      b.GetVector());
+      b);
 }
 
 TEST(SmallMatrixTest, Sum_Layers) {

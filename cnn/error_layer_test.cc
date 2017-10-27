@@ -18,10 +18,9 @@ TEST(ErrorLayerTest, L2GradientAt0) {
   // Get gradient with a forward+backward pass (expecting zero gradient here):
   error_layer.Forward(Matrix(1, 3, 1, (float[]) {-0.5f, 4.2f, -1.0f}));
   error_layer.Backward(Matrix());
-  std::vector<float> grad = error_layer.input_gradient().GetVector();
-  EXPECT_FLOAT_EQ(0.0f, grad[0]);
-  EXPECT_FLOAT_EQ(0.0f, grad[1]);
-  EXPECT_FLOAT_EQ(0.0f, grad[2]);
+  ExpectMatrixEquals(
+      Matrix(1, 3, 1, (float[]) { 0.0f, 0.0f, 0.0f }),
+      error_layer.input_gradient());
 }
 
 TEST(ErrorLayerTest, L2Gradient) {
