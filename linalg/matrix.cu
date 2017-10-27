@@ -1,5 +1,7 @@
 #include "linalg/matrix.h"
 
+#include "linalg/cuda_util.h"
+
 #include <cassert>  // TODO: release-mode assert
 #include <iostream>
 #include <iomanip>
@@ -26,17 +28,17 @@ Matrix::Matrix() :
 
 std::shared_ptr<float> AllocateData(int size) {
   float* data;
-  cudaMalloc(&data, size * sizeof(float));
+  CUDA_CALL(cudaMalloc(&data, size * sizeof(float)));
   return std::shared_ptr<float>(data, cudaFree);
 }
 
 std::shared_ptr<float> ImportData(float size, const float* host_data) {
   std::shared_ptr<float> device_data(AllocateData(size));
-  cudaMemcpy(
+  CUDA_CALL(cudaMemcpy(
       device_data.get(),
       host_data,
       size * sizeof(float),
-      cudaMemcpyHostToDevice);
+      cudaMemcpyHostToDevice));
   return device_data;
 }
 
@@ -68,11 +70,11 @@ Matrix::Matrix(int rows, int cols, int depth) :
 std::shared_ptr<float> Matrix::get_host_data() const {
   std::shared_ptr<float> host_data;
   host_data.reset(new float[size_], std::default_delete<float[]>() );
-  cudaMemcpy(
+  CUDA_CALL(cudaMemcpy(
       host_data.get(),
       data_.get(),
       size_ * sizeof(float),
-      cudaMemcpyDeviceToHost);
+      cudaMemcpyDeviceToHost));
   return host_data;
 }
 
@@ -140,6 +142,7 @@ Matrix Matrix::Add(const Matrix& other) const {
   AssertSameDimensions(other);
   Matrix result(rows_, cols_, depth_);
   VecAdd<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -153,6 +156,7 @@ __global__ void VecAddConst(float* A, float b, float* B, int size) {
 Matrix Matrix::AddConst(float c) const {
   Matrix result(rows_, cols_, depth_);
   VecAddConst<<<(size_ + 255) / 256, 256>>>(data_.get(), c, result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -166,6 +170,7 @@ __global__ void VecPow(float* A, float exp, float* B, int size) {
 Matrix Matrix::Pow(float exp) const {
   Matrix result(rows_, cols_, depth_);
   VecPow<<<(size_ + 255) / 256, 256>>>(data_.get(), exp, result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -180,6 +185,7 @@ Matrix Matrix::ElementwiseMultiply(const Matrix& other) const {
   AssertSameDimensions(other);
   Matrix result(rows_, cols_, depth_);
   VecMult<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -194,6 +200,7 @@ Matrix Matrix::ElementwiseDivide(const Matrix& other) const {
   AssertSameDimensions(other);
   Matrix result(rows_, cols_, depth_);
   VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -210,6 +217,7 @@ Matrix Matrix::T() const {
   dim3 grid(1, 1);
   dim3 threads(rows_, cols_);
   MatrixTranspose<<<grid, threads>>>(data_.get(), rows_, cols_, result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -235,6 +243,7 @@ Matrix Matrix::Rot180() const {
       data_.get(),
       rows_, cols_, depth_,
       result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -248,6 +257,7 @@ __global__ void VecMultiply(float* A, float m, float* B, int size) {
 Matrix Matrix::Multiply(float m) const {
   Matrix result(rows_, cols_, depth_);
   VecMultiply<<<(size_ + 255) / 256, 256>>>(data_.get(), m, result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -261,6 +271,7 @@ __global__ void VecDivide(float* A, float d, float* B, int size) {
 Matrix Matrix::Divide(float d) const {
   Matrix result(rows_, cols_, depth_);
   VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), d, result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -301,6 +312,7 @@ Matrix Matrix::Dot(const Matrix& other) const {
       data_.get(), rows_, cols_,
       other.data_.get(), other.rows_, other.cols_,
       result.data_.get(), result.rows_, result.cols_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -416,6 +428,7 @@ Matrix Matrix::Map(::matrix_mappers::MapperFunc map) const {
       data_.get(),
       result.data_.get(),
       size_);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -430,6 +443,7 @@ __global__ void VecSum(float* A, int len, float* B) {
 float Matrix::Sum() const {
   Matrix result(1, 1, 1);
   VecSum<<<1, 1>>>(data_.get(), size_, result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result.GetValue(0, 0, 0);
 }
 
@@ -477,6 +491,7 @@ Matrix Matrix::Sum(bool layered, int layers) const {
         data_.get(),
         rows_, cols_,
         result.data_.get());
+    CUDA_ASYNC_CHECK();
     return result;
   } else {
     // sum layers
@@ -488,6 +503,7 @@ Matrix Matrix::Sum(bool layered, int layers) const {
         rows_, cols_, depth_,
         result.data_.get(),
         layers);
+    CUDA_ASYNC_CHECK();
     return result;
   }
 }
@@ -534,6 +550,7 @@ Matrix Matrix::Repeat(
     MatrixRepeatLayers<<<blocks, threads_per_block>>>(
         data_.get(), depth_,
         result.data_.get(), rows, cols, depth);
+    CUDA_ASYNC_CHECK();
     return result;
   } else {
     assert(rows % rows_ == 0);
@@ -547,7 +564,7 @@ Matrix Matrix::Repeat(
         data_.get(),
         rows, cols,
         result.data_.get());
-
+    CUDA_ASYNC_CHECK();
     return result;
   }
 }
@@ -579,6 +596,7 @@ Matrix Matrix::PerLayerSum(int layers) const {
   MatrixPerLayerSum<<<blocks, threads_per_block>>>(
         data_.get(), rows_, cols_, depth_,
         result.data_.get(), layers);
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -604,6 +622,7 @@ Matrix Matrix::PerLayerRepeat(int times) const {
   MatrixPerLayerRepeat<<<blocks, threads_per_block>>>(
         data_.get(), rows_, cols_, depth_,
         result.data_.get(), result.depth());
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -618,6 +637,7 @@ __global__ void VecL2(float* A, int len, float* B) {
 float Matrix::L2() const {
   Matrix result(1, 1, 1);
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result.GetValue(0, 0, 0);
   // TODO: use the following, but figure out while it fails the tests now:
   // return Map(::matrix_mappers::Square()).Sum();
@@ -666,6 +686,7 @@ float Matrix::Softmax(const Matrix& expected_class) const {
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result.Sum();
 }
 
@@ -718,6 +739,7 @@ Matrix Matrix::SoftmaxGradient(const Matrix& expected_class) const {
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -765,6 +787,7 @@ float Matrix::NumMatches(const Matrix& expected_class) const {
       data_.get(), rows_, cols_,
       expected_class.data_.get(),
       result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result.Sum();
 }
 
@@ -778,6 +801,7 @@ __global__ void VecFill(float value, float* A, int a_size) {
 
 void Matrix::Fill(float value) {
   VecFill<<<(size_ + 255) / 256, 256>>>(value, data_.get(), size_);
+  CUDA_ASYNC_CHECK();
 }
 
 __global__ void MatrixAddPadding(
@@ -817,6 +841,7 @@ Matrix Matrix::AddPadding(
       data_.get(), rows_, cols_, depth_,
       row_padding, col_padding,
       result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -861,6 +886,7 @@ Matrix Matrix::RemovePadding(
       data_.get(), result.rows(), result.cols(), depth_,
       row_padding, col_padding,
       result.data_.get());
+  CUDA_ASYNC_CHECK();
   return result;
 }
 __global__ void MatrixConvolution(
@@ -933,7 +959,7 @@ Matrix Matrix::Convolution(
       data_.get(), rows_, cols_, depth_,
       filters.data_.get(), filters.rows(), filters.cols(), filters.depth(),
       result.data_.get(), result.rows(), result.cols(), result.depth());
-
+  CUDA_ASYNC_CHECK();
   return result;
 }
 
@@ -989,6 +1015,7 @@ std::pair<Matrix, Matrix> Matrix::Pooling(
       pooled.data_.get(),
       switches.data_.get(),
       pooled.rows_, pooled.cols_, pooled.depth_);
+  CUDA_ASYNC_CHECK();
 
   return std::make_pair(pooled, switches);
 }
@@ -1031,6 +1058,7 @@ Matrix Matrix::PoolingSwitch(
       data_.get(),
       rows_, cols_, depth_,
       result.data_.get());
+  CUDA_ASYNC_CHECK();
 
   return result;
 }
@@ -1064,11 +1092,11 @@ Matrix Matrix::ReorderLayers(int layers_per_image) const {
     int image_id = src / layers_per_image;
     int sublayer_id = src % layers_per_image;
     int dst = sublayer_id * num_images + image_id;
-    cudaMemcpy(
+    CUDA_CALL(cudaMemcpy(
         result.data_.get() + dst * layer_size,
         data_.get() + src * layer_size,
         layer_size * sizeof(float),
-        cudaMemcpyDeviceToDevice);
+        cudaMemcpyDeviceToDevice));
   }
 
   return result;
@@ -1076,29 +1104,29 @@ Matrix Matrix::ReorderLayers(int layers_per_image) const {
 
 Matrix Matrix::DeepCopy() const {
   Matrix result(rows_, cols_, depth_);
-  cudaMemcpy(
+  CUDA_CALL(cudaMemcpy(
       result.data_.get(),
       data_.get(),
       size_ * sizeof(float),
-      cudaMemcpyDeviceToDevice);
+      cudaMemcpyDeviceToDevice));
   return result;
 }
 
 float Matrix::GetValue(int row, int col, int depth) const {
   float result;
-  cudaMemcpy(
+  CUDA_CALL(cudaMemcpy(
       &result,
       data_.get() + Index(row, col, depth),
       sizeof(float),
-      cudaMemcpyDeviceToHost);
+      cudaMemcpyDeviceToHost));
   return result;
 }
 
 void Matrix::SetValue(int row, int col, int depth, float value) {
-  cudaMemcpy(
+  CUDA_CALL(cudaMemcpy(
       data_.get() + Index(row, col, depth),
       &value,
       sizeof(float),
-      cudaMemcpyHostToDevice);
+      cudaMemcpyHostToDevice));
 }
 
