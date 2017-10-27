@@ -6,7 +6,7 @@
 
 TEST(InputImageNormalizationLayerTest, MeanTest) {
   // 2 layers per image, 2 images per batch, 2 batches:
-  Matrix batch1(2, 3, 4, (float[]) {
+  Matrix batch1(2, 3, 4, {
     1, 1, 1,  // img1 layer1
     2, 2, 2,
     2, 2, 2,  // img1 layer2
@@ -17,7 +17,7 @@ TEST(InputImageNormalizationLayerTest, MeanTest) {
     -1, -1, 1,  // img2 layer2
     0, 0, 0,
   });
-  Matrix batch2(2, 3, 4, (float[]) {
+  Matrix batch2(2, 3, 4, {
     -1, 0, 1,  // img1 layer1
     0, -1, 2,
     -2, -2, 2,  // img1 layer2
@@ -29,7 +29,7 @@ TEST(InputImageNormalizationLayerTest, MeanTest) {
     -2, -2, -2,
   });
   // A batch with 3 images to test inference
-  Matrix infer_batch(2, 3, 6, (float[]) {
+  Matrix infer_batch(2, 3, 6, {
     // Image1: we expect to see negative mean
     0, 0, 0,
     0, 0, 0,
@@ -58,7 +58,7 @@ TEST(InputImageNormalizationLayerTest, MeanTest) {
   // Check that the global mean was correctly subtracted from
   // infer_batch.
   ExpectMatrixEquals(
-      Matrix(2, 3, 6, (float[]) {
+      Matrix(2, 3, 6, {
           -1, -1.25, -1.5,
           -0.25, -0.5, -0.75,
           -0.25, -0.25, -1.75,

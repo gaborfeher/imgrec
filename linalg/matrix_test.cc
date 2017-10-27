@@ -6,37 +6,40 @@
 #include "linalg/matrix_test_util.h"
 
 TEST(SmallMatrixTest, HostDeviceTransfer) {
-  Matrix a(2, 2, 1, (float[]){1, 6, 7, 42});
+  Matrix a(2, 2, 1, {1, 6, 7, 42});
   ExpectMatrixEquals(
-      Matrix(2, 2, 1, (float[]) {1, 6, 7, 42}),
+      Matrix(2, 2, 1,  {1, 6, 7, 42}),
       a);
+  EXPECT_EQ(
+      (std::vector<float> {1, 6, 7, 42}),
+      a.GetVector());
 }
 
 TEST(SmallMatrixTest, Add) {
-  Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
-  Matrix b(2, 2, 1, (float[]){1, 1, 2, 2});
+  Matrix a(2, 2, 1, {5, 2, 3, 4});
+  Matrix b(2, 2, 1, {1, 1, 2, 2});
   Matrix c(a.Add(b));
   ExpectMatrixEquals(
-      Matrix(2, 2, 1, (float[]) {6, 3, 5, 6}),
+      Matrix(2, 2, 1,  {6, 3, 5, 6}),
       c);
 }
 
 TEST(SmallMatrixTest, AddConst) {
-  Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
+  Matrix a(2, 2, 1, {5, 2, 3, 4});
   Matrix b(a.AddConst(1));
-  Matrix b_exp(2, 2, 1, (float[]){6, 3, 4, 5});
+  Matrix b_exp(2, 2, 1, {6, 3, 4, 5});
   ExpectMatrixEquals(b_exp, b);
 }
 
 TEST(SmallMatrixTest, Pow) {
-  Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
+  Matrix a(2, 2, 1, {5, 2, 3, 4});
   Matrix b(a.Pow(3));
-  Matrix b_exp(2, 2, 1, (float[]){125, 8, 27, 64});
+  Matrix b_exp(2, 2, 1, {125, 8, 27, 64});
   ExpectMatrixEquals(b_exp, b);
 }
 
 TEST(SmallMatrixTest, Square) {
-  Matrix a(2, 2, 1, (float[]){5, 2, -3, 4});
+  Matrix a(2, 2, 1, {5, 2, -3, 4});
   Matrix b(a.Map(::matrix_mappers::Square()));
   Matrix b_exp(2, 2, 1, {25, 4, 9, 16});
   ExpectMatrixEquals(b_exp, b);
@@ -45,39 +48,39 @@ TEST(SmallMatrixTest, Square) {
 TEST(SmallMatrixTest, Sqrt) {
   Matrix a(2, 2, 1, {25, 4, 9, 16});
   Matrix b(a.Map(::matrix_mappers::Sqrt()));
-  Matrix b_exp(2, 2, 1, (float[]){5, 2, 3, 4});
+  Matrix b_exp(2, 2, 1, {5, 2, 3, 4});
   ExpectMatrixEquals(b_exp, b);
 }
 
 TEST(SmallMatrixTest, ElementwiseMultiply) {
-  Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
-  Matrix b(2, 2, 1, (float[]){1, 1, 2, 2});
+  Matrix a(2, 2, 1, {5, 2, 3, 4});
+  Matrix b(2, 2, 1, {1, 1, 2, 2});
   Matrix c(a.ElementwiseMultiply(b));
   ExpectMatrixEquals(
-      Matrix(2, 2, 1, (float[]) { 5, 2, 6, 8 }),
+      Matrix(2, 2, 1,  { 5, 2, 6, 8 }),
       c);
 }
 
 TEST(SmallMatrixTest, ElementwiseDivide) {
-  Matrix a(2, 2, 1, (float[]){5, 2, 3, 4});
-  Matrix b(2, 2, 1, (float[]){1, 1, 2, 2});
+  Matrix a(2, 2, 1, {5, 2, 3, 4});
+  Matrix b(2, 2, 1, {1, 1, 2, 2});
   Matrix c(a.ElementwiseDivide(b));
-  Matrix c_exp(2, 2, 1, (float[]) {5, 2, 1.5, 2});
+  Matrix c_exp(2, 2, 1,  {5, 2, 1.5, 2});
   ExpectMatrixEquals(c_exp, c);
 }
 
 TEST(SmallMatrixTest, Transpose) {
-  Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
+  Matrix a(2, 3, 1, {1, 2, 3, 4, 5, 6});
   Matrix at(a.T());
   ExpectMatrixEquals(
-      Matrix(3, 2, 1, (float[]) {
+      Matrix(3, 2, 1,  {
           1, 4, 2, 5, 3, 6
       }),
       at);
 }
 
 TEST(SmallMatrixTest, Rot180) {
-  Matrix a(2, 3, 2, (float[]){
+  Matrix a(2, 3, 2, {
       1, 2, 3,
       4, 5, 6,
 
@@ -86,7 +89,7 @@ TEST(SmallMatrixTest, Rot180) {
   });
   Matrix ar(a.Rot180());
   ExpectMatrixEquals(
-      Matrix(2, 3, 2, (float[]) {
+      Matrix(2, 3, 2,  {
           6, 5, 4,
           3, 2, 1,
 
@@ -97,37 +100,37 @@ TEST(SmallMatrixTest, Rot180) {
 }
 
 TEST(SmallMatrixTest, Multiply) {
-  Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
+  Matrix a(2, 3, 1, {1, 2, 3, 4, 5, 6});
   Matrix am(a.Multiply(2));
   ExpectMatrixEquals(
-      Matrix(2, 3, 1, (float[]) {
+      Matrix(2, 3, 1,  {
           2, 4, 6, 8, 10, 12
       }),
       am);
 }
 
 TEST(SmallMatrixTest, Divide) {
-  Matrix a(2, 3, 1, (float[]){1, 2, 3, 4, 5, 6});
+  Matrix a(2, 3, 1, {1, 2, 3, 4, 5, 6});
   Matrix ad(a.Divide(0.5));
   ExpectMatrixEquals(
-      Matrix(2, 3, 1, (float[]) {
+      Matrix(2, 3, 1,  {
           2, 4, 6, 8, 10, 12
       }),
       ad);
 }
 
 TEST(SmallMatrixTest, DotProduct) {
-  Matrix a(2, 3, 1, (float[]){
+  Matrix a(2, 3, 1, {
       1, 2, 3,
       4, 5, 6});
-  Matrix b(3, 4, 1, (float[]){
+  Matrix b(3, 4, 1, {
       1,  2,  3,  4,
       5,  6,  7,  8,
       9, 10, 11, 12});
 
   Matrix c(a.Dot(b));
   ExpectMatrixEquals(
-      Matrix(2, 4, 1, (float[]) {
+      Matrix(2, 4, 1,  {
           38, 44,  50,  56,
           83, 98, 113, 128
       }),
@@ -135,10 +138,10 @@ TEST(SmallMatrixTest, DotProduct) {
 }
 
 TEST(SmallMatrixTest, Sigmoid) {
-  Matrix a(1, 2, 1, (float[]){0, 1});
+  Matrix a(1, 2, 1, {0, 1});
   Matrix as(a.Map(matrix_mappers::Sigmoid()));
   ExpectMatrixEquals(
-      Matrix(1, 2, 1, (float[]) {
+      Matrix(1, 2, 1,  {
           0.5, 0.73105
       }),
       as,
@@ -147,10 +150,10 @@ TEST(SmallMatrixTest, Sigmoid) {
 }
 
 TEST(SmallMatrixTest, SigmoidGradient) {
-  Matrix a(1, 2, 1, (float[]){0, 1});
+  Matrix a(1, 2, 1, {0, 1});
   Matrix as(a.Map(matrix_mappers::SigmoidGradient()));
   ExpectMatrixEquals(
-      Matrix(1, 2, 1, (float[]) {
+      Matrix(1, 2, 1,  {
           0.25, 0.19661
       }),
       as,
@@ -159,43 +162,43 @@ TEST(SmallMatrixTest, SigmoidGradient) {
 }
 
 TEST(SmallMatrixTest, L2) {
-  Matrix a(2, 2, 1, (float[]){1, 1, 2, 0.5});
+  Matrix a(2, 2, 1, {1, 1, 2, 0.5});
   EXPECT_FLOAT_EQ(6.25f, a.L2());
 }
 
 TEST(SmallMatrixTest, Softmax1) {
   // from http://cs231n.github.io/linear-classify/#softmax
-  Matrix wx(3, 1, 1, (float[]) {-2.85, 0.86, 0.28});
-  Matrix y(1, 1, 1, (float[]) {2.0});
+  Matrix wx(3, 1, 1,  {-2.85, 0.86, 0.28});
+  Matrix y(1, 1, 1,  {2.0});
   EXPECT_NEAR(1.04, wx.Softmax(y), 0.0002);
 }
 
 TEST(SmallMatrixTest, Softmax2) {
   // from http://cs231n.github.io/linear-classify/#softmax
-  Matrix wx(3, 2, 1, (float[]) {
+  Matrix wx(3, 2, 1,  {
       -2.85, 2.0,
       0.86, -1.0,
       0.28, 1.4,
   });
-  Matrix y(1, 2, 1, (float[]) {2.0, 1.0});
+  Matrix y(1, 2, 1,  {2.0, 1.0});
   EXPECT_NEAR((1.0402 + 3.4691), wx.Softmax(y), 0.0002);
 }
 
 TEST(SmallMatrixTest, NumMatches) {
-  Matrix wx(3, 4, 1, (float[]) {
+  Matrix wx(3, 4, 1,  {
       -2.85, 2.0, 1.0, 3.0,
       0.86, 1.4, -1.0, 2.0,
       0.9, 1.4, -2.0, 1.0,
   });
-  Matrix y(1, 4, 1, (float[]) {2.0, 1.0, 1.0, 0.0});
+  Matrix y(1, 4, 1,  {2.0, 1.0, 1.0, 0.0});
   EXPECT_FLOAT_EQ(2.0f, wx.NumMatches(y));
 }
 
 TEST(SmallMatrixTest, Fill) {
-  Matrix a(2, 2, 1, (float[]){1, 1, 2, 0.5});
+  Matrix a(2, 2, 1, {1, 1, 2, 0.5});
   a.Fill(4.2);
   ExpectMatrixEquals(
-      Matrix(2, 2, 1, (float[]) {
+      Matrix(2, 2, 1,  {
           4.2, 4.2,
           4.2, 4.2
       }),
@@ -205,7 +208,7 @@ TEST(SmallMatrixTest, Fill) {
 TEST(SmallMatrixTest, ZeroInit) {
   Matrix a(2, 2, 1);
   ExpectMatrixEquals(
-      Matrix(2, 2, 1, (float[]) {
+      Matrix(2, 2, 1,  {
           0.0, 0.0,
           0.0, 0.0
       }),
@@ -213,7 +216,7 @@ TEST(SmallMatrixTest, ZeroInit) {
 }
 
 TEST(SmallMatrixTest, AddRemovePadding) {
-  Matrix a(3, 4, 2, (float[]) {
+  Matrix a(3, 4, 2,  {
       1, 1, 2, 2,
       3, 3, 4, 4,
       5, 5, 6, 6,
@@ -226,7 +229,7 @@ TEST(SmallMatrixTest, AddRemovePadding) {
   EXPECT_EQ(2, a.depth());
   Matrix ap(a.AddPadding(2, 1));
   ExpectMatrixEquals(
-      Matrix(7, 6, 2, (float[]) {
+      Matrix(7, 6, 2,  {
           0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0,
           0, 1, 1, 2, 2, 0,
@@ -250,7 +253,7 @@ TEST(SmallMatrixTest, AddRemovePadding) {
 
 TEST(SmallMatrixTest, Convolution) {
   // Two 3x4 images with 3 "color channels" each:
-  Matrix a(3, 4, 3 * 2, (float[]) {
+  Matrix a(3, 4, 3 * 2,  {
       // Image1, layer1:
       1, 1, 2, 2,
       3, 3, 4, 4,
@@ -280,7 +283,7 @@ TEST(SmallMatrixTest, Convolution) {
   EXPECT_EQ(4, a.cols());
   EXPECT_EQ(6, a.depth());
   // Two 2x3x3 filters in a matrix:
-  Matrix c(2, 3, 3 * 2, (float[]) {
+  Matrix c(2, 3, 3 * 2,  {
     // Filter1:
     1, 1, 1,
     1, 1, 1,
@@ -304,7 +307,7 @@ TEST(SmallMatrixTest, Convolution) {
 
   Matrix ac(a.Convolution(c, 3));
   ExpectMatrixEquals(
-      Matrix(2, 2, 4, (float[]) {
+      Matrix(2, 2, 4,  {
           // Result of the 1st filter on 1st image:
           14 + 15.4 + 6, 16 + 17.6 + 6,
           26 + 28.6 + 6, 28 + 30.8 + 6,
@@ -322,7 +325,7 @@ TEST(SmallMatrixTest, Convolution) {
 }
 
 TEST(SmallMatrixTest, Reshape) {
-  Matrix m(2, 3, 4, (float[]) {
+  Matrix m(2, 3, 4,  {
     1, 2, 3,
     4, 5, 6,
 
@@ -338,7 +341,7 @@ TEST(SmallMatrixTest, Reshape) {
 
   Matrix r(m.ReshapeToColumns(2));
   ExpectMatrixEquals(
-      Matrix(12, 2, 1, (float[]) {
+      Matrix(12, 2, 1,  {
           1, 13,
           2, 14,
           3, 15,
@@ -358,7 +361,7 @@ TEST(SmallMatrixTest, Reshape) {
 }
 
 TEST(SmallMatrixTest, ReorderLayers) {
-  Matrix m(2, 3, 6, (float[]) {
+  Matrix m(2, 3, 6,  {
     // image1, layer1
     1, 2, 3,
     4, 5, 6,
@@ -380,7 +383,7 @@ TEST(SmallMatrixTest, ReorderLayers) {
   });
   Matrix rl(m.ReorderLayers(3));
   ExpectMatrixEquals(
-      Matrix(2, 3, 6, (float[]) {
+      Matrix(2, 3, 6,  {
           // new image1, layer1
           1, 2, 3,
           4, 5, 6,
@@ -405,7 +408,7 @@ TEST(SmallMatrixTest, ReorderLayers) {
 
 
 TEST(SmallMatrixTest, CopyGetSet) {
-  Matrix a(2, 3, 2, (float[]){
+  Matrix a(2, 3, 2, {
       1, 2, 3,
       4, 5, 6,
 
@@ -420,7 +423,7 @@ TEST(SmallMatrixTest, CopyGetSet) {
   EXPECT_EQ(42, b.GetValue(0, 1, 1));
 
   ExpectMatrixEquals(
-      Matrix(2, 3, 2, (float[]) {
+      Matrix(2, 3, 2,  {
           1, 2, 3,
           4, 5, 6,
 
@@ -429,7 +432,7 @@ TEST(SmallMatrixTest, CopyGetSet) {
       }),
       a);
   ExpectMatrixEquals(
-      Matrix(2, 3, 2, (float[]) {
+      Matrix(2, 3, 2,  {
           1, 2, 3,
           4, 5, 6,
 
@@ -441,7 +444,7 @@ TEST(SmallMatrixTest, CopyGetSet) {
 
 TEST(SmallMatrixTest, Sum_Layers) {
   // Two 3x4 images with 3 "color channels" each:
-  Matrix a(3, 4, 6, (float[]) {
+  Matrix a(3, 4, 6,  {
       // layer1:
       1, 1, 2, 2,
       3, 3, 4, 4,
@@ -484,7 +487,7 @@ TEST(SmallMatrixTest, Sum_Layers) {
 
 TEST(SmallMatrixTest, PerLayerSum) {
   // Two 3x4 images with 3 "color channels" each:
-  Matrix a(3, 4, 6, (float[]) {
+  Matrix a(3, 4, 6,  {
       // layer1:
       1, 1, 2, 2,
       3, 3, 4, 4,
@@ -512,7 +515,7 @@ TEST(SmallMatrixTest, PerLayerSum) {
   });
   Matrix s = a.PerLayerSum(3);
   ExpectMatrixEquals(
-    Matrix(3, 4, 3, (float[]) {
+    Matrix(3, 4, 3,  {
       // layer1 + layer4:
       1, 2, 4, 4,
       6, 6, 8, 8,
@@ -530,7 +533,7 @@ TEST(SmallMatrixTest, PerLayerSum) {
 }
 
 TEST(SmallMatrixTest, PerLayerRepeat) {
-  Matrix a(2, 3, 2, (float[]) {
+  Matrix a(2, 3, 2,  {
     1, 2, 3,
     4, 5, 6,
     7, 8, 9,
@@ -538,7 +541,7 @@ TEST(SmallMatrixTest, PerLayerRepeat) {
   });
   Matrix s = a.PerLayerRepeat(3);
   ExpectMatrixEquals(
-    Matrix(2, 3, 6, (float[]) {
+    Matrix(2, 3, 6,  {
         1, 2, 3,
         4, 5, 6,
         7, 8, 9,
@@ -555,13 +558,13 @@ TEST(SmallMatrixTest, PerLayerRepeat) {
     s);
 }
 TEST(SmallMatrixTest, Sum_Columns) {
-  Matrix a(3, 4, 1, (float[]) {
+  Matrix a(3, 4, 1,  {
       1, 1, 2, 2,
       3, 3, 4, 4,
       5, 5, 6, 6,
   });
   Matrix s = a.Sum(false, 3);
-  Matrix expected(3, 1, 1, (float[]) {
+  Matrix expected(3, 1, 1,  {
       6,
       14,
       22,
@@ -570,12 +573,12 @@ TEST(SmallMatrixTest, Sum_Columns) {
 }
 
 TEST(SmallMatrixTest, Repeat_Layers) {
-  Matrix a(1, 1, 2, (float[]) {
+  Matrix a(1, 1, 2,  {
       1,
       2,
   });
   Matrix b = a.Repeat(true, 2, 3, 6);
-  Matrix expected(2, 3, 6, (float[]) {
+  Matrix expected(2, 3, 6,  {
       1, 1, 1,
       1, 1, 1,
       2, 2, 2,
@@ -593,14 +596,14 @@ TEST(SmallMatrixTest, Repeat_Layers) {
 }
 
 TEST(SmallMatrixTest, Repeat_Columns) {
-  Matrix a(4, 1, 1, (float[]) {
+  Matrix a(4, 1, 1,  {
       4,
       3,
       2,
       1,
   });
   Matrix b = a.Repeat(false, 4, 3, 1);
-  Matrix expected(4, 3, 1, (float[]) {
+  Matrix expected(4, 3, 1,  {
       4, 4, 4,
       3, 3, 3,
       2, 2, 2,
@@ -610,7 +613,7 @@ TEST(SmallMatrixTest, Repeat_Columns) {
 }
 
 TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
-  Matrix a(4, 6, 2, (float[]) {
+  Matrix a(4, 6, 2,  {
       1, 2, 3, 4, 5, 6,
       7, 8, 9, 10, 11, 12,
       4, -2, 3, -2, -1, -5,
@@ -625,7 +628,7 @@ TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
   {
     SCOPED_TRACE("res.first");
     ExpectMatrixEquals(
-        Matrix(2, 2, 2, (float[]) {
+        Matrix(2, 2, 2,  {
             9, 12,
             4, -1,
 
@@ -637,7 +640,7 @@ TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
   {
     SCOPED_TRACE("res.second");
     ExpectMatrixEquals(
-        Matrix(2, 2, 2, (float[]) {
+        Matrix(2, 2, 2,  {
             5, 5,
             0, 1,
 
@@ -648,7 +651,7 @@ TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
   }
 
   // Test PoolingSwitch
-  Matrix b(2, 2, 2, (float[]) {
+  Matrix b(2, 2, 2,  {
     1, 2,
     3, 4,
     5, 6,
@@ -658,7 +661,7 @@ TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
   {
     SCOPED_TRACE("switched");
     ExpectMatrixEquals(
-        Matrix(4, 6, 2, (float[]) {
+        Matrix(4, 6, 2,  {
             0, 0, 0, 0, 0, 0,
             0, 0, 1, 0, 0, 2,
             3, 0, 0, 0, 4, 0,

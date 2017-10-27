@@ -8,13 +8,13 @@
 #include "linalg/matrix_test_util.h"
 
 TEST(PoolingLayerTest, Forward_Backward_ManualCheck) {
-  Matrix training_x(4, 4, 1, (float[]) {
+  Matrix training_x(4, 4, 1, {
       1, 2, 4, 1,
       3, 4, 2, 3,
       3, 4, 2, 3,
       1, 2, 4, 1,
   });
-  Matrix training_y(2, 2, 1, (float[]) {
+  Matrix training_y(2, 2, 1, {
       11, 12,
       13, 14,
   });
@@ -22,7 +22,7 @@ TEST(PoolingLayerTest, Forward_Backward_ManualCheck) {
   PoolingLayer layer(2, 2);
   layer.Forward(training_x);
   ExpectMatrixEquals(
-      Matrix(2, 2, 1, (float[]) {
+      Matrix(2, 2, 1, {
           4, 4,
           4, 4,
       }),
@@ -30,7 +30,7 @@ TEST(PoolingLayerTest, Forward_Backward_ManualCheck) {
   layer.Backward(training_y);
 
   ExpectMatrixEquals(
-      Matrix(4, 4, 1, (float[]) {
+      Matrix(4, 4, 1, {
           0, 0, 12, 0,
           0, 11, 0, 0,
           0, 13, 0, 0,
@@ -40,7 +40,7 @@ TEST(PoolingLayerTest, Forward_Backward_ManualCheck) {
 }
 
 TEST(PoolingLayerTest, Gradient_AutoCheck) {
-  Matrix training_x(4, 4, 2, (float[]) {
+  Matrix training_x(4, 4, 2, {
       1, 2, 4, 1,
       3, 4, 2, 3,
       3, 4, 2, 3,
@@ -51,7 +51,7 @@ TEST(PoolingLayerTest, Gradient_AutoCheck) {
       -2, -1, 1, -1,
       -2, -2, -2, 2,
   });
-  Matrix training_y(2, 2, 2, (float[]) {
+  Matrix training_y(2, 2, 2, {
       4, 5,
       5, 4,
       2, 3,

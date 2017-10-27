@@ -7,7 +7,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11
 CXXLINKFLAGS += -L$(CUDA_LIB) -lpthread -lcudart
 
 NVCC = /usr/local/cuda/bin/nvcc
-NVCCFLAGS += --include-path=. -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
+NVCCFLAGS += --include-path=. --system-include=$(GTEST_DIR)/include -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
 CUDA_LIB=/usr/local/cuda/lib64
 
 SOURCES := $(wildcard **/*.cc) $(wildcard **/*.cu)

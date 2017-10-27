@@ -20,7 +20,7 @@
 std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
   return std::make_shared<InMemoryDataSet>(
       8,
-      Matrix(8, 2, 1, (float[]) {
+      Matrix(8, 2, 1, {
         -1,  2,
          0,  1,
          1,  0,
@@ -30,7 +30,7 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
          0, -1,
          1, -2,
       }).T(),
-      Matrix(8, 1, 1, (float[]) {
+      Matrix(8, 1, 1,  {
           0,
           0,
           0,
@@ -45,11 +45,11 @@ std::shared_ptr<InMemoryDataSet> CreateTestCase1_TrainingData() {
 std::shared_ptr<InMemoryDataSet> CreateTestCase1_TestData() {
   return std::make_shared<InMemoryDataSet>(
       2,
-      Matrix(2, 2, 1, (float[]) {
+      Matrix(2, 2, 1,  {
           -1, -1,
            1,  1,
       }).T(),
-      Matrix(2, 1, 1, (float[]) {
+      Matrix(2, 1, 1,  {
           1,
           0,
       }).T());
@@ -147,7 +147,7 @@ TEST(FullyConnectedLayerTest, WeightGradient) {
 
   error_layer->SetExpectedValue(training_y);
 
-  Matrix weights(1, 2, 1, (float[]) { 4.2, -3.0 });
+  Matrix weights(1, 2, 1,  { 4.2, -3.0 });
   ParameterGradientCheck(
       stack,
       training_x,
@@ -179,7 +179,7 @@ TEST(FullyConnectedLayerTest, InputGradient) {
   stack->AddLayer(error_layer);
 
   error_layer->SetExpectedValue(training_y);
-  Matrix weights(1, 2, 1, (float[]) { 4.2, -3.0 });
+  Matrix weights(1, 2, 1,  { 4.2, -3.0 });
   fc_layer->weights_ = weights;
 
   InputGradientCheck(

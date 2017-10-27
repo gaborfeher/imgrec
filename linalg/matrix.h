@@ -7,6 +7,8 @@
 
 #include "util/random.h"
 
+#include "gtest/gtest_prod.h"
+
 namespace matrix_mappers {
 
 typedef void (*MapperFunc)(float* A, float* B, int size);
@@ -26,7 +28,6 @@ class Matrix {
  public:
   Matrix();  // "NULL" matrix
   Matrix(int rows, int cols, int depth);  // rows x cols x depth un-initialized values
-  Matrix(int rows, int cols, int depth, float* data);
   Matrix(int rows, int cols, int depth, const std::vector<float>& data);
 
   int rows() const { return rows_; }
@@ -135,7 +136,8 @@ class Matrix {
   // copy constructor and assignment operator.
 
  private:
-  // TODO: use public API for these tests.
+  FRIEND_TEST(SmallMatrixTest, HostDeviceTransfer);
+  // TODO: use public API for these tests:
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&);
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&, float, float);
 

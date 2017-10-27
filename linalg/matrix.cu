@@ -42,14 +42,6 @@ std::shared_ptr<float> ImportData(float size, const float* host_data) {
   return device_data;
 }
 
-Matrix::Matrix(int rows, int cols, int depth, float* data) :
-    rows_(rows),
-    cols_(cols),
-    depth_(depth),
-    size_(rows * cols * depth) {
-  data_ = ImportData(size_, data);
-}
-
 Matrix::Matrix(int rows, int cols, int depth, const std::vector<float>& data) :
     rows_(rows),
     cols_(cols),

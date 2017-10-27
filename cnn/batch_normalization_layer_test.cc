@@ -15,7 +15,7 @@
 
 
 TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
-  Matrix training_x(4, 3, 1, (float[]) {
+  Matrix training_x(4, 3, 1, {
     1, 2, 3,
     1, 1, 1,
     1, 1, 4,
@@ -29,7 +29,7 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
   {
     SCOPED_TRACE("mean_");
     ExpectMatrixEquals(
-        Matrix(4, 1, 1, (float[]) {
+        Matrix(4, 1, 1, {
             2, 1, 2, 0
         }),
         batch_layer.mean_);
@@ -37,7 +37,7 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
   {
     SCOPED_TRACE("shifted_");
     ExpectMatrixEquals(
-        Matrix(4, 3, 1, (float[]) {
+        Matrix(4, 3, 1, {
             -1, 0, 1,
             0, 0, 0,
             -1, -1, 2,
@@ -48,7 +48,7 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
   {
     SCOPED_TRACE("variance_");
     ExpectMatrixEquals(
-        Matrix(4, 1, 1, (float[]) {
+        Matrix(4, 1, 1, {
             2.0f / 3.0f,
             0.0f,
             2.0f,
@@ -60,7 +60,7 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
     SCOPED_TRACE("normalized_");
     float epsilon = batch_layer.epsilon_;
     ExpectMatrixEquals(
-        Matrix(4, 3, 1, (float[]) {
+        Matrix(4, 3, 1, {
             float(-1.0f / sqrt(2.0f / 3.0f + epsilon)),
             float(0.0f),
             float(1.0f / sqrt(2.0f / 3.0f + epsilon)),
@@ -82,15 +82,15 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
 }
 
 TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode) {
-  Matrix training_x(2, 2, 1, (float[]) {
+  Matrix training_x(2, 2, 1, {
       -1, 1,
       1, -1,
   });
   BatchNormalizationLayer batch_layer(2, false);
-  batch_layer.beta_ = Matrix(2, 1, 1, (float[]) {
+  batch_layer.beta_ = Matrix(2, 1, 1, {
       1, 2,
   });
-  batch_layer.gamma_ = Matrix(2, 1, 1, (float[]) {
+  batch_layer.gamma_ = Matrix(2, 1, 1, {
       3, 4,
   });
   batch_layer.BeginPhase(Layer::TRAIN_PHASE, 0);
@@ -100,7 +100,7 @@ TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode) {
   {
     SCOPED_TRACE("normalized_");
     ExpectMatrixEquals(
-        Matrix(2, 2, 1, (float[]) {
+        Matrix(2, 2, 1, {
             -1, 1,
             1, -1,
         }),
@@ -110,7 +110,7 @@ TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode) {
   {
     SCOPED_TRACE("output_");
     ExpectMatrixEquals(
-        Matrix(2, 2, 1, (float[]) {
+        Matrix(2, 2, 1, {
             -3 + 1,  3 + 1,
              4 + 2, -4 + 2,
         }),
@@ -120,7 +120,7 @@ TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode) {
 }
 
 TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
-  Matrix training_x(2, 3, 4, (float[]) {
+  Matrix training_x(2, 3, 4, {
     // img1 layer1
     1, 1, 1,
     1, 1, 1,
@@ -135,10 +135,10 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
     4, 4, 4,
   });
   BatchNormalizationLayer batch_layer(2, true);
-  batch_layer.beta_ = Matrix(1, 1, 2, (float[]) {
+  batch_layer.beta_ = Matrix(1, 1, 2, {
       1, 2,
   });
-  batch_layer.gamma_ = Matrix(1, 1, 2, (float[]) {
+  batch_layer.gamma_ = Matrix(1, 1, 2, {
       3, 4,
   });
   batch_layer.BeginPhase(Layer::TRAIN_PHASE, 0);
@@ -147,7 +147,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
   {
     SCOPED_TRACE("mean_");
     ExpectMatrixEquals(
-        Matrix(1, 1, 2, (float[]) {
+        Matrix(1, 1, 2, {
             2, 3,
         }),
         batch_layer.mean_);
@@ -155,7 +155,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
   {
     SCOPED_TRACE("shifted_");
     ExpectMatrixEquals(
-        Matrix(2, 3, 4, (float[]) {
+        Matrix(2, 3, 4, {
           // img1 layer1
           -1, -1, -1,
           -1, -1, -1,
@@ -174,7 +174,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
   {
     SCOPED_TRACE("variance_");
     ExpectMatrixEquals(
-        Matrix(1, 1, 2, (float[]) {
+        Matrix(1, 1, 2, {
             1, 1,
         }),
         batch_layer.variance_);
@@ -183,7 +183,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
     SCOPED_TRACE("normalized_");
     float epsilon = batch_layer.epsilon_;
     ExpectMatrixEquals(
-        Matrix(2, 3, 4, (float[]) {
+        Matrix(2, 3, 4, {
           // img1 layer1
           -1, -1, -1,
           -1, -1, -1,
@@ -203,7 +203,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
   {
     SCOPED_TRACE("output_");
     ExpectMatrixEquals(
-        Matrix(2, 3, 4, (float[]) {
+        Matrix(2, 3, 4, {
           // img1 layer1
           -3 + 1, -3 + 1, -3 + 1,
           -3 + 1, -3 + 1, -3 + 1,
@@ -223,13 +223,13 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
 }
 
 TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
-  Matrix training_x(4, 3, 1, (float[]) {
+  Matrix training_x(4, 3, 1, {
     1, 2, 3,
     2, -2, 1,
     1, 1, 2,
     1, 2, 3,
   });
-  Matrix training_y(4, 3, 1, (float[]) {
+  Matrix training_y(4, 3, 1, {
     -1, 1, -1,
     1, -1, 1,
     -1, 1, -1,
@@ -247,8 +247,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
   Random random(42);
   stack->Initialize(&random);
 
-  Matrix beta(4, 1, 1, (float[]) { 0, -1, 1, 2} );
-  Matrix gamma(4, 1, 1, (float[]) { -1, -0.5, 3, 1.2} );
+  Matrix beta(4, 1, 1, { 0, -1, 1, 2} );
+  Matrix gamma(4, 1, 1, { -1, -0.5, 3, 1.2} );
   batch_layer->beta_ = beta;
   batch_layer->gamma_ = gamma;
 
@@ -296,7 +296,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
 }
 
 TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
-  Matrix training_x(2, 3, 4, (float[]) {
+  Matrix training_x(2, 3, 4, {
     // img1 layer1
     1, 2, 3,
     3, 2, 1,
@@ -310,7 +310,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
     4, 8, 12,
     12, 8, 4,
   });
-  Matrix training_y(2, 3, 4, (float[]) {
+  Matrix training_y(2, 3, 4, {
     -10, 10, -10,
     10, -10, 10,
     -10, 10, -10,
@@ -332,8 +332,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
   Random random(42);
   stack->Initialize(&random);
 
-  Matrix beta(1, 1, 2, (float[]) { 2, -1 } );
-  Matrix gamma(1, 1, 2, (float[]) { -1, -0.5 } );
+  Matrix beta(1, 1, 2, { 2, -1 } );
+  Matrix gamma(1, 1, 2, { -1, -0.5 } );
   batch_layer->beta_ = beta;
   batch_layer->gamma_ = gamma;
 
@@ -381,13 +381,13 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
 }
 
 TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
-  Matrix training_x1(4, 3, 1, (float[]) {
+  Matrix training_x1(4, 3, 1, {
     1, 2, 3,
     1, 1, 1,
     1, 1, 4,
    -2, 0, 2,
   });
-  Matrix training_x2(4, 3, 1, (float[]) {
+  Matrix training_x2(4, 3, 1, {
     0, 2, 2,
     2, 2, 2,
     4, 1, 1,
@@ -395,8 +395,8 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
   });
   BatchNormalizationLayer batch_layer(4, false);
   batch_layer.Initialize(NULL);
-  batch_layer.beta_ = Matrix(4, 1, 1, (float[]) { 1, 1, -1, -1 } );
-  batch_layer.gamma_ = Matrix(4, 1, 1, (float[]) { -2, -2, 2,2 } );
+  batch_layer.beta_ = Matrix(4, 1, 1, { 1, 1, -1, -1 } );
+  batch_layer.gamma_ = Matrix(4, 1, 1, { -2, -2, 2,2 } );
 
 
   EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 0));
@@ -410,7 +410,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
   EXPECT_FALSE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 2));
 
   ExpectMatrixEquals(
-      Matrix(4, 1, 1, (float[]) {
+      Matrix(4, 1, 1, {
         10.0f / 6.0f,
         1.5f,
         2.0f,
@@ -418,7 +418,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
       }),
       batch_layer.global_mean_);
   ExpectMatrixEquals(
-      Matrix(4, 1, 1, (float[]) {
+      Matrix(4, 1, 1, {
         192.0f / 216.0f,
         0.25f,
         2.0f,
@@ -428,7 +428,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
 
   float epsilon = batch_layer.epsilon_;
   ExpectMatrixEquals(
-      Matrix(4, 1, 1, (float[]) {
+      Matrix(4, 1, 1, {
         static_cast<float>(-2.0f / sqrt(192.0f / 216.0f + epsilon)),
         static_cast<float>(-2.0f / sqrt(0.25f + epsilon)),
         static_cast<float>(2.0f / sqrt(2.0f + epsilon)),
@@ -436,7 +436,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
       }),
       batch_layer.global_multiplier_);
   ExpectMatrixEquals(
-      Matrix(4, 1, 1, (float[]) {
+      Matrix(4, 1, 1, {
         static_cast<float>(
           1.0f - -2.0f * 10.0f / 6.0f / sqrt(192.0f / 216.0f + epsilon)),
         static_cast<float>(
@@ -449,13 +449,13 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
 }
 
 TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
-  Matrix training_x1(1, 2, 4, (float[]) {
+  Matrix training_x1(1, 2, 4, {
     1, 2,
     2, 1,
     1, 1,
     -1, 1,
   });
-  Matrix training_x2(1, 2, 4, (float[]) {
+  Matrix training_x2(1, 2, 4, {
     1, 1,
     -1, 2,
     -2, 1,
@@ -463,8 +463,8 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
   });
   BatchNormalizationLayer batch_layer(2, true);
   batch_layer.Initialize(NULL);
-  batch_layer.beta_ = Matrix(1, 1, 2, (float[]) { 1, -1 } );
-  batch_layer.gamma_ = Matrix(1, 1, 2, (float[]) { -2, 2 } );
+  batch_layer.beta_ = Matrix(1, 1, 2, { 1, -1 } );
+  batch_layer.gamma_ = Matrix(1, 1, 2, { -2, 2 } );
 
 
   EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 0));
@@ -478,14 +478,14 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
   EXPECT_FALSE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 2));
 
   ExpectMatrixEquals(
-      Matrix(1, 1, 2, (float[]) {
+      Matrix(1, 1, 2, {
         6.0f / 8.0f,
         8.0f / 8.0f,
       }),
       batch_layer.global_mean_);
 
   ExpectMatrixEquals(
-      Matrix(1, 1, 2, (float[]) {
+      Matrix(1, 1, 2, {
         608.0f / 512.0f,
         12.f / 8.0f,
       }),
@@ -493,14 +493,14 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
 
   float epsilon = batch_layer.epsilon_;
   ExpectMatrixEquals(
-      Matrix(1, 1, 2, (float[]) {
+      Matrix(1, 1, 2, {
         static_cast<float>(-2.0f / sqrt(608.0f / 512.0f + epsilon)),
         static_cast<float>(2.0f / sqrt(12.0f / 8.0f + epsilon)),
       }),
       batch_layer.global_multiplier_);
 
   ExpectMatrixEquals(
-      Matrix(1, 1, 2, (float[]) {
+      Matrix(1, 1, 2, {
         static_cast<float>(
           1.0f - -2.0f * 6.0f / 8.0f / sqrt(608.0f / 512.0f + epsilon)),
         static_cast<float>(
@@ -510,7 +510,7 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
 }
 
 TEST(BatchNormalizationLayerTest, Infer_ColumnMode) {
-  Matrix training_x1(4, 3, 1, (float[]) {
+  Matrix training_x1(4, 3, 1, {
     1, 2, 3,
     1, 1, 1,
     1, 1, 4,
@@ -518,15 +518,15 @@ TEST(BatchNormalizationLayerTest, Infer_ColumnMode) {
   });
   BatchNormalizationLayer batch_layer(4, false);
   batch_layer.Initialize(NULL);
-  batch_layer.global_multiplier_ = Matrix(4, 1, 1, (float[]) { 1, 1, -1, -1 } );
-  batch_layer.global_shift_ = Matrix(4, 1, 1, (float[]) { -2, -2, 2, 2 } );
+  batch_layer.global_multiplier_ = Matrix(4, 1, 1, { 1, 1, -1, -1 } );
+  batch_layer.global_shift_ = Matrix(4, 1, 1, { -2, -2, 2, 2 } );
 
 
   batch_layer.BeginPhase(Layer::INFER_PHASE, 0);
   batch_layer.Forward(training_x1);
 
   ExpectMatrixEquals(
-    Matrix(4, 3, 1, (float[]) {
+    Matrix(4, 3, 1, {
       -1,  0,  1,
       -1, -1, -1,
        1,  1, -2,
@@ -536,7 +536,7 @@ TEST(BatchNormalizationLayerTest, Infer_ColumnMode) {
 }
 
 TEST(BatchNormalizationLayerTest, Infer_LayerMode) {
-  Matrix training_x1(2, 3, 4, (float[]) {
+  Matrix training_x1(2, 3, 4, {
     1, 2, 3,
     1, 1, 1,
 
@@ -551,15 +551,15 @@ TEST(BatchNormalizationLayerTest, Infer_LayerMode) {
   });
   BatchNormalizationLayer batch_layer(2, true);
   batch_layer.Initialize(NULL);
-  batch_layer.global_multiplier_ = Matrix(1, 1, 2, (float[]) { 1, -1 } );
-  batch_layer.global_shift_ = Matrix(1, 1, 2, (float[]) { -2, 2 } );
+  batch_layer.global_multiplier_ = Matrix(1, 1, 2, { 1, -1 } );
+  batch_layer.global_shift_ = Matrix(1, 1, 2, { -2, 2 } );
 
 
   batch_layer.BeginPhase(Layer::INFER_PHASE, 0);
   batch_layer.Forward(training_x1);
 
   ExpectMatrixEquals(
-    Matrix(2, 3, 4, (float[]) {
+    Matrix(2, 3, 4, {
       -1, 0, 1,
       -1, -1, -1,
 
@@ -579,13 +579,13 @@ TEST(BatchNormalizationLayerTest, Infer_LayerMode) {
 TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
   InMemoryDataSet training_ds(
       4,
-      Matrix(4, 4, 1, (float[]) {
+      Matrix(4, 4, 1, {
         1, -1, 1, -1,
         1, 1, 1,  2,
         1, 1, 2,  3,
         1, 2, 3, -2,
       }),  // inputs
-      Matrix(4, 4, 1, (float[]) {
+      Matrix(4, 4, 1, {
          2, -2,  2, -2,   // * 2 + 1
         -1, -1, -1,  2,   // - 2
         -1, -1, -4, -7,   // * -3 + 2
@@ -610,13 +610,13 @@ TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
 TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
   InMemoryDataSet training_ds(
       4,
-      Matrix(1, 4, 4, (float[]) {
+      Matrix(1, 4, 4, {
         1, -1, 1, -1,
         1, 1, 1,  2,
         1, 1, 2,  3,
         1, 2, 3, -2,
       }),  // inputs
-      Matrix(1, 4, 4, (float[]) {
+      Matrix(1, 4, 4, {
          2, -2,  2, -2,   // * 2 + 1
         -1, -1, -1,  2,   // - 2
         -1, -1, -4, -7,   // * -3 + 2

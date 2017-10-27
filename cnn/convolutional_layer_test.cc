@@ -65,15 +65,15 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
 };
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
-  Matrix training_x(3, 3, 1, (float[]) {
+  Matrix training_x(3, 3, 1, {
       -1, 1, -2,
       2, -0.5, 0,
       -3, 2, 0
   });
-  Matrix training_y(1, 1, 1, (float[]) {
+  Matrix training_y(1, 1, 1, {
       42.0
   });
-  Matrix filters(3, 3, 1, (float[]) {
+  Matrix filters(3, 3, 1, {
       3, -2, 1,
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -89,17 +89,17 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient1_Padding) {
-  Matrix training_x(3, 3, 1, (float[]) {
+  Matrix training_x(3, 3, 1, {
       -1, 1, -2,
       2, -0.5, 0,
       -3, 2, 0
   });
-  Matrix training_y(3, 3, 1, (float[]) {
+  Matrix training_y(3, 3, 1, {
       4.2, -4.2, 4.2,
       -4.2, 4.2, -4.2,
       4.2, -4.2, 4.2,
   });
-  Matrix filters(3, 3, 1, (float[]) {
+  Matrix filters(3, 3, 1, {
       3, -2, 1,
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -115,16 +115,16 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient1_Padding) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
-  Matrix training_x(3, 3, 1, (float[]) {
+  Matrix training_x(3, 3, 1, {
       -1, 1, -2,
       2, -0.5, 0,
       -3, 2, 0
   });
-  Matrix training_y(2, 2, 1, (float[]) {
+  Matrix training_y(2, 2, 1, {
       42.0, -43.0,
       44.0, 45.0,
   });
-  Matrix filters(2, 2, 1, (float[]) {
+  Matrix filters(2, 2, 1, {
       3, -2,
       0, -0.5,
   });
@@ -139,18 +139,18 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient2) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
-  Matrix training_x(4, 5, 1, (float[]) {
+  Matrix training_x(4, 5, 1, {
       -1,  1,  -2,  1,  -0.5,
        2, -0.5, 0, -1,  -2,
       -3,  2,   0, -1,   2,
        0, -2,   3,  1,  -0.5,
   });
-  Matrix training_y(3, 3, 1, (float[]) {
+  Matrix training_y(3, 3, 1, {
        42.0, -43.0, 21.0,
        44.0,  45.0, 22.0,
       -14.0,  32.0, 27.0
   });
-  Matrix filters(2, 3, 1, (float[]) {
+  Matrix filters(2, 3, 1, {
       3, -2  , -1,
       0, -0.5,  1.5
   });
@@ -165,7 +165,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient3) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
-  Matrix training_x(3, 3, 2, (float[]) {
+  Matrix training_x(3, 3, 2, {
       -1, 1, -2,  // Layer1
       2, -0.5, 0,
       -3, 2, 0,
@@ -173,10 +173,10 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
       0, 1, -2,
       -3, 0, 1,
   });
-  Matrix training_y(1, 1, 1, (float[]) {
+  Matrix training_y(1, 1, 1, {
       42.0
   });
-  Matrix filters(3, 3, 2, (float[]) {
+  Matrix filters(3, 3, 2, {
       3, -2, 1,  // Layer1
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -195,7 +195,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoLayers) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
-  Matrix training_x(3, 3, 2 * 2, (float[]) {
+  Matrix training_x(3, 3, 2 * 2, {
       -1, 1, -2,  // Img1. Layer1
       2, -0.5, 0,
       -3, 2, 0,
@@ -209,11 +209,11 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
       -1, 0, -1,
       0, -3, 0,
   });
-  Matrix training_y(1, 1, 2, (float[]) {
+  Matrix training_y(1, 1, 2, {
       42.0,
       -42.0,
   });
-  Matrix filters(3, 3, 2, (float[]) {
+  Matrix filters(3, 3, 2, {
       3, -2, 1,  // Filter Layer1
       0, -0.5, 0.5,
       -1, 0.5, 0,
@@ -232,7 +232,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXTwoLayers) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
-  Matrix training_x(4, 5, 6, (float[]) {
+  Matrix training_x(4, 5, 6, {
       -1,  1, -2,  1,  0,  // Img1. layer 1
        2, -0,  0, -1, -2,
       -3,  2,  0, -1,  2,
@@ -259,7 +259,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
       -3,  2,  0, -1,  2,
        0, -2,  3,  1,  0,
   });
-  Matrix training_y(3, 3, 2, (float[]) {
+  Matrix training_y(3, 3, 2, {
         2.0,  -3.0,  1.0,  // Img1. output
         4.0,   5.0,  2.0,
        -4.0,   2.0,  7.0,
@@ -267,7 +267,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
         4.0,  -5.0,  1.0,
         8.0,   9.0,  2.0
   });
-  Matrix filters(2, 3, 3, (float[]) {
+  Matrix filters(2, 3, 3, {
       3, -2, -1,  // Filter Layer1
       1, -1,  1,
       2, -1, -2, // Filter Layer2
@@ -286,7 +286,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayers_Big) {
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters_Big) {
-  Matrix training_x(4, 5, 6, (float[]) {
+  Matrix training_x(4, 5, 6, {
       -1,  1, -2,  1,  0,  // Img1. layer 1
        2, -0,  0, -1, -2,
       -3,  2,  0, -1,  2,
@@ -313,7 +313,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
       -3,  2,  0, -1,  2,
        0, -2,  3,  1,  0,
   });
-  Matrix training_y(3, 3, 4, (float[]) {
+  Matrix training_y(3, 3, 4, {
         2.0,  -3.0,  1.0,  // Img1. filter1. output
         4.0,   5.0,  2.0,
        -4.0,   2.0,  7.0,
@@ -327,7 +327,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
        -5.0,   1.0,  4.0,
         9.0,   2.0,  8.0,
   });
-  Matrix filters(2, 3, 6, (float[]) {
+  Matrix filters(2, 3, 6, {
       3, -2, -1,  // Filter1 Layer1
       1, -1,  1,
       2, -1, -2,  // Filter1 Layer2
@@ -352,7 +352,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_TwoImagesXThreeLayersXTwoFilters
 }
 
 TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilters) {
-  Matrix training_x(2, 2, 2 * 4, (float[]) {
+  Matrix training_x(2, 2, 2 * 4, {
       -1, 1,  // Img1. Layer1
       2, -1,
       2, 3,  // Img1. Layer2
@@ -371,7 +371,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
       0, -1,
 
   });
-  Matrix training_y(1, 1, 12, (float[]) {
+  Matrix training_y(1, 1, 12, {
     3,
     1,
     -1,
@@ -385,7 +385,7 @@ TEST_F(ConvolutionalLayerGradientTest, Gradient_FourImagesXTwoLayersXThreeFilter
     2,
     1,
   });
-  Matrix filters(2, 2, 6, (float[]) {
+  Matrix filters(2, 2, 6, {
       2, 0,  // Filter1 Layer1
       0, -2,
       1, -1,  // Filter1 Layer2
@@ -424,7 +424,7 @@ void CreateTestCase1(
   // 111 101
   // 010 111
   //
-  *training_x = Matrix(3, 6, 8 * 2, (float[]) {
+  *training_x = Matrix(3, 6, 8 * 2, {
       // Image 1: pattern1 on the left, slightly damaged pattern2 on the right
       1, 0, 0, 0, 1, 0,  // layer1
       0, 1, 0, 1, 0, 1,
@@ -490,7 +490,7 @@ void CreateTestCase1(
       1, 0, 1, 0, 0, 1,
   });
   // 1=pattern1, 2=pattern2, 0=junk
-  *training_y = Matrix(1, 8, 1, (float[]) {
+  *training_y = Matrix(1, 8, 1, {
       1, 2, 1, 2, 1, 2, 0, 0,
   });
 }
