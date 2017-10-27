@@ -238,11 +238,13 @@ bin/cnn/inverted_dropout_layer_test: bin/cnn/inverted_dropout_layer_test.o \
 
 bin/apps/cifar10/cifar10_train: apps/cifar10/downloaded_deps/cifar-10-batches-bin
 bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
-	bin/cnn/bias_layer.o \
 	bin/apps/cifar10/cifar_data_set.o \
+	bin/cnn/batch_normalization_layer.o \
+	bin/cnn/bias_layer.o \
 	bin/cnn/error_layer.o \
 	bin/cnn/fully_connected_layer.o \
 	bin/cnn/input_image_normalization_layer.o \
+	bin/cnn/inverted_dropout_layer.o \
 	bin/cnn/layer.o \
 	bin/cnn/layer_stack.o \
 	bin/cnn/nonlinearity_layer.o \

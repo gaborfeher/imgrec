@@ -15,7 +15,6 @@ class CifarDataSet : public InMemoryDataSet {
  private:
   int img_size_;
   int images_per_file_;
-  int num_classes_;
 
   void ReadImage(std::ifstream* input, std::vector<float>* x, std::vector<float>* y) const;
 };

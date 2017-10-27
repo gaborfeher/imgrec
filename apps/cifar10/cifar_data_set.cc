@@ -11,8 +11,7 @@ CifarDataSet::CifarDataSet(
     int batch_size) :
         InMemoryDataSet(batch_size),
         img_size_(1024 * 3),
-        images_per_file_(10000),
-        num_classes_(10) {
+        images_per_file_(10000) {
   assert(images_per_file_ % batch_size == 0);
   for (const std::string& file_name: file_names) {
     std::cout << file_name << std::endl;
