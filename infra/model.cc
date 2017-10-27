@@ -1,6 +1,7 @@
 #include "infra/model.h"
 
 #include <iostream>
+#include <chrono>
 
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
@@ -38,6 +39,8 @@ void Model::Train(
     float learn_rate,
     float regularization_lambda) {
 
+  std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
   model_->BeginPhase(Layer::TRAIN_PHASE, 0);
   for (int i = 0; i < epochs; ++i) {
@@ -65,6 +68,13 @@ void Model::Train(
   }
   model_->EndPhase(Layer::TRAIN_PHASE, 0);
   RunPhase(data_set, Layer::POST_TRAIN_PHASE);
+
+  std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+  if (logging_) {
+    std::cout << "Training time: "
+        << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0f
+        << "s" << std::endl;
+  }
 }
 
 void Model::RunPhase(
