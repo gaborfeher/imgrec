@@ -58,24 +58,24 @@ TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode) {
   }
   {
     SCOPED_TRACE("normalized_");
-    float epsilon = batch_layer.epsilon_;
+    const float epsilon = batch_layer.epsilon_;
     ExpectMatrixEquals(
         Matrix(4, 3, 1, {
-            float(-1.0f / sqrt(2.0f / 3.0f + epsilon)),
-            float(0.0f),
-            float(1.0f / sqrt(2.0f / 3.0f + epsilon)),
+            -1.0f / std::sqrt(2.0f / 3.0f + epsilon),
+            0.0f,
+            1.0f / std::sqrt(2.0f / 3.0f + epsilon),
 
             0.0f,
             0.0f,
             0.0f,
 
-            float(-1.0f / sqrt(2.0f + epsilon)),
-            float(-1.0f / sqrt(2.0f + epsilon)),
-            float(2.0f / sqrt(2.0f + epsilon)),
+            -1.0f / std::sqrt(2.0f + epsilon),
+            -1.0f / std::sqrt(2.0f + epsilon),
+            2.0f / std::sqrt(2.0f + epsilon),
 
-            float(-2.0f / sqrt(8.0f / 3.0f + epsilon)),
+            -2.0f / std::sqrt(8.0f / 3.0f + epsilon),
             0.0f,
-            float(2.0f / sqrt(8.0f / 3.0f + epsilon)),
+            2.0f / std::sqrt(8.0f / 3.0f + epsilon),
         }),
         batch_layer.normalized_);
   }
@@ -181,7 +181,7 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
   }
   {
     SCOPED_TRACE("normalized_");
-    float epsilon = batch_layer.epsilon_;
+    const float epsilon = batch_layer.epsilon_;
     ExpectMatrixEquals(
         Matrix(2, 3, 4, {
           // img1 layer1
@@ -426,24 +426,21 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
       }),
       batch_layer.global_variance_);
 
-  float epsilon = batch_layer.epsilon_;
+  const float epsilon = batch_layer.epsilon_;
   ExpectMatrixEquals(
       Matrix(4, 1, 1, {
-        static_cast<float>(-2.0f / sqrt(192.0f / 216.0f + epsilon)),
-        static_cast<float>(-2.0f / sqrt(0.25f + epsilon)),
-        static_cast<float>(2.0f / sqrt(2.0f + epsilon)),
-        static_cast<float>(2.0f / sqrt(16.0f / 6.0f + epsilon))
+        -2.0f / std::sqrt(192.0f / 216.0f + epsilon),
+        -2.0f / std::sqrt(0.25f + epsilon),
+        2.0f / std::sqrt(2.0f + epsilon),
+        2.0f / std::sqrt(16.0f / 6.0f + epsilon)
       }),
       batch_layer.global_multiplier_);
   ExpectMatrixEquals(
       Matrix(4, 1, 1, {
-        static_cast<float>(
-          1.0f - -2.0f * 10.0f / 6.0f / sqrt(192.0f / 216.0f + epsilon)),
-        static_cast<float>(
-          1.0f - -2.0f * 1.5f / sqrt(0.25f + epsilon)),
-        static_cast<float>(
-          -1.0f - 2.0f * 2.0f / sqrt(2.0f + epsilon)),
-        static_cast<float>(-1.0f - 2.0f * 0.0f)
+        1.0f - -2.0f * 10.0f / 6.0f / std::sqrt(192.0f / 216.0f + epsilon),
+        1.0f - -2.0f * 1.5f / std::sqrt(0.25f + epsilon),
+        -1.0f - 2.0f * 2.0f / std::sqrt(2.0f + epsilon),
+        -1.0f - 2.0f * 0.0f
       }),
       batch_layer.global_shift_);
 }
@@ -491,20 +488,18 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
       }),
       batch_layer.global_variance_);
 
-  float epsilon = batch_layer.epsilon_;
+  const float epsilon = batch_layer.epsilon_;
   ExpectMatrixEquals(
       Matrix(1, 1, 2, {
-        static_cast<float>(-2.0f / sqrt(608.0f / 512.0f + epsilon)),
-        static_cast<float>(2.0f / sqrt(12.0f / 8.0f + epsilon)),
+          -2.0f / std::sqrt(608.0f / 512.0f + epsilon),
+          2.0f / std::sqrt(12.0f / 8.0f + epsilon),
       }),
       batch_layer.global_multiplier_);
 
   ExpectMatrixEquals(
       Matrix(1, 1, 2, {
-        static_cast<float>(
-          1.0f - -2.0f * 6.0f / 8.0f / sqrt(608.0f / 512.0f + epsilon)),
-        static_cast<float>(
-          -1.0f - 2.0f * 1.0f / sqrt(12.0f / 8.0f + epsilon))
+          1.0f - -2.0f * 6.0f / 8.0f / std::sqrt(608.0f / 512.0f + epsilon),
+          -1.0f - 2.0f * 1.0f / std::sqrt(12.0f / 8.0f + epsilon)
       }),
       batch_layer.global_shift_);
 }
