@@ -55,7 +55,7 @@ void TrainSingleLayerFCModel() {
 }
 
 void TrainTwoLayerFCModel() {
-  std::shared_ptr<CifarDataSet> training = LoadTraining(200);
+  std::shared_ptr<CifarDataSet> training = LoadTraining(400);
   std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
