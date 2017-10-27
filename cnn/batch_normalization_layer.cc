@@ -13,13 +13,17 @@ BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) 
     gamma_ = Matrix(1, 1, num_neurons);
     global_mean_ = Matrix(1, 1, num_neurons);
     global_variance_ = Matrix(1, 1, num_neurons);
+    global_multiplier_ = Matrix(1, 1, num_neurons);
+    global_shift_ = Matrix(1, 1, num_neurons);
   } else {
     beta_ = Matrix(num_neurons, 1, 1);
     gamma_ = Matrix(num_neurons, 1, 1);
     global_mean_ = Matrix(num_neurons, 1, 1);
     global_variance_ = Matrix(num_neurons, 1, 1);
+    global_multiplier_ = Matrix(num_neurons, 1, 1);
+    global_shift_ = Matrix(num_neurons, 1, 1);
   }
-    }
+}
 
 void BatchNormalizationLayer::Print() const {
   std::cout << "Batch Normalization Layer" << std::endl;
@@ -32,6 +36,8 @@ void BatchNormalizationLayer::Print() const {
 void BatchNormalizationLayer::Initialize(Random*) {
   gamma_.Fill(1.0);
   beta_.Fill(0.0);
+  global_multiplier_.Fill(1.0);
+  global_shift_.Fill(0.0);
 }
 
 void BatchNormalizationLayer::Forward(const Matrix& input) {
