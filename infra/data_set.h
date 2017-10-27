@@ -3,7 +3,7 @@
 
 #include <vector>
 
-class Matrix;
+#include "linalg/matrix.h"
 
 class DataSet {
  public:
@@ -21,8 +21,7 @@ class DataSet {
 
 class InMemoryDataSet : public DataSet {
  public:
-  explicit InMemoryDataSet(
-      int minibatch_size);
+  explicit InMemoryDataSet(int minibatch_size);
   InMemoryDataSet(
       int minibatch_size,
       const Matrix& x,

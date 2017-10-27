@@ -28,6 +28,7 @@ clean:
 
 clean_all: clean
 	$(MAKE) -C googletest clean
+	rm -Rf apps/cifar10/downloaded_deps
 
 matrix_test: bin/linalg/matrix_test
 	$<
@@ -56,6 +57,9 @@ pooling_layer_test: bin/cnn/pooling_layer_test
 inverted_dropout_layer_test: bin/cnn/inverted_dropout_layer_test
 	$<
 
+cifar10_train: bin/apps/cifar10/cifar10_train
+	$<
+
 # Make sure GoogleTest is downloaded before compiling test targets:
 #######
 
@@ -70,6 +74,19 @@ $(TEST_DS): $(MAIN_GTEST_HEADER)
 bin/googletest/gtest_main.a : $(MAIN_GTEST_HEADER)
 	mkdir -p bin/googletest
 	$(MAKE) -C googletest ../$@
+
+# Download & Unpack CIFAR-10 dataset
+#######
+
+apps/cifar10/downloaded_deps/cifar-10-binary.tar.gz:
+	mkdir -p apps/cifar10/downloaded_deps && \
+	cd apps/cifar10/downloaded_deps && \
+	curl -o cifar-10-binary.tar.gz  https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz
+
+apps/cifar10/downloaded_deps/cifar-10-batches-bin: apps/cifar10/downloaded_deps/cifar-10-binary.tar.gz
+	cd apps/cifar10/downloaded_deps && \
+	tar xf cifar-10-binary.tar.gz
+	touch $@
 
 # Generate .d files (header dependency lists), and then include them in this Makefile
 # to make header dependencies automatically discovered:
@@ -218,3 +235,20 @@ bin/cnn/inverted_dropout_layer_test: bin/cnn/inverted_dropout_layer_test.o \
 		bin/linalg/matrix.cu.o \
 		bin/googletest/gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
+
+bin/apps/cifar10/cifar10_train: apps/cifar10/downloaded_deps/cifar-10-batches-bin
+bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
+	bin/cnn/bias_layer.o \
+	bin/apps/cifar10/cifar_data_set.o \
+	bin/cnn/error_layer.o \
+	bin/cnn/fully_connected_layer.o \
+	bin/cnn/input_image_normalization_layer.o \
+	bin/cnn/layer.o \
+	bin/cnn/layer_stack.o \
+	bin/cnn/nonlinearity_layer.o \
+	bin/cnn/reshape_layer.o \
+	bin/cnn/softmax_error_layer.o \
+	bin/infra/data_set.o \
+	bin/infra/model.o \
+	bin/linalg/matrix.cu.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $(filter %.o,$^) -o $@
