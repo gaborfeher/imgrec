@@ -237,8 +237,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4, false));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer<BatchNormalizationLayer>(4, false);
+  stack->AddLayer<L2ErrorLayer>();
   std::shared_ptr<BatchNormalizationLayer> batch_layer = stack->GetLayer<BatchNormalizationLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
   batch_layer->BeginPhase(Layer::TRAIN_PHASE, 0);
@@ -322,8 +322,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(2, true));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer<BatchNormalizationLayer>(2, true);
+  stack->AddLayer<L2ErrorLayer>();
   std::shared_ptr<BatchNormalizationLayer> batch_layer = stack->GetLayer<BatchNormalizationLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
   batch_layer->BeginPhase(Layer::TRAIN_PHASE, 0);
@@ -588,8 +588,8 @@ TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
       }));  // outputs
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4, false));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer<BatchNormalizationLayer>(4, false);
+  stack->AddLayer<L2ErrorLayer>();
 
   Model model(stack, 111, false);  // random seed is not used
   model.Train(
@@ -619,8 +619,8 @@ TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
       }));  // outputs
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(4, true));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer<BatchNormalizationLayer>(4, true);
+  stack->AddLayer<L2ErrorLayer>();
 
   Model model(stack, 111, false);  // random seed is not used
   model.Train(

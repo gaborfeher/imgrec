@@ -11,7 +11,17 @@ class Random;
 class LayerStack : public Layer {
  public:
   LayerStack();
+
   void AddLayer(std::shared_ptr<Layer> layer);
+
+  // Like AddLayer, but creates a new layer object. The arguments
+  // of this function are passed to the layer's constructor.
+  // (This works the same way as std::make_shared<>.)
+  template <typename T, class ... Args>
+  void AddLayer(Args && ... args) {
+    AddLayer(std::make_shared<T>(args...));
+  }
+
   template <typename T>
   std::shared_ptr<T> GetLayer(int id) {
     // Allow "Python-style" negative indices.

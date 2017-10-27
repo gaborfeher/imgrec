@@ -26,8 +26,8 @@ TEST(BiasLayerTest, GradientCheck_ColumnMode) {
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BiasLayer>(4, false));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer<BiasLayer>(4, false);
+  stack->AddLayer<L2ErrorLayer>();
   std::shared_ptr<BiasLayer> bias_layer = stack->GetLayer<BiasLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
   error_layer->SetExpectedValue(training_y);
@@ -68,8 +68,8 @@ TEST(BiasLayerTest, GradientCheck_LayerMode) {
   });
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<BiasLayer>(2, true));
-  stack->AddLayer(std::make_shared<L2ErrorLayer>());
+  stack->AddLayer<BiasLayer>(2, true);
+  stack->AddLayer<L2ErrorLayer>();
   std::shared_ptr<BiasLayer> bias_layer = stack->GetLayer<BiasLayer>(0);
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
   error_layer->SetExpectedValue(training_y);

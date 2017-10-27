@@ -40,12 +40,12 @@ void TrainSingleLayerFCModel() {
   std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<InputImageNormalizationLayer>(32, 32, 3));
-  stack->AddLayer(std::make_shared<ReshapeLayer>(32, 32, 3));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(32 * 32 * 3, 10));
-  stack->AddLayer(std::make_shared<BiasLayer>(10, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
+  stack->AddLayer<InputImageNormalizationLayer>(32, 32, 3);
+  stack->AddLayer<ReshapeLayer>(32, 32, 3);
+  stack->AddLayer<FullyConnectedLayer>(32 * 32 * 3, 10);
+  stack->AddLayer<BiasLayer>(10, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  stack->AddLayer<SoftmaxErrorLayer>();
 
   float error, accuracy;
   Model model(stack, 123, true);
@@ -59,16 +59,16 @@ void TrainTwoLayerFCModel() {
   std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  stack->AddLayer(std::make_shared<InputImageNormalizationLayer>(32, 32, 3));
-  stack->AddLayer(std::make_shared<ReshapeLayer>(32, 32, 3));
+  stack->AddLayer<InputImageNormalizationLayer>(32, 32, 3);
+  stack->AddLayer<ReshapeLayer>(32, 32, 3);
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(32 * 32 * 3, 50));
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(50, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
+  stack->AddLayer<FullyConnectedLayer>(32 * 32 * 3, 50);
+  stack->AddLayer<BatchNormalizationLayer>(50, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(50, 10));
-  stack->AddLayer(std::make_shared<BiasLayer>(10, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
+  stack->AddLayer<FullyConnectedLayer>(50, 10);
+  stack->AddLayer<BiasLayer>(10, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
@@ -80,7 +80,7 @@ void TrainTwoLayerFCModel() {
 }
 
 int main() {
-  // TrainSingleLayerFCModel();
+  TrainSingleLayerFCModel();
   TrainTwoLayerFCModel();
 
   return 0;

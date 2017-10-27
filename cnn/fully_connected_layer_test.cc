@@ -60,13 +60,11 @@ TEST(FullyConnectedLayerTest, Train_L2) {
   std::shared_ptr<InMemoryDataSet> test = CreateTestCase1_TestData();
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
+  stack->AddLayer<FullyConnectedLayer>(2, 1);
+  stack->AddLayer<BiasLayer>(1, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
+  stack->AddLayer<L2ErrorLayer>();
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
-  stack->AddLayer(std::make_shared<BiasLayer>(1, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(
-      ::activation_functions::Sigmoid()));
-  stack->AddLayer(error_layer);
   Model model(stack, 42, false);
   model.Train(
       *training,
@@ -97,13 +95,11 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   std::shared_ptr<InMemoryDataSet> test = CreateTestCase1_TestData();
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  std::shared_ptr<L2ErrorLayer> error_layer = std::make_shared<L2ErrorLayer>();
+  stack->AddLayer<FullyConnectedLayer>(2, 1);
+  stack->AddLayer<BatchNormalizationLayer>(1, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
+  stack->AddLayer<L2ErrorLayer>();
 
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 1));
-  stack->AddLayer(std::make_shared<BatchNormalizationLayer>(1, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(
-      ::activation_functions::Sigmoid()));
-  stack->AddLayer(error_layer);
   Model model(stack, 42, false);
   model.Train(
       *training,
@@ -138,14 +134,10 @@ TEST(FullyConnectedLayerTest, WeightGradient) {
   std::shared_ptr<FullyConnectedLayer> fc_layer =
       std::make_shared<FullyConnectedLayer>(2, 1);
   stack->AddLayer(fc_layer);
-  stack->AddLayer(std::make_shared<BiasLayer>(1, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(
-      ::activation_functions::Sigmoid()));
-  std::shared_ptr<L2ErrorLayer> error_layer =
-      std::make_shared<L2ErrorLayer>();
-  stack->AddLayer(error_layer);
-
-  error_layer->SetExpectedValue(training_y);
+  stack->AddLayer<BiasLayer>(1, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
+  stack->AddLayer<L2ErrorLayer>();
+  stack->GetLayer<L2ErrorLayer>(-1)->SetExpectedValue(training_y);
 
   Matrix weights(1, 2, 1,  { 4.2, -3.0 });
   ParameterGradientCheck(
@@ -168,19 +160,14 @@ TEST(FullyConnectedLayerTest, InputGradient) {
   Matrix training_y = training->GetBatchOutput(0);
 
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
-  std::shared_ptr<FullyConnectedLayer> fc_layer =
-      std::make_shared<FullyConnectedLayer>(2, 1);
-  stack->AddLayer(fc_layer);
-  stack->AddLayer(std::make_shared<BiasLayer>(1, false));
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(
-      activation_functions::Sigmoid()));
-  std::shared_ptr<L2ErrorLayer> error_layer =
-      std::make_shared<L2ErrorLayer>();
-  stack->AddLayer(error_layer);
+  stack->AddLayer<FullyConnectedLayer>(2, 1);
+  stack->AddLayer<BiasLayer>(1, false);
+  stack->AddLayer<NonlinearityLayer>(activation_functions::Sigmoid());
+  stack->AddLayer<L2ErrorLayer>();
 
-  error_layer->SetExpectedValue(training_y);
-  Matrix weights(1, 2, 1,  { 4.2, -3.0 });
-  fc_layer->weights_ = weights;
+  stack->GetLayer<L2ErrorLayer>(-1)->SetExpectedValue(training_y);
+  stack->GetLayer<FullyConnectedLayer>(0)->weights_ =
+      Matrix(1, 2, 1,  { 4.2, -3.0 });
 
   InputGradientCheck(
       stack,

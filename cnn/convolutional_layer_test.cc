@@ -591,9 +591,9 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv(bool use_batch_normalizat
   std::function< void (int num_neurons, bool layered) > add_bias_layer =
       [&stack, use_batch_normalization] (int num_neurons, bool layered) -> void {
         if (use_batch_normalization) {
-          stack->AddLayer(std::make_shared<BatchNormalizationLayer>(num_neurons, layered));
+          stack->AddLayer<BatchNormalizationLayer>(num_neurons, layered);
         } else {
-          stack->AddLayer(std::make_shared<BiasLayer>(num_neurons, layered));
+          stack->AddLayer<BiasLayer>(num_neurons, layered);
         }
       };
 
@@ -603,18 +603,18 @@ std::shared_ptr<LayerStack> CreateConvolutionalTestEnv(bool use_batch_normalizat
       2, 3, 3,
       0, 2));
   add_bias_layer(2, true);
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<ReshapeLayer>(1, 4, 2));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(8, 2));
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  stack->AddLayer<ReshapeLayer>(1, 4, 2);
+  stack->AddLayer<FullyConnectedLayer>(8, 2);
   add_bias_layer(2, false);
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(2, 10));
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  stack->AddLayer<FullyConnectedLayer>(2, 10);
   add_bias_layer(10, false);
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<FullyConnectedLayer>(10, 3));
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  stack->AddLayer<FullyConnectedLayer>(10, 3);
   add_bias_layer(3, false);
-  stack->AddLayer(std::make_shared<NonlinearityLayer>(::activation_functions::LReLU()));
-  stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  stack->AddLayer<SoftmaxErrorLayer>();
   return stack;
 }
 
