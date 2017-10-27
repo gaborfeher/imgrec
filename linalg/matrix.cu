@@ -7,7 +7,8 @@
 #include <iomanip>
 #include <math.h>
 
-#include <cuda_runtime.h>
+#include <cuda.h>  // strangely, not needed by ncvv
+#include <curand.h>
 
 __device__ int Dim3toDim1(
     int i, int j, int k,
@@ -1092,6 +1093,29 @@ Matrix Matrix::ReorderLayers(int layers_per_image) const {
   }
 
   return result;
+}
+
+__global__ void VecInvertedDropoutFill(
+    float* A,
+    int size,
+    float p) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    A[i] = A[i] < p ? (1.0 / p) : 0.0;
+  }
+}
+
+void Matrix::InvertedDropoutFill(Random* random, float p) {
+  unsigned long seed = random->RandLongUnsigned();
+
+  curandGenerator_t gen;
+  CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
+  CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed));
+  CURAND_CALL(curandGenerateUniform(gen, data_.get(), size_));
+
+  VecInvertedDropoutFill<<<(255 + size_) / 256, 256>>>(
+      data_.get(), size_, p);
+  CUDA_ASYNC_CHECK();
 }
 
 Matrix Matrix::DeepCopy() const {

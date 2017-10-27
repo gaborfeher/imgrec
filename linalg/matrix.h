@@ -110,6 +110,9 @@ class Matrix {
   // dimensions as this matrix.
   Matrix PoolingSwitch(const Matrix& switches, int pool_rows, int pool_cols) const;
 
+  Matrix DeepCopy() const;
+
+  // Mutating operations:
   void Fill(float value);
 
   template <class Distribution>
@@ -122,7 +125,9 @@ class Matrix {
     SetVector(result);
   }
 
-  Matrix DeepCopy() const;
+  // Each element is populated with 0 or 1/p. Probability
+  // of zero is 1-p, probability of 1/p is p.
+  void InvertedDropoutFill(Random* random, float p);
 
   float GetValue(int row, int col, int depth) const;
   void SetValue(int row, int col, int depth, float value);
@@ -137,6 +142,7 @@ class Matrix {
 
  private:
   FRIEND_TEST(SmallMatrixTest, HostDeviceTransfer);
+  FRIEND_TEST(SmallMatrixTest, InvertedDropoutFill);
   // TODO: use public API for these tests:
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&);
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&, float, float);

@@ -17,6 +17,10 @@ class Random {
     return (*distribution)(rnd_);
   }
 
+  unsigned long RandLongUnsigned() {
+    return rnd_();
+  }
+
  private:
   std::mt19937 rnd_;
 
