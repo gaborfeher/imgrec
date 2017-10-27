@@ -197,42 +197,53 @@ Matrix Matrix::ElementwiseDivide(const Matrix& other) const {
   return result;
 }
 
-__global__ void MatrixTranspose(float* A, int rows_, int cols_, float* T) {
-  int a_index = threadIdx.x * cols_ + threadIdx.y;
-  int t_index = threadIdx.y * rows_ + threadIdx.x;
-  T[t_index] = A[a_index];
+__global__ void MatrixTranspose(float* A, int rows, int cols, float* T) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  if (i < rows && j < cols) {
+    int a_index = i * cols + j;
+    int t_index = j * rows + i;
+    T[t_index] = A[a_index];
+  }
 }
 
 Matrix Matrix::T() const {
   assert(depth_ == 1);
   Matrix result(cols_, rows_, depth_);
 
-  dim3 grid(1, 1);
-  dim3 threads(rows_, cols_);
-  MatrixTranspose<<<grid, threads>>>(data_.get(), rows_, cols_, result.data_.get());
+  dim3 threads_per_block(16, 16);
+  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16);
+  MatrixTranspose<<<blocks, threads_per_block>>>(
+      data_.get(), rows_, cols_, result.data_.get());
   CUDA_ASYNC_CHECK();
   return result;
 }
 
 __global__ void MatrixRot180(
     float* A,
-    int rows_, int cols_, int depth_,
+    int rows, int cols, int depth,
     float* R) {
-  int a_index = Dim3toDim1(
-      threadIdx.x, threadIdx.y, threadIdx.z,
-      rows_, cols_, depth_);
-  int r_index = Dim3toDim1(
-      rows_ - threadIdx.x - 1, cols_ - threadIdx.y - 1, threadIdx.z,
-      rows_, cols_, depth_);
-  R[r_index] = A[a_index];
+
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
+  int k = threadIdx.z + blockDim.z * blockIdx.z;
+  if (i < rows && j < cols && k < depth) {
+    int a_index = Dim3toDim1(
+        i, j, k,
+        rows, cols, depth);
+    int r_index = Dim3toDim1(
+        rows - i - 1, cols - j - 1, k,
+        rows, cols, depth);
+    R[r_index] = A[a_index];
+  }
 }
 
 Matrix Matrix::Rot180() const {
   Matrix result(rows_, cols_, depth_);
 
-  dim3 grid(1, 1, 1);
-  dim3 threads(rows_, cols_, depth_);
-  MatrixRot180<<<grid, threads>>>(
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, depth_);
+  MatrixRot180<<<blocks, threads_per_block>>>(
       data_.get(),
       rows_, cols_, depth_,
       result.data_.get());
