@@ -51,7 +51,7 @@ void Model::Train(
       model_->Backward(dummy);
       model_->ApplyGradient(learn_rate);
       model_->Regularize(regularization_lambda);
-      // std::cout << "epoch " << i << " batch " << j << " error= " << error_->GetError() << std::endl;
+      // std::cout << "epoch " << i << " batch " << j << " error= " << error_->GetError() / data_set.MiniBatchSize() << std::endl;
     }
     float avg_error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
     float avg_accuracy = total_accuracy / data_set.NumBatches();
