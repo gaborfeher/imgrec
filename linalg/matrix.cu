@@ -330,25 +330,15 @@ __global__ void MatrixDotProd(
   }
 }
 
-void GetConfigForMatrix(
-    int rows, int cols, int depth,
-    dim3* threadsPerBlock,
-    dim3* blocks) {
-  assert(depth == 1);
-  *threadsPerBlock = dim3(16, 16);
-  *blocks = dim3((rows + 15) / 16, (cols + 15) / 16);
-}
-
 Matrix Matrix::Dot(const Matrix& other) const {
   assert(cols_ == other.rows_);
   assert(depth_ == 1);
   int c_rows = rows_;
   int c_cols = other.cols_;
   Matrix result(c_rows, c_cols, 1);
-
-  dim3 threadsPerBlock, blocks;
-  GetConfigForMatrix(c_rows, c_cols, 1, &threadsPerBlock, &blocks);
-  MatrixDotProd<<<blocks, threadsPerBlock>>>(
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks = CalculateBlocks(result, threads_per_block);
+  MatrixDotProd<<<blocks, threads_per_block>>>(
       data_.get(), rows_, cols_,
       other.data_.get(), other.rows_, other.cols_,
       result.data_.get(), result.rows_, result.cols_);
