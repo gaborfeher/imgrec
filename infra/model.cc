@@ -64,7 +64,7 @@ void Model::Train(
 
       system_clock::time_point minibatch_end = system_clock::now();
       float minibatch_duration = duration_cast<milliseconds>(minibatch_end - minibatch_start).count() / 1000.0f;
-      float avg_minibatch_duration = duration_cast<milliseconds>(minibatch_end - train_phase_start).count() / 1000.0f / (j + 1.0f);
+      float avg_minibatch_duration = duration_cast<milliseconds>(minibatch_end - train_phase_start).count() / 1000.0f / (j + 1.0f + i * data_set.NumBatches());
       if (log_level_ >= 2) {
         std::cout << "epoch " << i << " batch " << j
             << " (time= " << minibatch_duration << "s,"
