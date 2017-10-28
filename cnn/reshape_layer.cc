@@ -1,4 +1,7 @@
 #include "cnn/reshape_layer.h"
+
+#include <cassert>
+
 #include "linalg/matrix.h"
 
 ReshapeLayer::ReshapeLayer(int unit_rows, int unit_cols, int unit_depth) :
@@ -7,6 +10,8 @@ ReshapeLayer::ReshapeLayer(int unit_rows, int unit_cols, int unit_depth) :
     unit_depth_(unit_depth) {}
 
 void ReshapeLayer::Forward(const Matrix& input) {
+  assert(input.rows() == unit_rows_);
+  assert(input.cols() == unit_cols_);
   output_ = input.ReshapeToColumns(unit_depth_);
 }
 
