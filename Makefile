@@ -241,6 +241,7 @@ bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
 	bin/apps/cifar10/cifar_data_set.o \
 	bin/cnn/batch_normalization_layer.o \
 	bin/cnn/bias_layer.o \
+	bin/cnn/convolutional_layer.o \
 	bin/cnn/error_layer.o \
 	bin/cnn/fully_connected_layer.o \
 	bin/cnn/input_image_normalization_layer.o \
@@ -248,6 +249,7 @@ bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
 	bin/cnn/layer.o \
 	bin/cnn/layer_stack.o \
 	bin/cnn/nonlinearity_layer.o \
+	bin/cnn/pooling_layer.o \
 	bin/cnn/reshape_layer.o \
 	bin/cnn/softmax_error_layer.o \
 	bin/infra/data_set.o \

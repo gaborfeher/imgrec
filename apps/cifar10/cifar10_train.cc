@@ -6,13 +6,15 @@
 #include "infra/model.h"
 #include "cnn/batch_normalization_layer.h"
 #include "cnn/bias_layer.h"
+#include "cnn/convolutional_layer.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/input_image_normalization_layer.h"
 #include "cnn/inverted_dropout_layer.h"
 #include "cnn/layer_stack.h"
 #include "cnn/nonlinearity_layer.h"
-#include "cnn/softmax_error_layer.h"
+#include "cnn/pooling_layer.h"
 #include "cnn/reshape_layer.h"
+#include "cnn/softmax_error_layer.h"
 
 std::shared_ptr<CifarDataSet> LoadTraining(int minibatch_size) {
   return std::make_shared<CifarDataSet>(
@@ -73,15 +75,63 @@ void TrainTwoLayerFCModel() {
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
   float error, accuracy;
-  Model model(stack, 123, true);
+  Model model(stack, 123, 1);
   model.Evaluate(*validation, &error, &accuracy);
   model.Train(*training, 5, 0.008, 0.008);
   model.Evaluate(*validation, &error, &accuracy);
 }
 
-int main() {
-  TrainSingleLayerFCModel();
-  TrainTwoLayerFCModel();
 
+void TrainConvolutionalModel() {
+  std::shared_ptr<CifarDataSet> training = LoadTraining(400);
+  std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
+
+  std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
+  stack->AddLayer<InputImageNormalizationLayer>(32, 32, 3);
+  // Convolutional layer #1:
+  stack->AddLayer<ConvolutionalLayer>(20, 5, 5, 2, 3);
+  stack->AddLayer<BatchNormalizationLayer>(20, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  // Convolutional layer #2:
+  stack->AddLayer<ConvolutionalLayer>(20, 5, 5, 2, 20);
+  stack->AddLayer<BatchNormalizationLayer>(20, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  stack->AddLayer<PoolingLayer>(2, 2);
+
+  // Convolutional layer #3:
+  stack->AddLayer<ConvolutionalLayer>(20, 3, 3, 1, 20);
+  stack->AddLayer<BatchNormalizationLayer>(20, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  // Convolutional layer #4:
+  stack->AddLayer<ConvolutionalLayer>(20, 3, 3, 1, 20);
+  stack->AddLayer<BatchNormalizationLayer>(20, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  stack->AddLayer<ReshapeLayer>(16, 16, 20);
+
+  // Fully connected layer #1:
+  stack->AddLayer<FullyConnectedLayer>(16 * 16 * 20, 40);
+  stack->AddLayer<BatchNormalizationLayer>(40, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  // Fully connected layer #2:
+  stack->AddLayer<FullyConnectedLayer>(40, 10);
+  stack->AddLayer<BatchNormalizationLayer>(10, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
+
+  float error, accuracy;
+  Model model(stack, 123, 2);
+  // model.Evaluate(*validation, &error, &accuracy);
+  model.Train(*training, 5, 0.00005, 0.00001);
+  model.Evaluate(*validation, &error, &accuracy);
+}
+
+int main() {
+  // TrainSingleLayerFCModel();
+  // TrainTwoLayerFCModel();
+  TrainConvolutionalModel();
   return 0;
 }
