@@ -48,7 +48,7 @@ void TrainSingleLayerFCModel() {
   stack->AddLayer<SoftmaxErrorLayer>();
 
   float error, accuracy;
-  Model model(stack, 123, true);
+  Model model(stack, 123, 1);
   model.Evaluate(*validation, &error, &accuracy);
   model.Train(*training, 5, 0.4, 0.01);
   model.Evaluate(*validation, &error, &accuracy);

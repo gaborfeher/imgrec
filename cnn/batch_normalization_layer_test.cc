@@ -591,7 +591,7 @@ TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
   stack->AddLayer<BatchNormalizationLayer>(4, false);
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, 111, false);  // random seed is not used
+  Model model(stack, 111);  // random seed is not used
   model.Train(
       training_ds,
       20,
@@ -622,7 +622,7 @@ TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
   stack->AddLayer<BatchNormalizationLayer>(4, true);
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, 111, false);  // random seed is not used
+  Model model(stack, 111);  // random seed is not used
   model.Train(
       training_ds,
       20,

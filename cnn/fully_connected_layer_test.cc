@@ -65,7 +65,7 @@ TEST(FullyConnectedLayerTest, Train_L2) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, 42, false);
+  Model model(stack, 42);
   model.Train(
       *training,
       1000,
@@ -100,7 +100,7 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, 42, false);
+  Model model(stack, 42);
   model.Train(
       *training,
       1000,

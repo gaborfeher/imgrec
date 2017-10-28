@@ -15,7 +15,7 @@ class Model {
  public:
   // The last layer of model is assumed to be an ErrorLayer.
   Model(std::shared_ptr<LayerStack> model, int random_seed);
-  Model(std::shared_ptr<LayerStack> model, int random_seed, bool logging);
+  Model(std::shared_ptr<LayerStack> model, int random_seed, int log_level);
 
   void Train(
       const DataSet& data_set,
@@ -32,7 +32,7 @@ class Model {
   Model& operator=(const Model&) = delete;
 
  private:
-  bool logging_;
+  int log_level_;
   std::shared_ptr<LayerStack> model_;
   std::shared_ptr<ErrorLayer> error_;
 

@@ -688,7 +688,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 43, true);
+  Model model(stack, 43, 1);
   model.Train(
       *training_ds,
       5,  // epochs
@@ -708,7 +708,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 43, true);
+  Model model(stack, 43, 1);
   model.Train(
       *training_ds,
       5,  // epochs
@@ -729,7 +729,7 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Overfit) {
   std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(1, 1, 142);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Model model(stack, 43, true);
+  Model model(stack, 43, 1);
   model.Train(
       *training_ds,
       10,  // epochs
@@ -749,7 +749,7 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Model model(stack, 52, true);
+  Model model(stack, 52, 1);
   model.Train(
       *training_ds,
       5,  // epochs
