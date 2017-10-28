@@ -966,6 +966,15 @@ __global__ void MatrixConvolution(
   }
 }
 
+dim3 CalculateBlocks(
+    const Matrix& result,
+    dim3 threads_per_block) {
+  return dim3(
+      (result.rows() + threads_per_block.x - 1) / threads_per_block.x,
+      (result.cols() + threads_per_block.y - 1) / threads_per_block.y,
+      (result.depth() + threads_per_block.z - 1) / threads_per_block.z);
+}
+
 Matrix Matrix::Convolution(
     const Matrix& filters,
     int layers_per_image) const {
@@ -980,9 +989,9 @@ Matrix Matrix::Convolution(
       row_slots / stride,
       col_slots / stride,
       filters.depth() / layers_per_image * depth() / layers_per_image);
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((result.rows() + 15) / 16, (result.cols() + 15) / 16, result.depth());
-  MatrixConvolution<<<blocks, threadsPerBlock>>>(
+  dim3 threads_per_block(8, 8, 1);
+  dim3 blocks = CalculateBlocks(result, threads_per_block);
+  MatrixConvolution<<<blocks, threads_per_block>>>(
       layers_per_image,
       num_filters,
       MatrixPack(*this),
