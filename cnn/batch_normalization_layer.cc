@@ -86,10 +86,11 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
           .Map(::matrix_mappers::Square())
           .Sum(layered_, num_neurons_)
           .Multiply(1.0 / num_samples_);
-      variance_e_ = variance_.AddConst(epsilon_);
-      sqrt_variance_e_ = variance_e_.Map(::matrix_mappers::Sqrt());
-      normalized_ = shifted_.ElementwiseDivide(
-          sqrt_variance_e_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
+      variance_plus_e_ = variance_.AddConst(epsilon_);
+      sqrt_variance_plus_e_repeated_ = variance_plus_e_
+          .Map(::matrix_mappers::Sqrt())
+          .Repeat(layered_, input.rows(), input.cols(), input.depth());
+      normalized_ = shifted_.ElementwiseDivide(sqrt_variance_plus_e_repeated_);
       output_ = normalized_
           .ElementwiseMultiply(gamma_.Repeat(layered_, input.rows(), input.cols(), input.depth()))
           .Add(beta_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
@@ -115,11 +116,11 @@ void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
       .ElementwiseMultiply(gamma_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
   Matrix variance_grad = normalized_grad
       .ElementwiseMultiply(shifted_)
-      .ElementwiseMultiply(variance_e_.Pow(-1.5).Repeat(layered_, input_.rows(), input_.cols(), input_.depth()))
+      .ElementwiseMultiply(variance_plus_e_.Pow(-1.5).Repeat(layered_, input_.rows(), input_.cols(), input_.depth()))
       .Sum(layered_, num_neurons_)
       .Multiply(-0.5);
   Matrix normalized_grad_over_sqrt_variance_e =
-      normalized_grad.ElementwiseDivide(sqrt_variance_e_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
+      normalized_grad.ElementwiseDivide(sqrt_variance_plus_e_repeated_);
   Matrix mean_grad_part1 =
       normalized_grad_over_sqrt_variance_e
           .Sum(layered_, num_neurons_)

@@ -45,8 +45,8 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   Matrix mean_;
   Matrix shifted_;
   Matrix variance_;
-  Matrix variance_e_;
-  Matrix sqrt_variance_e_;
+  Matrix variance_plus_e_;
+  Matrix sqrt_variance_plus_e_repeated_;
   Matrix normalized_;
 
   // For computing the global mean and variance, needed for inference:
