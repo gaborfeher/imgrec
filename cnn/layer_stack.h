@@ -37,6 +37,7 @@ class LayerStack : public Layer {
   virtual void Regularize(float lambda);
   virtual bool BeginPhase(Phase phase, int phase_sub_id);
   virtual void EndPhase(Phase phase, int phase_sub_id);
+  virtual int NumParameters() const;
 
   virtual Matrix output() {
     return layers_.back()->output();

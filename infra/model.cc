@@ -42,10 +42,11 @@ void Model::Train(
   using std::chrono::duration_cast;
   using std::chrono::milliseconds;
 
+  if (log_level_ >= 1) {
+    std::cout << "Training model with " << model_->NumParameters() << " parameters" << std::endl;
+  }
   system_clock::time_point training_start = system_clock::now();
-
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
-
   model_->BeginPhase(Layer::TRAIN_PHASE, 0);
   system_clock::time_point train_phase_start = system_clock::now();
   for (int i = 0; i < epochs; ++i) {

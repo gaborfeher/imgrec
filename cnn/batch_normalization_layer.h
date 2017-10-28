@@ -18,9 +18,9 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
-
   virtual bool BeginPhase(Phase phase, int phase_sub_id);
   virtual void EndPhase(Phase phase, int phase_sub_id);
+  virtual int NumParameters() const;
  private:
   FRIEND_TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode);

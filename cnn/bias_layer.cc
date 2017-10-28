@@ -39,3 +39,6 @@ void BiasLayer::ApplyGradient(float learn_rate) {
   biases_ = biases_.Add(biases_gradient_.Multiply(-learn_rate));
 }
 
+int BiasLayer::NumParameters() const {
+  return num_neurons_;
+}

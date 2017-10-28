@@ -48,3 +48,8 @@ void FullyConnectedLayer::ApplyGradient(float learn_rate) {
 void FullyConnectedLayer::Regularize(float lambda) {
   weights_ = weights_.Multiply(1.0 - lambda);
 }
+
+int FullyConnectedLayer::NumParameters() const {
+  return input_size_ * output_size_;
+}
+

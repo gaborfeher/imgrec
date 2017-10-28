@@ -24,7 +24,7 @@ class Layer {
   virtual void Backward(const Matrix& output_gradient) = 0;
   virtual void ApplyGradient(float /* learn_rate */) {};
   virtual void Regularize(float /* lambda */) {};
-
+  virtual int NumParameters() const { return 0; }
 
   // Signals to the layer that a phase is beginning.
   // For optional phases like PRE_TRAIN_PHASE and POST_TRAIN_PHASE,

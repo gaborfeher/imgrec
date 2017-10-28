@@ -33,6 +33,7 @@ class Matrix {
   int rows() const { return rows_; }
   int cols() const { return cols_; }
   int depth() const { return depth_; }
+  int size() const { return size_; }
 
   void Print() const;
 

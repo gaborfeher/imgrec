@@ -200,3 +200,7 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
   }
   phase_ = NONE;
 }
+
+int BatchNormalizationLayer::NumParameters() const {
+  return num_neurons_ * 2;
+}

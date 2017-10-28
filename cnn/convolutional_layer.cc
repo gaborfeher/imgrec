@@ -106,3 +106,8 @@ void ConvolutionalLayer::ApplyGradient(float learn_rate) {
 void ConvolutionalLayer::Regularize(float lambda) {
   filters_ = filters_.Multiply(1.0 - lambda);
 }
+
+int ConvolutionalLayer::NumParameters() const {
+  return filters_.size();
+}
+

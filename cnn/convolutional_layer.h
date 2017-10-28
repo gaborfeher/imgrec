@@ -22,6 +22,7 @@ class ConvolutionalLayer : public Layer {
   virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
   virtual void Regularize(float lambda);
+  virtual int NumParameters() const;
 
  private:
   FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);

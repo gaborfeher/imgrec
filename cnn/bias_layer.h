@@ -17,6 +17,7 @@ class BiasLayer : public BiasLikeLayer {
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& ouotput_gradient);
   virtual void ApplyGradient(float learn_rate);
+  virtual int NumParameters() const;
  private:
   FRIEND_TEST(BiasLayerTest, GradientCheck_ColumnMode);
   FRIEND_TEST(BiasLayerTest, GradientCheck_LayerMode);

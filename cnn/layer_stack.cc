@@ -70,3 +70,11 @@ void LayerStack::EndPhase(Phase phase, int phase_sub_id) {
   }
 }
 
+int LayerStack::NumParameters() const {
+  int total = 0;
+  for (std::shared_ptr<Layer> layer : layers_) {
+    total += layer->NumParameters();
+  }
+  return total;
+}
+
