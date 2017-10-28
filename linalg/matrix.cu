@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <math.h>
 
-#include <cuda.h>  // strangely, not needed by ncvv
+#include <cuda.h>  // strangely, not needed by nvcc
 #include <curand.h>
 
 __device__ int Dim3toDim1(
@@ -893,15 +893,45 @@ Matrix Matrix::RemovePadding(
   CUDA_ASYNC_CHECK();
   return result;
 }
+
+struct MatrixPack {
+  float* items;
+  int rows;
+  int cols;
+  int depth;
+  int layer_size;
+
+  explicit MatrixPack(const Matrix& m) :
+      items(m.data_.get()),
+      rows(m.rows()),
+      cols(m.cols()),
+      depth(m.depth()),
+      layer_size(m.rows() * m.cols()) {}
+
+  __forceinline__ __device__ float get(int i, int j, int k) {
+    return items[k * layer_size + i * cols + j];
+  }
+
+  __forceinline__ __device__ void set(int i, int j, int k, float f) {
+    items[k * layer_size + i * cols + j] = f;
+  }
+
+  __forceinline__ __device__ bool inside(int i, int j, int k) {
+    return i < rows && j < cols && k < depth;
+  }
+};
+
 __global__ void MatrixConvolution(
     int layers_per_image,
-    float* A, int a_rows, int a_cols, int a_depth,
-    float* filters, int f_rows, int f_cols, int f_depth,
-    float* B, int b_rows, int b_cols, int b_depth) {
+    int num_filters,
+    MatrixPack a,
+    MatrixPack filters,
+    MatrixPack b) {
+
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
-  if (i < b_rows && j < b_cols && k < b_depth) {
+  if (b.inside(i, j, k)) {
     // k: destination depth-level = id of filter to apply
 
     // layout of resulting matrix (list of layers):
@@ -913,31 +943,26 @@ __global__ void MatrixConvolution(
     // 2nd image with 2nd filter
     // ...
 
-    int num_filters = f_depth / layers_per_image;
     int filter_id = k % num_filters;
     int image_id = k / num_filters;
 
-
     float sum = 0.0;
     for (int fk = 0; fk < layers_per_image; ++fk) {
-      for (int fi = 0; fi < f_rows; ++fi) {
-        for (int fj = 0; fj < f_cols; ++fj) {
-          int filter_index = Dim3toDim1(
+      for (int fi = 0; fi < filters.rows; ++fi) {
+        for (int fj = 0; fj < filters.cols; ++fj) {
+          float f_val = filters.get(
               fi,
               fj,
-              fk + filter_id * layers_per_image,  // fk: level in cur. filter
-              f_rows, f_cols, f_depth);
-          int a_index = Dim3toDim1(
+              fk + filter_id * layers_per_image);  // fk: level in cur. filter
+          float a_val = a.get(
               i + fi,
               j + fj,
-              fk + image_id * layers_per_image,  // fk: level in cur. image
-              a_rows, a_cols, a_depth);
-
-          sum += filters[filter_index] * A[a_index];
+              fk + image_id * layers_per_image);  // fk: level in cur. image
+          sum += f_val * a_val;
         }
       }
     }
-    B[Dim3toDim1(i, j, k, b_rows, b_cols, b_depth)] = sum;
+    b.set(i, j, k, sum);
   }
 }
 
@@ -945,13 +970,12 @@ Matrix Matrix::Convolution(
     const Matrix& filters,
     int layers_per_image) const {
   int stride = 1;
-  int row_slots = rows_ - filters.rows() + 1;
-  int col_slots = cols_ - filters.cols() + 1;
+  int row_slots = rows() - filters.rows() + 1;
+  int col_slots = cols() - filters.cols() + 1;
   assert(row_slots % stride == 0 && col_slots % stride == 0);
-
   assert(filters.depth() % layers_per_image == 0);
   assert(depth() % layers_per_image == 0);
-
+  int num_filters = filters.depth() / layers_per_image;
   Matrix result(
       row_slots / stride,
       col_slots / stride,
@@ -960,14 +984,13 @@ Matrix Matrix::Convolution(
   dim3 blocks((result.rows() + 15) / 16, (result.cols() + 15) / 16, result.depth());
   MatrixConvolution<<<blocks, threadsPerBlock>>>(
       layers_per_image,
-      data_.get(), rows_, cols_, depth_,
-      filters.data_.get(), filters.rows(), filters.cols(), filters.depth(),
-      result.data_.get(), result.rows(), result.cols(), result.depth());
+      num_filters,
+      MatrixPack(*this),
+      MatrixPack(filters),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result;
 }
-
-
 
 __global__ void MatrixPooling(
     int pool_rows, int pool_cols,

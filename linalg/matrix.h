@@ -146,6 +146,8 @@ class Matrix {
   // TODO: use public API for these tests:
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&);
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&, float, float);
+  // TODO: without friendship:
+  friend struct MatrixPack;
 
   int Index(int i, int j, int k) const;
   std::shared_ptr<float> get_host_data() const;
