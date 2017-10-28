@@ -20,6 +20,42 @@ int Matrix::Index(int i, int j, int k) const {
   return k * rows_ * cols_ + i * cols_ + j;
 }
 
+struct MatrixPack {
+  float* items;
+  int rows;
+  int cols;
+  int depth;
+  int layer_size;
+
+  explicit MatrixPack(const Matrix& m) :
+      items(m.data_.get()),
+      rows(m.rows()),
+      cols(m.cols()),
+      depth(m.depth()),
+      layer_size(m.rows() * m.cols()) {}
+
+  __forceinline__ __device__ float get(int i, int j, int k) {
+    return items[k * layer_size + i * cols + j];
+  }
+
+  __forceinline__ __device__ void set(int i, int j, int k, float f) {
+    items[k * layer_size + i * cols + j] = f;
+  }
+
+  __forceinline__ __device__ bool inside(int i, int j, int k) {
+    return i < rows && j < cols && k < depth;
+  }
+};
+
+dim3 CalculateBlocks(
+    const Matrix& result,
+    dim3 threads_per_block) {
+  return dim3(
+      (result.rows() + threads_per_block.x - 1) / threads_per_block.x,
+      (result.cols() + threads_per_block.y - 1) / threads_per_block.y,
+      (result.depth() + threads_per_block.z - 1) / threads_per_block.z);
+}
+
 Matrix::Matrix() :
     rows_(0),
     cols_(0),
@@ -894,33 +930,6 @@ Matrix Matrix::RemovePadding(
   return result;
 }
 
-struct MatrixPack {
-  float* items;
-  int rows;
-  int cols;
-  int depth;
-  int layer_size;
-
-  explicit MatrixPack(const Matrix& m) :
-      items(m.data_.get()),
-      rows(m.rows()),
-      cols(m.cols()),
-      depth(m.depth()),
-      layer_size(m.rows() * m.cols()) {}
-
-  __forceinline__ __device__ float get(int i, int j, int k) {
-    return items[k * layer_size + i * cols + j];
-  }
-
-  __forceinline__ __device__ void set(int i, int j, int k, float f) {
-    items[k * layer_size + i * cols + j] = f;
-  }
-
-  __forceinline__ __device__ bool inside(int i, int j, int k) {
-    return i < rows && j < cols && k < depth;
-  }
-};
-
 __global__ void MatrixConvolution(
     int layers_per_image,
     int num_filters,
@@ -964,15 +973,6 @@ __global__ void MatrixConvolution(
     }
     b.set(i, j, k, sum);
   }
-}
-
-dim3 CalculateBlocks(
-    const Matrix& result,
-    dim3 threads_per_block) {
-  return dim3(
-      (result.rows() + threads_per_block.x - 1) / threads_per_block.x,
-      (result.cols() + threads_per_block.y - 1) / threads_per_block.y,
-      (result.depth() + threads_per_block.z - 1) / threads_per_block.z);
 }
 
 Matrix Matrix::Convolution(
