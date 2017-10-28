@@ -70,12 +70,30 @@ TEST(SmallMatrixTest, ElementwiseDivide) {
 }
 
 TEST(SmallMatrixTest, Transpose) {
-  Matrix a(2, 3, 1, {1, 2, 3, 4, 5, 6});
+  Matrix a(2, 3, 1, {
+      1, 2, 3,
+      4, 5, 6
+  });
   Matrix at(a.T());
   ExpectMatrixEquals(
       Matrix(3, 2, 1,  {
-          1, 4, 2, 5, 3, 6
+          1, 4,
+          2, 5,
+          3, 6
       }),
+      at);
+}
+
+TEST(BigMatrixTest, Transpose) {
+  std::vector<float> nums;
+  for (int i = 0; i < 1000; ++i) {
+    nums.push_back(i);
+  }
+
+  Matrix a(1, 1000, 1, nums);
+  Matrix at(a.T());
+  ExpectMatrixEquals(
+      Matrix(1000, 1, 1, nums),
       at);
 }
 

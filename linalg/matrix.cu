@@ -247,8 +247,8 @@ Matrix Matrix::T() const {
   assert(depth_ == 1);
   Matrix result(cols_, rows_, depth_);
 
-  dim3 threads_per_block(16, 16);
-  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16);
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks = CalculateBlocks(*this, threads_per_block);
   MatrixTranspose<<<blocks, threads_per_block>>>(
       data_.get(), rows_, cols_, result.data_.get());
   CUDA_ASYNC_CHECK();
@@ -278,7 +278,7 @@ Matrix Matrix::Rot180() const {
   Matrix result(rows_, cols_, depth_);
 
   dim3 threads_per_block(16, 16, 1);
-  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, depth_);
+  dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixRot180<<<blocks, threads_per_block>>>(
       data_.get(),
       rows_, cols_, depth_,
@@ -576,7 +576,7 @@ Matrix Matrix::Repeat(
     assert(cols_ == 1);
     Matrix result(rows, cols, depth);
     dim3 threads_per_block(16, 16, 1);
-    dim3 blocks((rows + 15) / 16, (cols + 15) / 16, depth);
+    dim3 blocks = CalculateBlocks(result, threads_per_block);
     MatrixRepeatLayers<<<blocks, threads_per_block>>>(
         data_.get(), depth_,
         result.data_.get(), rows, cols, depth);
@@ -589,7 +589,7 @@ Matrix Matrix::Repeat(
     assert(cols_ == 1);
     Matrix result(rows, cols, depth);
     dim3 threads_per_block(16, 16, 1);
-    dim3 blocks((rows + 15) / 16, (cols + 15) / 16, 1);
+    dim3 blocks = CalculateBlocks(result, threads_per_block);
     MatrixRepeatColumns<<<blocks, threads_per_block>>>(
         data_.get(),
         rows, cols,
@@ -622,7 +622,7 @@ Matrix Matrix::PerLayerSum(int layers) const {
   assert(depth_ % layers == 0);
   Matrix result(rows_, cols_, layers);
   dim3 threads_per_block(16, 16, 1);
-  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, layers);
+  dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixPerLayerSum<<<blocks, threads_per_block>>>(
         data_.get(), rows_, cols_, depth_,
         result.data_.get(), layers);
@@ -648,7 +648,7 @@ __global__ void MatrixPerLayerRepeat(
 Matrix Matrix::PerLayerRepeat(int times) const {
   Matrix result(rows_, cols_, depth_ * times);
   dim3 threads_per_block(16, 16, 1);
-  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, result.depth());
+  dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixPerLayerRepeat<<<blocks, threads_per_block>>>(
         data_.get(), rows_, cols_, depth_,
         result.data_.get(), result.depth());
@@ -865,9 +865,9 @@ Matrix Matrix::AddPadding(
       cols_ + 2 * col_padding,
       depth_);  // filled with zeros
 
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((rows_ + 15) / 16, (cols_ + 15) / 16, depth_);
-  MatrixAddPadding<<<blocks, threadsPerBlock>>>(
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks = CalculateBlocks(*this, threads_per_block);
+  MatrixAddPadding<<<blocks, threads_per_block>>>(
       data_.get(), rows_, cols_, depth_,
       row_padding, col_padding,
       result.data_.get());
@@ -910,9 +910,9 @@ Matrix Matrix::RemovePadding(
       cols_ - 2 * col_padding,
       depth_);
 
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((result.rows() + 15) / 16, (result.cols() + 15) / 16, depth_);
-  MatrixRemovePadding<<<blocks, threadsPerBlock>>>(
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks = CalculateBlocks(result, threads_per_block);
+  MatrixRemovePadding<<<blocks, threads_per_block>>>(
       data_.get(), result.rows(), result.cols(), depth_,
       row_padding, col_padding,
       result.data_.get());
@@ -1032,9 +1032,9 @@ std::pair<Matrix, Matrix> Matrix::Pooling(
   Matrix pooled(rows_ / pool_rows, cols_ / pool_cols, depth_);
   Matrix switches(rows_ / pool_rows, cols_ / pool_cols, depth_);
 
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((pooled.rows() + 15) / 16, (pooled.cols() + 15) / 16, pooled.depth());
-  MatrixPooling<<<blocks, threadsPerBlock>>>(
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks = CalculateBlocks(pooled, threads_per_block);
+  MatrixPooling<<<blocks, threads_per_block>>>(
       pool_rows, pool_cols,
       data_.get(),
       rows_, cols_, depth_,
@@ -1076,9 +1076,9 @@ Matrix Matrix::PoolingSwitch(
 
   Matrix result(rows_ * pool_rows, cols_ * pool_cols, depth_);  // Zero-filled.
 
-  dim3 threadsPerBlock(16, 16, 1);
-  dim3 blocks((switches.rows() + 15) / 16, (switches.cols() + 15) / 16, depth_);
-  MatrixPoolingSwitch<<<blocks, threadsPerBlock>>>(
+  dim3 threads_per_block(16, 16, 1);
+  dim3 blocks = CalculateBlocks(switches, threads_per_block);
+  MatrixPoolingSwitch<<<blocks, threads_per_block>>>(
       pool_rows, pool_cols,
       switches.data_.get(),
       data_.get(),
