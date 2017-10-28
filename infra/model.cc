@@ -47,6 +47,7 @@ void Model::Train(
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
 
   model_->BeginPhase(Layer::TRAIN_PHASE, 0);
+  system_clock::time_point train_phase_start = system_clock::now();
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
@@ -63,9 +64,11 @@ void Model::Train(
 
       system_clock::time_point minibatch_end = system_clock::now();
       float minibatch_duration = duration_cast<milliseconds>(minibatch_end - minibatch_start).count() / 1000.0f;
+      float avg_minibatch_duration = duration_cast<milliseconds>(minibatch_end - train_phase_start).count() / 1000.0f / (j + 1.0f);
       if (log_level_ >= 2) {
         std::cout << "epoch " << i << " batch " << j
-            << " (time= " << minibatch_duration << "s)"
+            << " (time= " << minibatch_duration << "s,"
+            << " avg_time= " << avg_minibatch_duration << "s)"
             << " error= " << error_->GetError() / data_set.MiniBatchSize()
             << " accuracy= " << 100.0 * error_->GetAccuracy() << "%"
             << std::endl;
