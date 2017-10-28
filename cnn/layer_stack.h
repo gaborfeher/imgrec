@@ -47,6 +47,10 @@ class LayerStack : public Layer {
 
  private:
   std::vector<std::shared_ptr<Layer>> layers_;
+  // When not all children return true for BeginPhase, then
+  // we only need to run forward passes until the last child
+  // returning true. (If all returned false this is disabled.)
+  int phase_last_child_id_;
 
 };
 

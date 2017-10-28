@@ -2,7 +2,7 @@
 
 #include "util/random.h"
 
-LayerStack::LayerStack() {}
+LayerStack::LayerStack() : phase_last_child_id_(-1) {}
 
 void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);
@@ -21,10 +21,14 @@ void LayerStack::Initialize(Random* random) {
 }
 
 void LayerStack::Forward(const Matrix& input) {
+  int limit = layers_.size();
+  if (phase_last_child_id_ >= 0) {
+    limit = phase_last_child_id_ + 1;
+  }
   Matrix last_input = input;
-  for (std::shared_ptr<Layer> layer : layers_) {
-    layer->Forward(last_input);
-    last_input = layer->output();
+  for (int i = 0; i < limit; ++i) {
+    layers_[i]->Forward(last_input);
+    last_input = layers_[i]->output();
   }
 }
 
@@ -49,10 +53,12 @@ void LayerStack::Regularize(float lambda) {
 }
 
 bool LayerStack::BeginPhase(Phase phase, int phase_sub_id) {
+  phase_last_child_id_ = -1;
   bool result = false;
-  for (std::shared_ptr<Layer> layer : layers_) {
-    if (layer->BeginPhase(phase, phase_sub_id)) {
+  for (int i = 0; i < layers_.size(); ++i) {
+    if (layers_[i]->BeginPhase(phase, phase_sub_id)) {
       result = true;
+      phase_last_child_id_ = i;
     }
   }
   return result;
