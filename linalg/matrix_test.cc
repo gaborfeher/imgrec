@@ -297,9 +297,6 @@ TEST(SmallMatrixTest, Convolution) {
       1, 1, 1, 1,
       0, 1, 1, 1
   });
-  EXPECT_EQ(3, a.rows());
-  EXPECT_EQ(4, a.cols());
-  EXPECT_EQ(6, a.depth());
   // Two 2x3x3 filters in a matrix:
   Matrix c(2, 3, 3 * 2,  {
     // Filter1:
@@ -323,7 +320,7 @@ TEST(SmallMatrixTest, Convolution) {
     2, 2, 2,
   });
 
-  Matrix ac(a.Convolution(c, 3));
+  Matrix ac = Matrix::Convolution(a, true, c, true, 3);
   ExpectMatrixEquals(
       Matrix(2, 2, 4,  {
           // Result of the 1st filter on 1st image:
@@ -340,6 +337,101 @@ TEST(SmallMatrixTest, Convolution) {
           12.5 - 11 + 6 - 2, 14 - 12.1 + 6,
       }),
       ac);
+}
+
+TEST(SmallMatrixTest, Convolution_MajorMinor1) {
+  Matrix a(1, 1, 4, {
+      1, 2, 3, 4
+  });
+  Matrix b(1, 1, 2, {
+      1, 2,
+  });
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 2, {1 * 1 + 2 * 2, 1 * 3 + 2 * 4}),
+        Matrix::Convolution(a, true, b, true, 2));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 2, {1 * 1 + 2 * 2, 1 * 3 + 2 * 4}),
+        Matrix::Convolution(a, true, b, false, 2));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 2, {1 * 1 + 2 * 3, 1 * 2 + 2 * 4}),
+        Matrix::Convolution(a, false, b, true, 2));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 2, {1 * 1 + 2 * 3, 1 * 2 + 2 * 4}),
+        Matrix::Convolution(a, false, b, false, 2));
+  }
+}
+
+TEST(SmallMatrixTest, Convolution_MajorMinor2) {
+  Matrix a(1, 1, 6, {
+      1, 2, 3, 4, 5, 6,
+  });
+  Matrix b(1, 1, 4, {
+      1, 2, 3, 4,
+  });
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 6, {
+            1 * 1 + 2 * 2,
+            3 * 1 + 4 * 2,
+            1 * 3 + 2 * 4,
+            3 * 3 + 4 * 4,
+            1 * 5 + 2 * 6,
+            3 * 5 + 4 * 6,
+        }),
+        Matrix::Convolution(a, true, b, true, 2));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 6, {
+            1 * 1 + 3 * 2,
+            2 * 1 + 4 * 2,
+            1 * 3 + 3 * 4,
+            2 * 3 + 4 * 4,
+            1 * 5 + 3 * 6,
+            2 * 5 + 4 * 6
+        }),
+        Matrix::Convolution(a, true, b, false, 2));
+  }
+}
+
+TEST(SmallMatrixTest, Convolution_MajorMinor3) {
+  Matrix a(1, 1, 6, {
+      1, 2, 3, 4, 5, 6,
+  });
+  Matrix b(1, 1, 3, {
+      1, 2, 3,
+  });
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 2, {
+          1 * 1 + 2 * 3 + 3 * 5,
+          1 * 2 + 2 * 4 + 3 * 6,
+        }),
+        Matrix::Convolution(a, false, b, true, 3));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 2, {
+          1 * 1 + 2 * 3 + 3 * 5,
+          1 * 2 + 2 * 4 + 3 * 6,
+        }),
+        Matrix::Convolution(b, true, a, false, 3));
+  }
 }
 
 TEST(SmallMatrixTest, Reshape) {
@@ -377,53 +469,6 @@ TEST(SmallMatrixTest, Reshape) {
   Matrix rr(r.ReshapeFromColumns(2, 3, 2));
   ExpectMatrixEquals(m, rr);
 }
-
-TEST(SmallMatrixTest, ReorderLayers) {
-  Matrix m(2, 3, 6,  {
-    // image1, layer1
-    1, 2, 3,
-    4, 5, 6,
-    // image1, layer2
-    7, 8, 9,
-    10, 11, 12,
-    // image1, layer3
-    13, 14, 15,
-    16, 17, 18,
-    // image2, layer1
-    19, 20, 21,
-    22, 23, 24,
-    // image2, layer2
-    25, 26, 27,
-    28, 29, 30,
-    // image2, layer3
-    31, 32, 33,
-    34, 35, 36,
-  });
-  Matrix rl(m.ReorderLayers(3));
-  ExpectMatrixEquals(
-      Matrix(2, 3, 6,  {
-          // new image1, layer1
-          1, 2, 3,
-          4, 5, 6,
-          // new image1, layer2
-          19, 20, 21,
-          22, 23, 24,
-          // new image2, layer1
-          7, 8, 9,
-          10, 11, 12,
-          // new image2, layer2
-          25, 26, 27,
-          28, 29, 30,
-          // new image3, layer1
-          13, 14, 15,
-          16, 17, 18,
-          // new image3, layer2
-          31, 32, 33,
-          34, 35, 36,
-      }),
-      rl);
-}
-
 
 TEST(SmallMatrixTest, CopyGetSet) {
   Matrix a(2, 3, 2, {

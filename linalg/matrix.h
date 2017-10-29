@@ -86,17 +86,23 @@ class Matrix {
   Matrix RemovePadding(int row_padding, int col_padding) const;
   Matrix ReshapeToColumns(int unit_depth) const;
   Matrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
-  // Assuming that the matrix has n images, k layers each,
-  // roerders the layers to have k images with n layers each.
-  // The first new image will consist of the first layers of each
-  // original image (in the same order), the second img will
-  // consist of the second image of each layer, etc.
-  // TODO: integrate this into Convolution to get rid of copies
-  Matrix ReorderLayers(int layers_per_image) const;
 
-  // depth of filters must be a multiple of depth of this matrix,
-  // and it contains that many filters.
-  Matrix Convolution(const Matrix& filters, int layers_per_image) const;
+  // Computes convolution of a and b matrices. (Actually, this is not officially
+  // convolution, just cross-corellation. The difference is that b is not rotated
+  // by 180degs.)
+  // If a and/or b have multiple layers, the following logic applies: the number
+  // of layers in both matrices must be a multiple of layers_per_image. a contains
+  // the input images, b contains the filters. The convolution of an image and a filter
+  // is the sum of their layers' pairwise convolutions. The output will contain the
+  // convolution of each input image with each filter, sorted by images first.
+  // a_major and b_major controls the order in which the layers of and b are interpreted:
+  // major = true: sorted by images first, layers second
+  // major = false: sorted by layers first, images second
+  // (The output is always major-ordered.)
+  static Matrix Convolution(
+      const Matrix& a, bool a_major,
+      const Matrix& b, bool b_major,
+      int layers_per_image);
 
   // On each layer, independently: slices the matrix into
   // pool_rows x pool_cols sub-matrices and takes the max value

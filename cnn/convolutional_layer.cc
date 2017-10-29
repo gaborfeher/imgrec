@@ -30,11 +30,10 @@ void ConvolutionalLayer::Initialize(Random* random) {
 
 void ConvolutionalLayer::Forward(const Matrix& input) {
   input_ = input;
-  output_ = input
-      .AddPadding(padding_, padding_)
-      .Convolution(
-          filters_,
-          layers_per_image_);
+  output_ = Matrix::Convolution(
+      input.AddPadding(padding_, padding_), true,
+      filters_, true,
+      layers_per_image_);
 }
 
 void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
@@ -55,15 +54,18 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   int num_filters = filters_.depth() / layers_per_image_;
   int num_input_images = input_.depth() / layers_per_image_;
 
+  Matrix padded_output_gradient = output_gradient.AddPadding(
+      filters_.rows() - 1, filters_.cols() - 1);
+
+
   // (22)
-  input_gradient_ = output_gradient
-      .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
-      .Convolution(
-          filters_
-              .ReorderLayers(layers_per_image_)
-              .Rot180(),
-          num_filters)
-      .RemovePadding(padding_, padding_);
+  input_gradient_ = Matrix::Convolution(
+      padded_output_gradient,
+      true,
+      filters_.Rot180(),
+      false,
+      num_filters)
+          .RemovePadding(padding_, padding_);
   // Layer-wise this means:
   //  output_gradient_ is
   //     img1-filter1, img1-filter2
@@ -77,15 +79,13 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //     img2-layer1, img2-layer2, img2-layer3
 
   // (14)
-  filters_gradient_ = output_gradient
-      .ReorderLayers(num_filters)
-      .AddPadding(filters_.rows() - 1, filters_.cols() - 1)
-      .Convolution(
-          input_
-              .ReorderLayers(layers_per_image_)
-              .AddPadding(padding_, padding_),
-          num_input_images)
-      .Rot180();
+  filters_gradient_ = Matrix::Convolution(
+      padded_output_gradient,
+      false,
+      input_.AddPadding(padding_, padding_),
+      false,
+      num_input_images)
+          .Rot180();
   // Layer-wise this means:
   //  output_gradient after reordering is:
   //     img1-filter1, img2-filter1,
