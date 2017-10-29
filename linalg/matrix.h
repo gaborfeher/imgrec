@@ -82,8 +82,6 @@ class Matrix {
   Matrix Rot180() const;
   Matrix Dot(const Matrix&) const;
   Matrix Map(::matrix_mappers::MapperFunc map) const;
-  Matrix AddPadding(int row_padding, int col_padding) const;
-  Matrix RemovePadding(int row_padding, int col_padding) const;
   Matrix ReshapeToColumns(int unit_depth) const;
   Matrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
 

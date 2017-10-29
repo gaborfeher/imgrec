@@ -233,42 +233,6 @@ TEST(SmallMatrixTest, ZeroInit) {
       a);
 }
 
-TEST(SmallMatrixTest, AddRemovePadding) {
-  Matrix a(3, 4, 2,  {
-      1, 1, 2, 2,
-      3, 3, 4, 4,
-      5, 5, 6, 6,
-
-      1.1, 1.1, 2.2, 2.2,
-      3.3, 3.3, 4.4, 4.4,
-      5.5, 5.5, 6.6, 6.6});
-  EXPECT_EQ(3, a.rows());
-  EXPECT_EQ(4, a.cols());
-  EXPECT_EQ(2, a.depth());
-  Matrix ap(a.AddPadding(2, 1));
-  ExpectMatrixEquals(
-      Matrix(7, 6, 2,  {
-          0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0,
-          0, 1, 1, 2, 2, 0,
-          0, 3, 3, 4, 4, 0,
-          0, 5, 5, 6, 6, 0,
-          0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0,
-
-          0,   0,   0,   0,   0, 0,
-          0,   0,   0,   0,   0, 0,
-          0, 1.1, 1.1, 2.2, 2.2, 0,
-          0, 3.3, 3.3, 4.4, 4.4, 0,
-          0, 5.5, 5.5, 6.6, 6.6, 0,
-          0,   0,   0,   0,   0, 0,
-          0,   0,   0,   0,   0, 0,
-      }),
-      ap);
-  Matrix arp = ap.RemovePadding(2, 1);
-  ExpectMatrixEquals(a, arp);
-}
-
 TEST(SmallMatrixTest, Convolution) {
   // Two 3x4 images with 3 "color channels" each:
   Matrix a(3, 4, 3 * 2,  {
