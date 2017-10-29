@@ -962,20 +962,21 @@ __global__ void MatrixConvolution(
       int f_row_stop = min(filters.rows, a.rows + a.row_padding - b.row_padding - i);
       int f_col_stop = min(filters.cols, a.cols + a.col_padding - b.col_padding - j);
 
+      int filters_k = 0;  // Layer id in |filters| to use below.
+      int a_k = 0;   // Layer id in |a| to use now below.
+      if (a_major) {
+        a_k = fk + image_id * layers_per_image;
+      } else {
+        a_k = fk * num_a_images + image_id;
+      }
+      if (filters_major) {
+        filters_k = fk + filter_id * layers_per_image;
+      } else {
+        filters_k = fk * num_filters_images + filter_id;
+      }
+
       for (int fi = f_row_start; fi < f_row_stop; ++fi) {
         for (int fj = f_col_start; fj < f_col_stop; ++fj) {
-          int filters_k = 0;
-          int a_k = 0;
-          if (a_major) {
-            a_k = fk + image_id * layers_per_image;
-          } else {
-            a_k = fk * num_a_images + image_id;
-          }
-          if (filters_major) {
-            filters_k = fk + filter_id * layers_per_image;
-          } else {
-            filters_k = fk * num_filters_images + filter_id;
-          }
 
           float f_val = filters.get(
               fi,
