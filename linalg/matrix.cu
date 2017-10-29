@@ -487,9 +487,9 @@ __global__ void MatrixSumLayers(
   int b_index = threadIdx.x + blockDim.x * blockIdx.x;
   if (b_index < b_depth) {
     float result = 0.0;
-    for (int i = 0; i < a_rows; ++i) {
-      for (int j = 0; j < a_cols; ++j) {
-        for (int k = b_index; k < a_depth; k += b_depth) {
+    for (int k = b_index; k < a_depth; k += b_depth) {
+      for (int i = 0; i < a_rows; ++i) {
+        for (int j = 0; j < a_cols; ++j) {
           result += A[Dim3toDim1(i, j, k, a_rows, a_cols, a_depth)];
         }
       }

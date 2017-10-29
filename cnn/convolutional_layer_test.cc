@@ -749,7 +749,7 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Model model(stack, 52, 1);
+  Model model(stack, 42, 1);
   model.Train(
       *training_ds,
       5,  // epochs
