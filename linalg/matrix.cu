@@ -26,31 +26,24 @@ struct MatrixPack {
   int cols;
   int depth;
   int layer_size;
-  int row_padding;
-  int col_padding;
 
-  explicit MatrixPack(const Matrix& m, int row_padding, int col_padding) :
+  explicit MatrixPack(const Matrix& m) :
       items(m.data_.get()),
       rows(m.rows()),
       cols(m.cols()),
       depth(m.depth()),
-      layer_size(m.rows() * m.cols()),
-      row_padding(row_padding),
-      col_padding(col_padding) {}
+      layer_size(m.rows() * m.cols()) {}
 
   __forceinline__ __device__ float get(int i, int j, int k) {
-    // i -= row_padding; j -= col_padding;
     return items[k * layer_size + i * cols + j];
   }
 
   __forceinline__ __device__ void set(int i, int j, int k, float f) {
-    // i -= row_padding; j -= col_padding;
     items[k * layer_size + i * cols + j] = f;
   }
 
   __forceinline__ __device__ bool inside(int i, int j, int k) {
-    // i -= row_padding; j -= col_padding;
-    return /* i >= 0 && j >= 0 &&*/ i < rows && j < cols && k < depth;
+    return i < rows && j < cols && k < depth;
   }
 
 };
@@ -932,12 +925,17 @@ Matrix Matrix::RemovePadding(
 __global__ void MatrixConvolution(
     int layers_per_image,
     MatrixPack a, bool a_major, int num_a_images,
+    int a_row_shift, int a_col_shift,
     MatrixPack filters, bool filters_major, int num_filters_images,
     MatrixPack b) {
 
   int i = threadIdx.x + blockDim.x * blockIdx.x; // + b.row_padding;
   int j = threadIdx.y + blockDim.y * blockIdx.y; // + b.col_padding;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+  int a_i = i + a_row_shift;
+  int a_j = j + a_col_shift;
+
   if (b.inside(i, j, k)) {
     // k: destination depth-level = id of filter to apply
 
@@ -956,11 +954,11 @@ __global__ void MatrixConvolution(
     float sum = 0.0;
     for (int fk = 0; fk < layers_per_image; ++fk) {
       // i + f_row_start + b.row_padding - a.row_padding >= 0
-      int f_row_start = max(0, a.row_padding - b.row_padding - i);
-      int f_col_start = max(0, a.col_padding - b.col_padding - j);
+      int f_row_start = max(0, -a_i);
+      int f_col_start = max(0, -a_j);
       // i + f_row_stop + b.row_padding - a.row_padding <= a.rows
-      int f_row_stop = min(filters.rows, a.rows + a.row_padding - b.row_padding - i);
-      int f_col_stop = min(filters.cols, a.cols + a.col_padding - b.col_padding - j);
+      int f_row_stop = min(filters.rows, a.rows - a_i);
+      int f_col_stop = min(filters.cols, a.cols - a_j);
 
       int filters_k = 0;  // Layer id in |filters| to use below.
       int a_k = 0;   // Layer id in |a| to use now below.
@@ -983,8 +981,8 @@ __global__ void MatrixConvolution(
               fj,
               filters_k);
           float a_val = a.get(
-              i + fi + b.row_padding - a.row_padding,
-              j + fj + b.col_padding - a.col_padding,
+              a_i + fi,
+              a_j + fj,
               a_k);
           sum += f_val * a_val;
         }
@@ -1016,15 +1014,21 @@ Matrix Matrix::Convolution(
   assert(b.depth() % layers_per_image == 0);
   int num_a_images = a.depth() / layers_per_image;
   int num_b_images = b.depth() / layers_per_image;
-  Matrix c(row_slots - 2 * c_row_padding, col_slots - 2 * c_col_padding, num_a_images * num_b_images);
+  Matrix c(
+      row_slots - 2 * c_row_padding,
+      col_slots - 2 * c_col_padding,
+      num_a_images * num_b_images);
+  int a_row_shift = c_row_padding - a_row_padding + b_row_padding;
+  int a_col_shift = c_col_padding - a_col_padding + b_col_padding;
 
   dim3 threads_per_block(8, 8, 1);
   dim3 blocks = CalculateBlocks(c, threads_per_block);
   MatrixConvolution<<<blocks, threads_per_block>>>(
       layers_per_image,
-      MatrixPack(a, a_row_padding, a_col_padding), a_major, num_a_images,
-      MatrixPack(b, b_row_padding, b_col_padding), b_major, num_b_images,
-      MatrixPack(c, c_row_padding, c_col_padding));
+      MatrixPack(a), a_major, num_a_images,
+      a_row_shift, a_col_shift,
+      MatrixPack(b), b_major, num_b_images,
+      MatrixPack(c));
   CUDA_ASYNC_CHECK();
   return c;
 }

@@ -61,7 +61,6 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
       output_gradient, true, filters_.rows() - 1, filters_.cols() - 1,
       filters_.Rot180(), false, 0, 0,
       padding_, padding_);
-
   // Layer-wise this means:
   //  output_gradient_ is
   //     img1-filter1, img1-filter2
@@ -78,7 +77,7 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   filters_gradient_ = Matrix::Convolution(
       num_input_images,
       output_gradient, false, filters_.rows() - 1, filters_.cols() - 1,
-      input_.AddPadding(padding_, padding_), false, 0, 0,
+      input_, false, padding_, padding_,
       0, 0)
           .Rot180();
   // Layer-wise this means:
