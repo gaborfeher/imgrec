@@ -31,9 +31,9 @@ void ConvolutionalLayer::Initialize(Random* random) {
 void ConvolutionalLayer::Forward(const Matrix& input) {
   input_ = input;
   output_ = Matrix::Convolution(
+      layers_per_image_,
       input.AddPadding(padding_, padding_), true,
-      filters_, true,
-      layers_per_image_);
+      filters_, true);
 }
 
 void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
@@ -60,12 +60,11 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
 
   // (22)
   input_gradient_ = Matrix::Convolution(
-      padded_output_gradient,
-      true,
-      filters_.Rot180(),
-      false,
-      num_filters)
-          .RemovePadding(padding_, padding_);
+      num_filters,
+      padded_output_gradient, true, 0, 0,
+      filters_.Rot180(), false, 0, 0,
+      padding_, padding_);
+
   // Layer-wise this means:
   //  output_gradient_ is
   //     img1-filter1, img1-filter2
@@ -80,11 +79,9 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
 
   // (14)
   filters_gradient_ = Matrix::Convolution(
-      padded_output_gradient,
-      false,
-      input_.AddPadding(padding_, padding_),
-      false,
-      num_input_images)
+      num_input_images,
+      padded_output_gradient, false,
+      input_.AddPadding(padding_, padding_), false)
           .Rot180();
   // Layer-wise this means:
   //  output_gradient after reordering is:

@@ -320,7 +320,7 @@ TEST(SmallMatrixTest, Convolution) {
     2, 2, 2,
   });
 
-  Matrix ac = Matrix::Convolution(a, true, c, true, 3);
+  Matrix ac = Matrix::Convolution(3, a, true, c, true);
   ExpectMatrixEquals(
       Matrix(2, 2, 4,  {
           // Result of the 1st filter on 1st image:
@@ -350,25 +350,25 @@ TEST(SmallMatrixTest, Convolution_MajorMinor1) {
     SCOPED_TRACE("");
     ExpectMatrixEquals(
         Matrix(1, 1, 2, {1 * 1 + 2 * 2, 1 * 3 + 2 * 4}),
-        Matrix::Convolution(a, true, b, true, 2));
+        Matrix::Convolution(2, a, true, b, true));
   }
   {
     SCOPED_TRACE("");
     ExpectMatrixEquals(
         Matrix(1, 1, 2, {1 * 1 + 2 * 2, 1 * 3 + 2 * 4}),
-        Matrix::Convolution(a, true, b, false, 2));
+        Matrix::Convolution(2, a, true, b, false));
   }
   {
     SCOPED_TRACE("");
     ExpectMatrixEquals(
         Matrix(1, 1, 2, {1 * 1 + 2 * 3, 1 * 2 + 2 * 4}),
-        Matrix::Convolution(a, false, b, true, 2));
+        Matrix::Convolution(2, a, false, b, true));
   }
   {
     SCOPED_TRACE("");
     ExpectMatrixEquals(
         Matrix(1, 1, 2, {1 * 1 + 2 * 3, 1 * 2 + 2 * 4}),
-        Matrix::Convolution(a, false, b, false, 2));
+        Matrix::Convolution(2, a, false, b, false));
   }
 }
 
@@ -390,7 +390,7 @@ TEST(SmallMatrixTest, Convolution_MajorMinor2) {
             1 * 5 + 2 * 6,
             3 * 5 + 4 * 6,
         }),
-        Matrix::Convolution(a, true, b, true, 2));
+        Matrix::Convolution(2, a, true, b, true));
   }
   {
     SCOPED_TRACE("");
@@ -403,7 +403,7 @@ TEST(SmallMatrixTest, Convolution_MajorMinor2) {
             1 * 5 + 3 * 6,
             2 * 5 + 4 * 6
         }),
-        Matrix::Convolution(a, true, b, false, 2));
+        Matrix::Convolution(2, a, true, b, false));
   }
 }
 
@@ -421,7 +421,7 @@ TEST(SmallMatrixTest, Convolution_MajorMinor3) {
           1 * 1 + 2 * 3 + 3 * 5,
           1 * 2 + 2 * 4 + 3 * 6,
         }),
-        Matrix::Convolution(a, false, b, true, 3));
+        Matrix::Convolution(3, a, false, b, true));
   }
   {
     SCOPED_TRACE("");
@@ -430,7 +430,92 @@ TEST(SmallMatrixTest, Convolution_MajorMinor3) {
           1 * 1 + 2 * 3 + 3 * 5,
           1 * 2 + 2 * 4 + 3 * 6,
         }),
-        Matrix::Convolution(b, true, a, false, 3));
+        Matrix::Convolution(3, b, true, a, false));
+  }
+}
+
+TEST(SmallMatrixTest, Convolution_RemovePadding1) {
+  Matrix a(3, 4, 1, {
+      1, 2, 3, 4,
+      5, 6, 7, 8,
+      9, 10, 11, 12,
+  });
+  Matrix b(1, 2, 1, {
+      1, 1,
+  });
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(3, 3, 1, {
+            3, 5, 7,
+            11, 13, 15,
+            19, 21, 23
+        }),
+        Matrix::Convolution(1, a, true, b, true));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 1, 1, {
+            13,
+        }),
+        Matrix::Convolution(
+            1,
+            a, true, 0, 0,
+            b, true, 0, 0,
+            1, 1));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(1, 3, 1, {
+            11, 13, 15,
+        }),
+        Matrix::Convolution(
+            1,
+            a, true, 0, 0,
+            b, true, 0, 0,
+            1, 0));
+  }
+  {
+    SCOPED_TRACE("");
+    ExpectMatrixEquals(
+        Matrix(3, 1, 1, {
+            5, 13, 21,
+        }),
+        Matrix::Convolution(
+            1,
+            a, true, 0, 0,
+            b, true, 0, 0,
+            0, 1));
+  }
+}
+
+TEST(BigMatrixTest, Convolution_RemovePadding2) {
+  Matrix a(100, 100, 1);
+  a.Fill(1);
+  Matrix b(2, 2, 1);
+  b.Fill(1);
+
+  {
+    SCOPED_TRACE("");
+    Matrix expected(99, 99, 1);
+    expected.Fill(4);
+    ExpectMatrixEquals(
+        expected,
+        Matrix::Convolution(1, a, true, b, true));
+  }
+  {
+    SCOPED_TRACE("");
+    Matrix expected(95, 93, 1);
+    expected.Fill(4);
+    ExpectMatrixEquals(
+        expected,
+        Matrix::Convolution(
+            1,
+            a, true, 0, 0,
+            b, true, 0, 0,
+            2, 3));
   }
 }
 

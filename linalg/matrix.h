@@ -100,9 +100,15 @@ class Matrix {
   // major = false: sorted by layers first, images second
   // (The output is always major-ordered.)
   static Matrix Convolution(
+      int layers_per_image,
       const Matrix& a, bool a_major,
-      const Matrix& b, bool b_major,
-      int layers_per_image);
+      const Matrix& b, bool b_major);
+
+  static Matrix Convolution(
+      int layers_per_image,
+      const Matrix& a, bool a_major, int a_row_padding, int a_col_padding,
+      const Matrix& b, bool b_major, int b_row_padding, int b_col_padding,
+      int c_row_padding, int c_col_padding);
 
   // On each layer, independently: slices the matrix into
   // pool_rows x pool_cols sub-matrices and takes the max value
