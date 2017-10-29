@@ -842,14 +842,9 @@ __global__ void MatrixConvolution(
     int a_row_shift, int a_col_shift,
     MatrixPack filters, bool filters_major, int num_filters_images,
     MatrixPack b) {
-
-  int i = threadIdx.x + blockDim.x * blockIdx.x; // + b.row_padding;
-  int j = threadIdx.y + blockDim.y * blockIdx.y; // + b.col_padding;
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
-
-  int a_i = i + a_row_shift;
-  int a_j = j + a_col_shift;
-
   if (b.inside(i, j, k)) {
     // k: destination depth-level = id of filter to apply
 
@@ -862,17 +857,14 @@ __global__ void MatrixConvolution(
     // 2nd image with 2nd filter
     // ...
 
+    int a_i = i + a_row_shift;
+    int a_j = j + a_col_shift;
+
     int filter_id = k % num_filters_images;
     int image_id = k / num_filters_images;
 
     float sum = 0.0;
     for (int fk = 0; fk < layers_per_image; ++fk) {
-      // i + f_row_start + b.row_padding - a.row_padding >= 0
-      int f_row_start = max(0, -a_i);
-      int f_col_start = max(0, -a_j);
-      // i + f_row_stop + b.row_padding - a.row_padding <= a.rows
-      int f_row_stop = min(filters.rows, a.rows - a_i);
-      int f_col_stop = min(filters.cols, a.cols - a_j);
 
       int filters_k = 0;  // Layer id in |filters| to use below.
       int a_k = 0;   // Layer id in |a| to use now below.
@@ -887,18 +879,11 @@ __global__ void MatrixConvolution(
         filters_k = fk * num_filters_images + filter_id;
       }
 
-      for (int fi = f_row_start; fi < f_row_stop; ++fi) {
-        for (int fj = f_col_start; fj < f_col_stop; ++fj) {
-
-          float f_val = filters.get(
-              fi,
-              fj,
-              filters_k);
-          float a_val = a.get(
-              a_i + fi,
-              a_j + fj,
-              a_k);
-          sum += f_val * a_val;
+      for (int fi = 0; fi < filters.rows; ++fi) {
+        for (int fj = 0; fj < filters.cols; ++fj) {
+          if (fi >= -a_i && fi < a.rows - a_i && fj >= -a_j && fj < a.cols - a_j) {
+            sum += filters.get(fi, fj, filters_k) * a.get(a_i + fi, a_j + fj, a_k);
+          }
         }
       }
     }
@@ -935,7 +920,7 @@ Matrix Matrix::Convolution(
   int a_row_shift = c_row_padding - a_row_padding + b_row_padding;
   int a_col_shift = c_col_padding - a_col_padding + b_col_padding;
 
-  dim3 threads_per_block(8, 8, 1);
+  dim3 threads_per_block(1, 1, 32);
   dim3 blocks = CalculateBlocks(c, threads_per_block);
   MatrixConvolution<<<blocks, threads_per_block>>>(
       layers_per_image,
