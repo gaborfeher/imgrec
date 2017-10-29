@@ -519,6 +519,46 @@ TEST(BigMatrixTest, Convolution_RemovePadding2) {
   }
 }
 
+TEST(SmallMatrixTest, Convolution_AddPadding) {
+  Matrix a(2, 3, 1, {
+      1, 1, 1,
+      1, 1, 1,
+  });
+  Matrix b(2, 2, 1, {
+      1, 1,
+      1, 1,
+  });
+  {
+    SCOPED_TRACE("");
+    Matrix c = Matrix::Convolution(
+            1,
+            a, true, 1, 2,
+            b, true, 0, 0,
+            0, 0);
+    ExpectMatrixEquals(
+        Matrix(3, 6, 1, {
+            0, 1, 2, 2, 1, 0,
+            0, 2, 4, 4, 2, 0,
+            0, 1, 2, 2, 1, 0,
+        }),
+        c);
+  }
+
+  {
+    SCOPED_TRACE("");
+    Matrix c = Matrix::Convolution(
+            1,
+            a, true, 1, 2,
+            b, true, 0, 0,
+            1, 1);
+    ExpectMatrixEquals(
+        Matrix(1, 4, 1, {
+            2, 4, 4, 2,
+        }),
+        c);
+  }
+}
+
 TEST(SmallMatrixTest, Reshape) {
   Matrix m(2, 3, 4,  {
     1, 2, 3,

@@ -955,18 +955,23 @@ __global__ void MatrixConvolution(
 
     float sum = 0.0;
     for (int fk = 0; fk < layers_per_image; ++fk) {
-      for (int fi = 0; fi < filters.rows; ++fi) {
-        for (int fj = 0; fj < filters.cols; ++fj) {
+      // i + f_row_start + b.row_padding - a.row_padding >= 0
+      int f_row_start = max(0, a.row_padding - b.row_padding - i);
+      int f_col_start = max(0, a.col_padding - b.col_padding - j);
+      // i + f_row_stop + b.row_padding - a.row_padding <= a.rows
+      int f_row_stop = min(filters.rows, a.rows + a.row_padding - b.row_padding - i);
+      int f_col_stop = min(filters.cols, a.cols + a.col_padding - b.col_padding - j);
+
+      for (int fi = f_row_start; fi < f_row_stop; ++fi) {
+        for (int fj = f_col_start; fj < f_col_stop; ++fj) {
           int filters_k = 0;
           int a_k = 0;
           if (a_major) {
-            // fk: level in cur. image
             a_k = fk + image_id * layers_per_image;
           } else {
             a_k = fk * num_a_images + image_id;
           }
           if (filters_major) {
-            // fk: level in cur. filter
             filters_k = fk + filter_id * layers_per_image;
           } else {
             filters_k = fk * num_filters_images + filter_id;
@@ -977,8 +982,8 @@ __global__ void MatrixConvolution(
               fj,
               filters_k);
           float a_val = a.get(
-              i + fi + b.row_padding,
-              j + fj + b.col_padding,
+              i + fi + b.row_padding - a.row_padding,
+              j + fj + b.col_padding - a.col_padding,
               a_k);
           sum += f_val * a_val;
         }
