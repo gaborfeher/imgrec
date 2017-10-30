@@ -223,16 +223,6 @@ TEST(SmallMatrixTest, Fill) {
       a);
 }
 
-TEST(SmallMatrixTest, ZeroInit) {
-  Matrix a(2, 2, 1);
-  ExpectMatrixEquals(
-      Matrix(2, 2, 1,  {
-          0.0, 0.0,
-          0.0, 0.0
-      }),
-      a);
-}
-
 TEST(SmallMatrixTest, Convolution) {
   // Two 3x4 images with 3 "color channels" each:
   Matrix a(3, 4, 3 * 2,  {

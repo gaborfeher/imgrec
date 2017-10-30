@@ -109,7 +109,6 @@ Matrix::Matrix(int rows, int cols, int depth) :
     depth_(depth),
     size_(rows * cols * depth) {
   data_ = AllocateData(size_);
-  Fill(0);
 }
 
 std::shared_ptr<float> Matrix::get_host_data() const {
@@ -967,7 +966,8 @@ Matrix Matrix::PoolingSwitch(
     int pool_rows, int pool_cols) const {
   AssertSameDimensions(switches);
 
-  Matrix result(rows_ * pool_rows, cols_ * pool_cols, depth_);  // Zero-filled.
+  Matrix result(rows_ * pool_rows, cols_ * pool_cols, depth_);
+  result.Fill(0);
 
   dim3 threads_per_block(16, 16, 1);
   dim3 blocks = CalculateBlocks(switches, threads_per_block);
