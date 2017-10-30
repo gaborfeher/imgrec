@@ -508,7 +508,7 @@ Matrix Matrix::Sum(bool layered, int layers) const {
     assert(layers > 0);
     assert(depth_ % layers == 0);
     Matrix result(1, 1, layers);
-    MatrixSumLayers<<<(layers + 255) / 256, 256>>>(
+    MatrixSumLayers<<<(layers + 7) / 8, 8>>>(
         MatrixPack(*this),
         MatrixPack(result));
     CUDA_ASYNC_CHECK();
