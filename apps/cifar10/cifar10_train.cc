@@ -89,56 +89,69 @@ void TrainConvolutionalModel() {
   std::shared_ptr<LayerStack> stack = std::make_shared<LayerStack>();
   stack->AddLayer<InputImageNormalizationLayer>(32, 32, 3);
   // Convolutional layer #1:
-  stack->AddLayer<ConvolutionalLayer>(30, 3, 3, 1, 3);
-  stack->AddLayer<BatchNormalizationLayer>(30, true);
+  stack->AddLayer<ConvolutionalLayer>(8, 3, 3, 1, 3);
+  stack->AddLayer<BatchNormalizationLayer>(8, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
   // Convolutional layer #2:
-  stack->AddLayer<ConvolutionalLayer>(30, 3, 3, 1, 30);
-  stack->AddLayer<BatchNormalizationLayer>(30, true);
+  stack->AddLayer<ConvolutionalLayer>(8, 3, 3, 1, 8);
+  stack->AddLayer<BatchNormalizationLayer>(8, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
-  stack->AddLayer<PoolingLayer>(2, 2);
+  stack->AddLayer<ConvolutionalLayer>(8, 3, 3, 1, 8);
+  stack->AddLayer<BatchNormalizationLayer>(8, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   // Convolutional layer #3:
-  stack->AddLayer<ConvolutionalLayer>(30, 5, 5, 2, 30);
-  stack->AddLayer<BatchNormalizationLayer>(30, true);
+  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 8);
+  stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   // Convolutional layer #4:
-  stack->AddLayer<ConvolutionalLayer>(30, 5, 5, 2, 30);
-  stack->AddLayer<BatchNormalizationLayer>(30, true);
+  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
+  stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   stack->AddLayer<PoolingLayer>(2, 2);
 
   // Convolutional layer #5:
-  stack->AddLayer<ConvolutionalLayer>(30, 5, 5, 2, 30);
-  stack->AddLayer<BatchNormalizationLayer>(30, true);
+  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
+  stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   // Convolutional layer #6:
-  stack->AddLayer<ConvolutionalLayer>(30, 5, 5, 2, 30);
-  stack->AddLayer<BatchNormalizationLayer>(30, true);
+  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
+  stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
-  stack->AddLayer<ReshapeLayer>(8, 8, 30);
+  stack->AddLayer<PoolingLayer>(2, 2);
+
+  // Convolutional layer #5:
+  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
+  stack->AddLayer<BatchNormalizationLayer>(24, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  stack->AddLayer<ReshapeLayer>(8, 8, 24);
 
   // Fully connected layer #1:
-  stack->AddLayer<FullyConnectedLayer>(8 * 8 * 30, 50);
-  stack->AddLayer<BatchNormalizationLayer>(50, false);
-  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-  // Fully connected layer #2:
-  stack->AddLayer<FullyConnectedLayer>(50, 10);
+  stack->AddLayer<FullyConnectedLayer>(8 * 8 * 24, 10);
   stack->AddLayer<BatchNormalizationLayer>(10, false);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+/*
+  // Fully connected layer #2:
+  stack->AddLayer<FullyConnectedLayer>(48, 10);
+  stack->AddLayer<BatchNormalizationLayer>(10, false);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+*/
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
   float error, accuracy;
   Model model(stack, 123, 2);
   // model.Evaluate(*validation, &error, &accuracy);
-  model.Train(*training, 5, 0.0001, 0.00002);
-  model.Evaluate(*validation, &error, &accuracy);
+  //model.Train(*training, 7, 0.0001, 0.00002);
+  model.Train(*training, 1, 0.0001, 0.00002);
+  // model.Evaluate(*validation, &error, &accuracy);
 }
 
 int main() {
