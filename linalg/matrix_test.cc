@@ -40,14 +40,14 @@ TEST(SmallMatrixTest, Pow) {
 
 TEST(SmallMatrixTest, Square) {
   Matrix a(2, 2, 1, {5, 2, -3, 4});
-  Matrix b(a.Map(::matrix_mappers::Square()));
+  Matrix b(a.Map1(::matrix_mappers::Square()));
   Matrix b_exp(2, 2, 1, {25, 4, 9, 16});
   ExpectMatrixEquals(b_exp, b);
 }
 
 TEST(SmallMatrixTest, Sqrt) {
   Matrix a(2, 2, 1, {25, 4, 9, 16});
-  Matrix b(a.Map(::matrix_mappers::Sqrt()));
+  Matrix b(a.Map1(::matrix_mappers::Sqrt()));
   Matrix b_exp(2, 2, 1, {5, 2, 3, 4});
   ExpectMatrixEquals(b_exp, b);
 }
@@ -157,7 +157,7 @@ TEST(SmallMatrixTest, DotProduct) {
 
 TEST(SmallMatrixTest, Sigmoid) {
   Matrix a(1, 2, 1, {0, 1});
-  Matrix as(a.Map(matrix_mappers::Sigmoid()));
+  Matrix as(a.Map1(matrix_mappers::Sigmoid()));
   ExpectMatrixEquals(
       Matrix(1, 2, 1,  {
           0.5, 0.73105
@@ -169,7 +169,7 @@ TEST(SmallMatrixTest, Sigmoid) {
 
 TEST(SmallMatrixTest, SigmoidGradient) {
   Matrix a(1, 2, 1, {0, 1});
-  Matrix as(a.Map(matrix_mappers::SigmoidGradient()));
+  Matrix as(a.Map1(matrix_mappers::SigmoidGradient()));
   ExpectMatrixEquals(
       Matrix(1, 2, 1,  {
           0.25, 0.19661
@@ -596,9 +596,15 @@ TEST(SmallMatrixTest, CopyGetSet) {
   Matrix b(a.DeepCopy());
   EXPECT_EQ(8, a.GetValue(0, 1, 1));
   EXPECT_EQ(8, b.GetValue(0, 1, 1));
+  EXPECT_EQ(6, a.GetValue(1, 2, 0));
+  EXPECT_EQ(6, b.GetValue(1, 2, 0));
+
   b.SetValue(0, 1, 1, 42);
+  b.SetValue(1, 2, 0, 43);
   EXPECT_EQ(8, a.GetValue(0, 1, 1));
+  EXPECT_EQ(6, a.GetValue(1, 2, 0));
   EXPECT_EQ(42, b.GetValue(0, 1, 1));
+  EXPECT_EQ(43, b.GetValue(1, 2, 0));
 
   ExpectMatrixEquals(
       Matrix(2, 3, 2,  {
@@ -612,7 +618,7 @@ TEST(SmallMatrixTest, CopyGetSet) {
   ExpectMatrixEquals(
       Matrix(2, 3, 2,  {
           1, 2, 3,
-          4, 5, 6,
+          4, 5, 43,
 
           7, 42, 9,
           10, 11, 12,
@@ -735,6 +741,7 @@ TEST(SmallMatrixTest, PerLayerRepeat) {
     }),
     s);
 }
+
 TEST(SmallMatrixTest, Sum_Columns) {
   Matrix a(3, 4, 1,  {
       1, 1, 2, 2,
@@ -748,6 +755,17 @@ TEST(SmallMatrixTest, Sum_Columns) {
       22,
   });
   ExpectMatrixEquals(s, expected);
+}
+
+TEST(SmallMatrixTest, Sum1) {
+  Matrix a(2, 3, 4);
+  a.Fill(5);
+  EXPECT_EQ(2 * 3 * 4 * 5, a.Sum());
+}
+
+TEST(SmallMatrixTest, Sum2) {
+  Matrix a(1, 1, 3, { 1, 2, 3 });
+  EXPECT_EQ(6, a.Sum());
 }
 
 TEST(SmallMatrixTest, Repeat_Layers) {
@@ -899,7 +917,7 @@ TEST(BigMatrixTest, Fill) {
 TEST(BigMatrixTest, ReLU) {
   Matrix a(100, 100, 5);
   a.Fill(2.0f);
-  Matrix b = a.Map(matrix_mappers::ReLU());
+  Matrix b = a.Map1(matrix_mappers::ReLU());
 
   Matrix b_exp(100, 100, 5);
   b_exp.Fill(2.0f);

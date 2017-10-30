@@ -8,7 +8,7 @@
 
 namespace activation_functions {
 
-typedef std::pair<::matrix_mappers::MapperFunc, ::matrix_mappers::MapperFunc> ActivationFunc;
+typedef std::pair<::matrix_mappers::Map1Func, ::matrix_mappers::Map1Func> ActivationFunc;
 
 ActivationFunc Sigmoid();
 ActivationFunc ReLU();
@@ -23,8 +23,8 @@ class NonlinearityLayer : public Layer {
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
  private:
-  ::matrix_mappers::MapperFunc activation_function_;
-  ::matrix_mappers::MapperFunc activation_function_gradient_;
+  ::matrix_mappers::Map1Func activation_function_;
+  ::matrix_mappers::Map1Func activation_function_gradient_;
 };
 
 

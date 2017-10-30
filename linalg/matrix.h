@@ -11,16 +11,18 @@
 
 namespace matrix_mappers {
 
-typedef void (*MapperFunc)(float* A, float* B, int size);
+typedef void (*Map1Func)(float* a, float* b, int size);
+typedef void (*Map2Func)(float* a, float* b, float *c, int size);
+typedef void (*Map1PFunc)(float* a, float* b, int size, float param);
 
-MapperFunc Sigmoid();
-MapperFunc SigmoidGradient();
-MapperFunc ReLU();
-MapperFunc ReLUGradient();
-MapperFunc LReLU();
-MapperFunc LReLUGradient();
-MapperFunc Square();
-MapperFunc Sqrt();
+Map1Func Sigmoid();
+Map1Func SigmoidGradient();
+Map1Func ReLU();
+Map1Func ReLUGradient();
+Map1Func LReLU();
+Map1Func LReLUGradient();
+Map1Func Square();
+Map1Func Sqrt();
 
 }  // namespace matrix_mappers
 
@@ -37,13 +39,15 @@ class Matrix {
 
   void Print() const;
 
-  Matrix Add(const Matrix& other) const;
-  Matrix AddConst(float c) const;
-  Matrix Pow(float exp) const;
+  Matrix /* Elementwise */ Add(const Matrix& other) const;
   Matrix ElementwiseMultiply(const Matrix& other) const;
   Matrix ElementwiseDivide(const Matrix& other) const;
+
+  Matrix Pow(float exp) const;
+  Matrix AddConst(float c) const;
   Matrix Multiply(float) const;
   Matrix Divide(float) const;
+
   float Softmax(const Matrix& expected_class) const;
   Matrix SoftmaxGradient(const Matrix& expected_class) const;
   float NumMatches(const Matrix& expected_class) const;
@@ -70,6 +74,7 @@ class Matrix {
   //    The result will be a rows x cols x 1 matrix, each column
   //    is a copy of the original matrix.
   Matrix Repeat(bool layered, int rows, int cols, int depth) const;
+  Matrix Repeat(bool layered, const Matrix& size_template) const;
 
   // Consider this matrix as a series of matrices of depth |layers|
   // and summarize them into one matrix of depth |layer|.
@@ -81,7 +86,11 @@ class Matrix {
   Matrix T() const;
   Matrix Rot180() const;
   Matrix Dot(const Matrix&) const;
-  Matrix Map(::matrix_mappers::MapperFunc map) const;
+
+  Matrix Map1(::matrix_mappers::Map1Func map) const;
+  Matrix Map2(const Matrix& other, ::matrix_mappers::Map2Func map) const;
+  Matrix Map1P(float param, ::matrix_mappers::Map1PFunc map) const;
+
   Matrix ReshapeToColumns(int unit_depth) const;
   Matrix ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const;
 

@@ -41,7 +41,7 @@ void BatchNormalizationLayer::Initialize(Random*) {
 }
 
 void BatchNormalizationLayer::Forward(const Matrix& input) {
-  input_ = input;
+  input_ = input;  // (This is only needed in one place for dimensions.)
 
   if (layered_) {
     assert(input.depth() % num_neurons_ == 0);
@@ -67,7 +67,7 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
       } else if (phase_sub_id_ == 1) {
         Matrix local = input
             .Add(global_mean_negative_repeated_)
-            .Map(::matrix_mappers::Square())
+            .Map1(::matrix_mappers::Square())
             .Sum(layered_, num_neurons_);
         global_variance_ = global_variance_.Add(local);
       }
@@ -81,28 +81,28 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
       shifted_ = input.Add(
           mean_
               .Multiply(-1.0)
-              .Repeat(layered_, input.rows(), input.cols(), input.depth()));
+              .Repeat(layered_, input));
       variance_ = shifted_
-          .Map(::matrix_mappers::Square())
+          .Map1(::matrix_mappers::Square())
           .Sum(layered_, num_neurons_)
           .Multiply(1.0 / num_samples_);
       variance_plus_e_ = variance_.AddConst(epsilon_);
       sqrt_variance_plus_e_repeated_ = variance_plus_e_
-          .Map(::matrix_mappers::Sqrt())
+          .Map1(::matrix_mappers::Sqrt())
           .Repeat(layered_, input.rows(), input.cols(), input.depth());
       normalized_ = shifted_.ElementwiseDivide(sqrt_variance_plus_e_repeated_);
       output_ = normalized_
-          .ElementwiseMultiply(gamma_.Repeat(layered_, input.rows(), input.cols(), input.depth()))
-          .Add(beta_.Repeat(layered_, input.rows(), input.cols(), input.depth()));
+          .ElementwiseMultiply(gamma_.Repeat(layered_, input))
+          .Add(beta_.Repeat(layered_, input));
       break;
     }
 
     case INFER_PHASE: {
       Matrix multiplier = global_multiplier_
-          .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
+          .Repeat(layered_, input);
       Matrix shift = global_shift_
-          .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
-      output_ = input_
+          .Repeat(layered_, input);
+      output_ = input
           .ElementwiseMultiply(multiplier)
           .Add(shift);
       break;
@@ -113,10 +113,10 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
 
 void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
   Matrix normalized_grad = output_gradient
-      .ElementwiseMultiply(gamma_.Repeat(layered_, input_.rows(), input_.cols(), input_.depth()));
+      .ElementwiseMultiply(gamma_.Repeat(layered_, output_gradient));
   Matrix variance_grad = normalized_grad
       .ElementwiseMultiply(shifted_)
-      .ElementwiseMultiply(variance_plus_e_.Pow(-1.5).Repeat(layered_, input_.rows(), input_.cols(), input_.depth()))
+      .ElementwiseMultiply(variance_plus_e_.Pow(-1.5).Repeat(layered_, output_gradient))
       .Sum(layered_, num_neurons_)
       .Multiply(-0.5);
   Matrix normalized_grad_over_sqrt_variance_e =
@@ -132,12 +132,12 @@ void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
 
   Matrix input_grad_part1 = normalized_grad_over_sqrt_variance_e;
   Matrix input_grad_part2 = variance_grad
-      .Repeat(layered_, input_.rows(), input_.cols(), input_.depth())
+      .Repeat(layered_, output_gradient)
       .ElementwiseMultiply(shifted_)
       .Multiply(2.0 / num_samples_);
   Matrix input_grad_part3 = mean_grad
       .Multiply(1.0 / num_samples_)
-      .Repeat(layered_, input_.rows(), input_.cols(), input_.depth());
+      .Repeat(layered_, output_gradient);
 
   input_gradient_ = input_grad_part1
       .Add(input_grad_part2)
@@ -177,7 +177,7 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
     if (phase_sub_id_ == 0) {
       global_mean_ = global_mean_.Multiply(1.0 / global_num_samples_);
       global_mean_negative_repeated_ = global_mean_
-          .Repeat(layered_, input_.rows(), input_.cols(), input_.depth())
+          .Repeat(layered_, input_)
           .Multiply(-1.0);
     }
     if (phase_sub_id_ == 1) {
@@ -187,7 +187,7 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
       Matrix global_variance_sqrt_e_ =
           global_variance_
               .AddConst(epsilon_)
-              .Map(::matrix_mappers::Sqrt());
+              .Map1(::matrix_mappers::Sqrt());
       global_multiplier_ =
           gamma_.ElementwiseDivide(global_variance_sqrt_e_);
       global_shift_ = beta_

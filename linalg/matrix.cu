@@ -10,12 +10,6 @@
 #include <cuda.h>  // strangely, not needed by nvcc
 #include <curand.h>
 
-__device__ int Dim3toDim1(
-    int i, int j, int k,
-    int rows, int cols, int depth) {
-  return k * rows * cols + i * cols + j;
-}
-
 int Matrix::Index(int i, int j, int k) const {
   return k * rows_ * cols_ + i * cols_ + j;
 }
@@ -38,12 +32,32 @@ struct MatrixPack {
     return items[k * layer_size + i * cols + j];
   }
 
+  __forceinline__ __device__ float get(int i, int j) {
+    return items[i * cols + j];
+  }
+
   __forceinline__ __device__ void set(int i, int j, int k, float f) {
     items[k * layer_size + i * cols + j] = f;
   }
 
+  __forceinline__ __device__ void set(int i, int j, float f) {
+    items[i * cols + j] = f;
+  }
+
+  __forceinline__ __device__ void div(int i, int j, float f) {
+    items[i * cols + j] /= f;
+  }
+
+  __forceinline__ __device__ void add(int i, int j, float a) {
+    items[i * cols + j] += a;
+  }
+
   __forceinline__ __device__ bool inside(int i, int j, int k) {
     return i < rows && j < cols && k < depth;
+  }
+
+  __forceinline__ __device__ bool inside(int i, int j) {
+    return i < rows && j < cols;
   }
 
 };
@@ -70,13 +84,14 @@ std::shared_ptr<float> AllocateData(int size) {
   return std::shared_ptr<float>(data, cudaFree);
 }
 
-std::shared_ptr<float> ImportData(float size, const float* host_data) {
+std::shared_ptr<float> ImportData(int size, const float* host_data) {
   std::shared_ptr<float> device_data(AllocateData(size));
   CUDA_CALL(cudaMemcpy(
       device_data.get(),
       host_data,
       size * sizeof(float),
       cudaMemcpyHostToDevice));
+  CUDA_ASYNC_CHECK();
   return device_data;
 }
 
@@ -129,7 +144,7 @@ std::vector<float> Matrix::GetVector() const {
 void Matrix::Print() const {
   std::cout << std::fixed << std::setw( 6 ) << std::setprecision( 4 );
   std::shared_ptr<float> host_data(get_host_data());
-  std::cout << "Matrix " 
+  std::cout << "Matrix "
       << rows_ << "x"
       << cols_ << "x"
       << depth_
@@ -162,86 +177,11 @@ void Matrix::AssertDepth(int depth) const {
   assert(depth_ == depth);
 }
 
-__global__ void VecAdd(float* A, float* B, float* C, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    C[i] = A[i] + B[i];
-  }
-}
-
-Matrix Matrix::Add(const Matrix& other) const {
-  AssertSameDimensions(other);
-  Matrix result(rows_, cols_, depth_);
-  VecAdd<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void VecAddConst(float* A, float b, float* B, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    B[i] = A[i] + b;
-  }
-}
-
-Matrix Matrix::AddConst(float c) const {
-  Matrix result(rows_, cols_, depth_);
-  VecAddConst<<<(size_ + 255) / 256, 256>>>(data_.get(), c, result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void VecPow(float* A, float exp, float* B, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    B[i] = pow(A[i], exp);
-  }
-}
-
-Matrix Matrix::Pow(float exp) const {
-  Matrix result(rows_, cols_, depth_);
-  VecPow<<<(size_ + 255) / 256, 256>>>(data_.get(), exp, result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void VecMult(float* A, float* B, float* C, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    C[i] = A[i] * B[i];
-  }
-}
-
-Matrix Matrix::ElementwiseMultiply(const Matrix& other) const {
-  AssertSameDimensions(other);
-  Matrix result(rows_, cols_, depth_);
-  VecMult<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void VecDivide(float* A, float* B, float* C, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    C[i] = A[i] / B[i];
-  }
-}
-
-Matrix Matrix::ElementwiseDivide(const Matrix& other) const {
-  AssertSameDimensions(other);
-  Matrix result(rows_, cols_, depth_);
-  VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), other.data_.get(), result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void MatrixTranspose(float* A, int rows, int cols, float* T) {
+__global__ void MatrixTranspose(MatrixPack a, MatrixPack t) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
-  if (i < rows && j < cols) {
-    int a_index = i * cols + j;
-    int t_index = j * rows + i;
-    T[t_index] = A[a_index];
+  if (a.inside(i, j)) {
+    t.set(j, i, a.get(i, j));
   }
 }
 
@@ -252,83 +192,43 @@ Matrix Matrix::T() const {
   dim3 threads_per_block(16, 16, 1);
   dim3 blocks = CalculateBlocks(*this, threads_per_block);
   MatrixTranspose<<<blocks, threads_per_block>>>(
-      data_.get(), rows_, cols_, result.data_.get());
+      MatrixPack(*this), MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result;
 }
 
 __global__ void MatrixRot180(
-    float* A,
-    int rows, int cols, int depth,
-    float* R) {
-
+    MatrixPack a, MatrixPack r) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
-  if (i < rows && j < cols && k < depth) {
-    int a_index = Dim3toDim1(
-        i, j, k,
-        rows, cols, depth);
-    int r_index = Dim3toDim1(
-        rows - i - 1, cols - j - 1, k,
-        rows, cols, depth);
-    R[r_index] = A[a_index];
+  if (a.inside(i, j, k)) {
+    r.set(r.rows - i - 1, r.cols - j - 1, k, a.get(i, j, k));
   }
 }
 
 Matrix Matrix::Rot180() const {
   Matrix result(rows_, cols_, depth_);
-
   dim3 threads_per_block(16, 16, 1);
   dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixRot180<<<blocks, threads_per_block>>>(
-      data_.get(),
-      rows_, cols_, depth_,
-      result.data_.get());
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void VecMultiply(float* A, float m, float* B, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    B[i] = A[i] * m;
-  }
-}
-
-Matrix Matrix::Multiply(float m) const {
-  Matrix result(rows_, cols_, depth_);
-  VecMultiply<<<(size_ + 255) / 256, 256>>>(data_.get(), m, result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
-  return result;
-}
-
-__global__ void VecDivide(float* A, float d, float* B, int size) {
-  int i = threadIdx.x + blockDim.x * blockIdx.x;
-  if (i < size) {
-    B[i] = A[i] / d;
-  }
-}
-
-Matrix Matrix::Divide(float d) const {
-  Matrix result(rows_, cols_, depth_);
-  VecDivide<<<(size_ + 255) / 256, 256>>>(data_.get(), d, result.data_.get(), size_);
-  CUDA_ASYNC_CHECK();
+      MatrixPack(*this),
+      MatrixPack(result));
   return result;
 }
 
 __global__ void MatrixDotProd(
-    float* A, int a_rows, int a_cols,
-    float* B, int b_rows, int b_cols,
-    float* C, int c_rows, int c_cols) {
+    MatrixPack a,
+    MatrixPack b,
+    MatrixPack c) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
-  if (i < c_rows && j < c_cols) {
+  if (c.inside(i, j)) {
     float sum = 0.0;
-    for (int k = 0; k < a_cols; ++k) {
-      sum += A[i * a_cols + k] * B[k * b_cols + j];
+    for (int k = 0; k < a.cols; ++k) {
+      sum += a.get(i, k) * b.get(k, j);
     }
-    C[i * c_cols + j] = sum;
+    c.set(i, j, sum);
   }
 }
 
@@ -341,76 +241,75 @@ Matrix Matrix::Dot(const Matrix& other) const {
   dim3 threads_per_block(16, 16, 1);
   dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixDotProd<<<blocks, threads_per_block>>>(
-      data_.get(), rows_, cols_,
-      other.data_.get(), other.rows_, other.cols_,
-      result.data_.get(), result.rows_, result.cols_);
+      MatrixPack(*this),
+      MatrixPack(other),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result;
 }
 
-__global__ void VecSigmoid(float* A, float* B, int size) {
+__global__ void VecSigmoid(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    B[i] = 1.0 / (1.0 + exp(-A[i]));
+    b[i] = 1.0 / (1.0 + exp(-a[i]));
   }
 }
 
-
-__global__ void VecSigmoidGradient(float* A, float* B, int size) {
+__global__ void VecSigmoidGradient(float* a, float*b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    float sigma = 1.0 / (1.0 + exp(-A[i]));
-    B[i] = sigma * (1.0 - sigma);
+    float sigma = 1.0 / (1.0 + exp(-a[i]));
+    b[i] = sigma * (1.0 - sigma);
   }
 }
 
-__global__ void VecReLU(float* A, float* B, int size) {
+__global__ void VecReLU(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    B[i] = max(0.0f, A[i]);
+    b[i] = max(0.0f, a[i]);
   }
 }
 
-__global__ void VecReLUGradient(float* A, float* B, int size) {
+__global__ void VecReLUGradient(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    if (A[i] < 0.0f) {
-      B[i] = 0.0f;
+    if (a[i] < 0.0f) {
+      b[i] = 0.0f;
     } else {
-      B[i] = 1.0f;
+      b[i] = 1.0f;
     }
   }
 }
 
-__global__ void VecLReLU(float* A, float* B, int size) {
+__global__ void VecLReLU(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    B[i] = max(0.01f * A[i], A[i]);
+    b[i] = max(0.01f * a[i], a[i]);
   }
 }
 
-__global__ void VecLReLUGradient(float* A, float* B, int size) {
+__global__ void VecLReLUGradient(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    if (A[i] < 0.0f) {
-      B[i] = 0.01f;
+    if (a[i] < 0.0f) {
+      b[i] = 0.01f;
     } else {
-      B[i] = 1.0f;
+      b[i] = 1.0f;
     }
   }
 }
 
-__global__ void VecSquare(float* A, float* B, int size) {
+__global__ void VecSquare(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    B[i] = A[i] * A[i];
+    b[i] = a[i] * a[i];
   }
 }
 
-__global__ void VecSqrt(float* A, float* B, int size) {
+__global__ void VecSqrt(float* a, float* b, int size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   if (i < size) {
-    B[i] = sqrt(A[i]);
+    b[i] = sqrt(a[i]);
   }
 }
 
@@ -420,41 +319,41 @@ namespace matrix_mappers {
 // so that users of device_matrix.h won't need to depend on
 // CUDA stuff.
 
-MapperFunc Sigmoid() {
+Map1Func Sigmoid() {
   return &VecSigmoid;
 }
 
-MapperFunc SigmoidGradient() {
+Map1Func SigmoidGradient() {
   return &VecSigmoidGradient;
 }
 
-MapperFunc ReLU() {
+Map1Func ReLU() {
   return &VecReLU;
 }
 
-MapperFunc ReLUGradient() {
+Map1Func ReLUGradient() {
   return &VecReLUGradient;
 }
 
-MapperFunc LReLU() {
+Map1Func LReLU() {
   return &VecLReLU;
 }
 
-MapperFunc LReLUGradient() {
+Map1Func LReLUGradient() {
   return &VecLReLUGradient;
 }
 
-MapperFunc Square() {
+Map1Func Square() {
   return &VecSquare;
 }
 
-MapperFunc Sqrt() {
+Map1Func Sqrt() {
   return &VecSqrt;
 }
 
 }  // namespacce matrix_mappers
 
-Matrix Matrix::Map(::matrix_mappers::MapperFunc map) const {
+Matrix Matrix::Map1(::matrix_mappers::Map1Func map) const {
   Matrix result(rows_, cols_, depth_);
   map<<<(size_ + 255) / 256, 256>>>(
       data_.get(),
@@ -464,52 +363,133 @@ Matrix Matrix::Map(::matrix_mappers::MapperFunc map) const {
   return result;
 }
 
-__global__ void VecSum(float* A, int len, float* B) {
-  float result = 0.0;
-  for (int i = 0; i < len; ++i) {
-    result += A[i];
+__global__ void ElementwiseAddKernel(float* a, float* b, float* c, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    c[i] = a[i] + b[i];
   }
-  B[0] = result;
+}
+
+__global__ void ElementwiseMultiplyKernel(float* a, float* b, float* c, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    c[i] = a[i] * b[i];
+  }
+}
+
+__global__ void ElementwiseDivideKernel(float* a, float* b, float* c, int size) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    c[i] = a[i] / b[i];
+  }
+}
+
+Matrix Matrix::Map2(const Matrix& other, ::matrix_mappers::Map2Func map) const {
+  AssertSameDimensions(other);
+  Matrix result(rows_, cols_, depth_);
+  map<<<(size_ + 255) / 256, 256>>>(
+      data_.get(), other.data_.get(), result.data_.get(), size_);
+  CUDA_ASYNC_CHECK();
+  return result;
+}
+
+Matrix Matrix::Add(const Matrix& other) const {
+  return Map2(other, ElementwiseAddKernel);
+}
+
+Matrix Matrix::ElementwiseMultiply(const Matrix& other) const {
+  return Map2(other, ElementwiseMultiplyKernel);
+}
+
+Matrix Matrix::ElementwiseDivide(const Matrix& other) const {
+  return Map2(other, ElementwiseDivideKernel);
+}
+
+__global__ void AddConstKernel(float* a, float* b, int size, float c) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    b[i] = a[i] + c;
+  }
+}
+
+__global__ void PowConstKernel(float* a, float* b, int size, float exp) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    b[i] = pow(a[i], exp);
+  }
+}
+
+__global__ void MultiplyConstKernel(float* a, float* b, int size, float m) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    b[i] = a[i] * m;
+  }
+}
+
+__global__ void DivideConstKernel(float* a, float* b, int size, float d) {
+  int i = threadIdx.x + blockDim.x * blockIdx.x;
+  if (i < size) {
+    b[i] = a[i] / d;
+  }
+}
+
+Matrix Matrix::Map1P(float param, ::matrix_mappers::Map1PFunc map) const {
+  Matrix result(rows_, cols_, depth_);
+  map<<<(size_ + 255) / 256, 256>>>(
+      data_.get(), result.data_.get(), size_, param);
+  CUDA_ASYNC_CHECK();
+  return result;
+}
+
+Matrix Matrix::AddConst(float c) const {
+  return Map1P(c, AddConstKernel);
+}
+
+Matrix Matrix::Pow(float exp) const {
+  return Map1P(exp, PowConstKernel);
+}
+
+Matrix Matrix::Multiply(float m) const {
+  return Map1P(m, MultiplyConstKernel);
+}
+
+Matrix Matrix::Divide(float m) const {
+  return Map1P(m, DivideConstKernel);
+}
+
+__global__ void MatrixSumLayers(
+    MatrixPack a, MatrixPack b) {
+  int b_index = threadIdx.x + blockDim.x * blockIdx.x;
+  if (b_index < b.depth) {
+    float result = 0.0;
+    for (int k = b_index; k < a.depth; k += b.depth) {
+      for (int i = 0; i < a.rows; ++i) {
+        for (int j = 0; j < a.cols; ++j) {
+          result += a.get(i, j, k);
+        }
+      }
+    }
+    b.items[b_index] = result;
+  }
 }
 
 float Matrix::Sum() const {
   Matrix result(1, 1, 1);
-  VecSum<<<1, 1>>>(data_.get(), size_, result.data_.get());
+  MatrixSumLayers<<<1, 1>>>(MatrixPack(*this), MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result.GetValue(0, 0, 0);
 }
 
-__global__ void MatrixSumLayers(
-    float* A,
-    int a_rows, int a_cols, int a_depth,
-    float* B,
-    int b_depth) {
-  int b_index = threadIdx.x + blockDim.x * blockIdx.x;
-  if (b_index < b_depth) {
-    float result = 0.0;
-    for (int k = b_index; k < a_depth; k += b_depth) {
-      for (int i = 0; i < a_rows; ++i) {
-        for (int j = 0; j < a_cols; ++j) {
-          result += A[Dim3toDim1(i, j, k, a_rows, a_cols, a_depth)];
-        }
-      }
-    }
-    B[b_index] = result;
-  }
-}
-
 __global__ void MatrixSumColumns(
-    float* A,
-    int rows, int cols,
-    float* B) {
+    MatrixPack a, MatrixPack b) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
 
-  if (i < rows) {
+  if (i < a.rows) {
     float result = 0.0f;
-    for (int j = 0; j < cols; ++j) {
-      result += A[Dim3toDim1(i, j, 0, rows, cols, 1)];
+    for (int j = 0; j < a.cols; ++j) {
+      result += a.get(i, j, 0);
     }
-    B[i] = result;
+    b.set(i, 0, result);
   }
 }
 
@@ -520,9 +500,8 @@ Matrix Matrix::Sum(bool layered, int layers) const {
     assert(depth_ == 1);
     Matrix result(rows_, 1, 1);
     MatrixSumColumns<<<(rows_ + 255) / 256, 256>>>(
-        data_.get(),
-        rows_, cols_,
-        result.data_.get());
+        MatrixPack(*this),
+        MatrixPack(result));
     CUDA_ASYNC_CHECK();
     return result;
   } else {
@@ -531,41 +510,32 @@ Matrix Matrix::Sum(bool layered, int layers) const {
     assert(depth_ % layers == 0);
     Matrix result(1, 1, layers);
     MatrixSumLayers<<<(layers + 255) / 256, 256>>>(
-        data_.get(),
-        rows_, cols_, depth_,
-        result.data_.get(),
-        layers);
+        MatrixPack(*this),
+        MatrixPack(result));
     CUDA_ASYNC_CHECK();
     return result;
   }
 }
 
 __global__ void MatrixRepeatLayers(
-    float* A, int a_depth,
-    float* B, int b_rows, int b_cols, int b_depth) {
+    MatrixPack a,
+    MatrixPack b) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
-
-  if (i < b_rows && j < b_cols && k < b_depth) {
-    int b_index = Dim3toDim1(
-        i, j, k,
-        b_rows, b_cols, b_depth);
-    int a_index = Dim3toDim1(0, 0, k % a_depth, 1, 1, a_depth);
-    B[b_index] = A[a_index];
+  if (b.inside(i, j, k)) {
+    b.set(i, j, k, a.get(0, 0, k % a.depth));
   }
 }
 
 __global__ void MatrixRepeatColumns(
-    float* A,
-    int rows, int cols,
-    float* B) {
+    MatrixPack a,
+    MatrixPack b) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
 
-  if (i < rows && j < cols) {
-    int b_index = Dim3toDim1(i, j, 0, rows, cols, 1);
-    B[b_index] = A[i];
+  if (b.inside(i, j)) {
+    b.set(i, j, a.get(i, 0));
   }
 }
 
@@ -580,8 +550,8 @@ Matrix Matrix::Repeat(
     dim3 threads_per_block(16, 16, 1);
     dim3 blocks = CalculateBlocks(result, threads_per_block);
     MatrixRepeatLayers<<<blocks, threads_per_block>>>(
-        data_.get(), depth_,
-        result.data_.get(), rows, cols, depth);
+        MatrixPack(*this),
+        MatrixPack(result));
     CUDA_ASYNC_CHECK();
     return result;
   } else {
@@ -593,31 +563,34 @@ Matrix Matrix::Repeat(
     dim3 threads_per_block(16, 16, 1);
     dim3 blocks = CalculateBlocks(result, threads_per_block);
     MatrixRepeatColumns<<<blocks, threads_per_block>>>(
-        data_.get(),
-        rows, cols,
-        result.data_.get());
+        MatrixPack(*this),
+        MatrixPack(result));
     CUDA_ASYNC_CHECK();
     return result;
   }
 }
 
+Matrix Matrix::Repeat(bool layered, const Matrix& size_template) const {
+  return Repeat(
+      layered,
+      size_template.rows(),
+      size_template.cols(),
+      size_template.depth());
+}
+
 __global__ void MatrixPerLayerSum(
-    float* A,
-    int rows, int cols, int a_depth,
-    float* B,
-    int b_depth) {
+    MatrixPack a,
+    MatrixPack b) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
 
-  if (i < rows && j < cols && k < b_depth) {
+  if (b.inside(i, j, k)) {
     float sum = 0.0f;
-    for (int k1 = k; k1 < a_depth; k1 += b_depth) {
-      int a_index = Dim3toDim1(i, j, k1, rows, cols, a_depth);
-      sum += A[a_index];
+    for (int k1 = k; k1 < a.depth; k1 += b.depth) {
+      sum += a.get(i, j, k1);
     }
-    int b_index = Dim3toDim1(i, j, k, rows, cols, b_depth);
-    B[b_index] = sum;
+    b.set(i, j, k, sum);
   }
 }
 Matrix Matrix::PerLayerSum(int layers) const {
@@ -626,34 +599,31 @@ Matrix Matrix::PerLayerSum(int layers) const {
   dim3 threads_per_block(16, 16, 1);
   dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixPerLayerSum<<<blocks, threads_per_block>>>(
-        data_.get(), rows_, cols_, depth_,
-        result.data_.get(), layers);
+      MatrixPack(*this),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result;
 }
 
 __global__ void MatrixPerLayerRepeat(
-    float* A,
-    int rows, int cols, int a_depth,
-    float* B,
-    int b_depth) {
+    MatrixPack a,
+    MatrixPack b) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
 
-  if (i < rows && j < cols && k < b_depth) {
-    int a_index = Dim3toDim1(i, j, k % a_depth, rows, cols, a_depth);
-    int b_index = Dim3toDim1(i, j, k, rows, cols, b_depth);
-    B[b_index] = A[a_index];
+  if (b.inside(i, j, k)) {
+    b.set(i, j, k, a.get(i, j, k % a.depth));
   }
 }
+
 Matrix Matrix::PerLayerRepeat(int times) const {
   Matrix result(rows_, cols_, depth_ * times);
   dim3 threads_per_block(16, 16, 1);
   dim3 blocks = CalculateBlocks(result, threads_per_block);
   MatrixPerLayerRepeat<<<blocks, threads_per_block>>>(
-        data_.get(), rows_, cols_, depth_,
-        result.data_.get(), result.depth());
+      MatrixPack(*this),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result;
 }
@@ -671,37 +641,34 @@ float Matrix::L2() const {
   VecL2<<<1, 1>>>(data_.get(), size_, result.data_.get());
   CUDA_ASYNC_CHECK();
   return result.GetValue(0, 0, 0);
-  // TODO: use the following, but figure out while it fails the tests now:
-  // return Map(::matrix_mappers::Square()).Sum();
 }
 
-
-__global__ void VecSoftmax(float* A, int a_rows, int a_cols, float* B, float* C) {
+__global__ void VecSoftmax(MatrixPack a, MatrixPack b, MatrixPack c) {
   int col = threadIdx.x + blockDim.x * blockIdx.x;
-  if (col < a_cols) {
+  if (col < a.cols) {
 
     // Get max value from column. Needed for numerical stability, see
     // http://cs231n.github.io/linear-classify/#softmax
-    float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-    for (int i = 1; i < a_rows; i++) {
-      float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
+    float max_val = a.get(0, col);
+    for (int i = 1; i < a.rows; i++) {
+      float val = a.get(i, col);
       if (val > max_val) {
         max_val = val;
       }
     }
 
-    int expected_class = static_cast<int>(B[col]);
+    int expected_class = static_cast<int>(b.get(0, col));
     float expected_class_score = -1.0;
     float sum = 0.0f;
-    for (int i = 0; i < a_rows; ++i) {
-      float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)] - max_val;
+    for (int i = 0; i < a.rows; ++i) {
+      float val = a.get(i, col) - max_val;
       if (i == expected_class) {
         expected_class_score = val;
       }
       sum += exp(val);
     }
 
-    C[col] = -expected_class_score + log(sum);
+    c.set(0, col, -expected_class_score + log(sum));
   }
 }
 
@@ -715,42 +682,41 @@ float Matrix::Softmax(const Matrix& expected_class) const {
 
   Matrix result(1, cols_, 1);
   VecSoftmax<<<(cols_ + 255) / 256, 256>>>(
-      data_.get(), rows_, cols_,
-      expected_class.data_.get(),
-      result.data_.get());
+      MatrixPack(*this),
+      MatrixPack(expected_class),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result.Sum();
 }
 
 
-__global__ void VecSoftmaxGradient(float* A, int a_rows, int a_cols, float* B, float* C) {
+__global__ void VecSoftmaxGradient(
+    MatrixPack a,
+    MatrixPack b,
+    MatrixPack c) {
   // TODO: clean up code duplication with VecSoftmax
   int col = threadIdx.x + blockDim.x * blockIdx.x;
 
-  if (col < a_cols) {
-
-    float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-    for (int i = 1; i < a_rows; i++) {
-      int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
-      float val = A[index];
+  if (col < a.cols) {
+    float max_val = a.get(0, col);
+    for (int i = 1; i < a.rows; i++) {
+      float val = a.get(i, col);
       if (val > max_val) {
         max_val = val;
       }
     }
 
     float sum = 0.0f;
-    for (int i = 0; i < a_rows; ++i) {
-      int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
-      float val = exp(A[index] - max_val);
-      C[index] = val;
+    for (int i = 0; i < a.rows; ++i) {
+      float val = exp(a.get(i, col) - max_val);
+      c.set(i, col, val);
       sum += val;
     }
-    int expected_class = static_cast<int>(B[col]);
-    for (int i = 0; i < a_rows; ++i) {
-      int index = Dim3toDim1(i, col, 0, a_rows, a_cols, 1);
-      C[index] = C[index] / sum;
+    int expected_class = static_cast<int>(b.get(0, col));
+    for (int i = 0; i < a.rows; ++i) {
+      c.div(i, col, sum);
       if (i == expected_class) {
-        C[index] -= 1.0f;
+        c.add(i, col, -1.0f);
       }
     }
   }
@@ -768,22 +734,22 @@ Matrix Matrix::SoftmaxGradient(const Matrix& expected_class) const {
 
   Matrix result(rows_, cols_, 1);
   VecSoftmaxGradient<<<(cols_ + 255) / 256, 256>>>(
-      data_.get(), rows_, cols_,
-      expected_class.data_.get(),
-      result.data_.get());
+      MatrixPack(*this),
+      MatrixPack(expected_class),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result;
 }
 
-__global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float* C) {
+__global__ void VecNumMatches(MatrixPack a, MatrixPack b, MatrixPack c) {
   int col = threadIdx.x + blockDim.x * blockIdx.x;
-  if (col < a_cols) {
+  if (col < a.cols) {
 
     // Get max value from column.
     bool unique = true;
-    float max_val = A[Dim3toDim1(0, col, 0, a_rows, a_cols, 1)];
-    for (int i = 1; i < a_rows; i++) {
-      float val = A[Dim3toDim1(i, col, 0, a_rows, a_cols, 1)];
+    float max_val = a.get(0, col);
+    for (int i = 1; i < a.rows; i++) {
+      float val = a.get(i, col);
       if (val > max_val) {
         max_val = val;
         unique = true;
@@ -793,15 +759,15 @@ __global__ void VecNumMatches(float* A, int a_rows, int a_cols, float* B, float*
     }
 
     if (unique) {
-      int expected_class = static_cast<int>(B[col]);
-      float expected_class_score = A[Dim3toDim1(expected_class, col, 0, a_rows, a_cols, 1)];
+      int expected_class = static_cast<int>(b.get(0, col));
+      float expected_class_score = a.get(expected_class, col);
       if (expected_class_score == max_val) {
-        C[col] = 1.0f;
+        c.set(0, col, 1.0f);
       } else {
-        C[col] = 0.0f;
+        c.set(0, col, 0.0f);
       }
     } else {
-      C[col] = 0.0f;
+      c.set(0, col, 0.0f);
     }
   }
 }
@@ -816,13 +782,12 @@ float Matrix::NumMatches(const Matrix& expected_class) const {
 
   Matrix result(1, cols_, 1);
   VecNumMatches<<<(cols_ + 255) / 256, 256>>>(
-      data_.get(), rows_, cols_,
-      expected_class.data_.get(),
-      result.data_.get());
+      MatrixPack(*this),
+      MatrixPack(expected_class),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
   return result.Sum();
 }
-
 
 __global__ void VecFill(float value, float* A, int a_size) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -934,34 +899,28 @@ Matrix Matrix::Convolution(
 
 __global__ void MatrixPooling(
     int pool_rows, int pool_cols,
-    float* A,
-    int a_rows, int a_cols, int a_depth,
-    float* pooled,
-    float* switches,
-    int pooled_rows, int pooled_cols, int pooled_depth) {
+    MatrixPack a,
+    MatrixPack pooled,
+    MatrixPack switches) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
-  if (i < pooled_rows && j < pooled_cols && k < pooled_depth) {
+  if (i < pooled.rows && j < pooled.cols && k < pooled.depth) {
     int best_sub_index = -1;
     float best_value = 0;
     for (int a_sub_index = 0; a_sub_index < pool_rows * pool_cols; a_sub_index++) {
-      float value = A[Dim3toDim1(
+      float value = a.get(
           i * pool_rows + a_sub_index / pool_cols,
           j * pool_cols + a_sub_index % pool_cols,
-          k,
-          a_rows, a_cols, a_depth)];
+          k);
       if (best_sub_index < 0 || value > best_value) {
         best_sub_index = a_sub_index;
         best_value = value;
       }
 
     }
-
-    int pooled_index = Dim3toDim1(
-        i, j, k, pooled_rows, pooled_cols, pooled_depth);
-    pooled[pooled_index] = best_value;
-    switches[pooled_index] = best_sub_index;
+    pooled.set(i, j, k, best_value);
+    switches.set(i, j, k, best_sub_index);
   }
 }
 
@@ -977,11 +936,9 @@ std::pair<Matrix, Matrix> Matrix::Pooling(
   dim3 blocks = CalculateBlocks(pooled, threads_per_block);
   MatrixPooling<<<blocks, threads_per_block>>>(
       pool_rows, pool_cols,
-      data_.get(),
-      rows_, cols_, depth_,
-      pooled.data_.get(),
-      switches.data_.get(),
-      pooled.rows_, pooled.cols_, pooled.depth_);
+      MatrixPack(*this),
+      MatrixPack(pooled),
+      MatrixPack(switches));
   CUDA_ASYNC_CHECK();
 
   return std::make_pair(pooled, switches);
@@ -989,24 +946,19 @@ std::pair<Matrix, Matrix> Matrix::Pooling(
 
 __global__ void MatrixPoolingSwitch(
     int pool_rows, int pool_cols,
-    float* switches,
-    float* input,
-    int rows, int cols, int depth,
-    float* result) {
+    MatrixPack switches,
+    MatrixPack input,
+    MatrixPack result) {
   int i = threadIdx.x + blockDim.x * blockIdx.x;
   int j = threadIdx.y + blockDim.y * blockIdx.y;
   int k = threadIdx.z + blockDim.z * blockIdx.z;
-  if (i < rows && j < cols && k < depth) {
-    int input_index = Dim3toDim1(i, j, k, rows, cols, depth);
-    int sub_index = switches[input_index];
-    int result_index = Dim3toDim1(
+  if (input.inside(i, j, k)) {
+    int sub_index = switches.get(i, j, k);
+    result.set(
         i * pool_rows + sub_index / pool_cols,
         j * pool_cols + sub_index % pool_cols,
         k,
-        rows * pool_rows,
-        cols * pool_cols,
-        depth);
-    result[result_index] = input[input_index];
+        input.get(i, j, k));
   }
 }
 
@@ -1021,12 +973,10 @@ Matrix Matrix::PoolingSwitch(
   dim3 blocks = CalculateBlocks(switches, threads_per_block);
   MatrixPoolingSwitch<<<blocks, threads_per_block>>>(
       pool_rows, pool_cols,
-      switches.data_.get(),
-      data_.get(),
-      rows_, cols_, depth_,
-      result.data_.get());
+      MatrixPack(switches),
+      MatrixPack(*this),
+      MatrixPack(result));
   CUDA_ASYNC_CHECK();
-
   return result;
 }
 
@@ -1040,9 +990,7 @@ Matrix Matrix::ReshapeToColumns(int unit_depth) const {
 }
 
 Matrix Matrix::ReshapeFromColumns(int unit_rows, int unit_cols, int unit_depth) const {
-
   assert(unit_rows * unit_cols * unit_depth == rows_);
-
   Matrix rows(this->T());
   rows.depth_ = rows.rows_ * rows.cols_ / (unit_rows * unit_cols);
   rows.rows_ = unit_rows;
