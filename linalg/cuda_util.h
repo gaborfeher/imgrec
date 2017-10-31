@@ -19,8 +19,8 @@
 inline void gpuAssert(cudaError_t code, const char *file, int line) {
   if (code != cudaSuccess) {
     fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-    assert(code != cudaSuccess);
-    exit(1);
+    assert(code == cudaSuccess);  // Debugger likes this exit better.
+    exit(1);  // Also exit in non-debug mode.
   }
 }
 

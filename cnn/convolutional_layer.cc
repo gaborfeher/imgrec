@@ -92,8 +92,8 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //     filter2-layer1, filter2-layer2, filter2-layer3
 }
 
-void ConvolutionalLayer::ApplyGradient(float learn_rate, float lambda) {
-  filters_.ApplyGradient(learn_rate, lambda);
+void ConvolutionalLayer::ApplyGradient(const GradientInfo& info) {
+  filters_.ApplyGradient(info);
 }
 
 int ConvolutionalLayer::NumParameters() const {

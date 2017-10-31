@@ -149,9 +149,9 @@ void TrainConvolutionalModel() {
   float error, accuracy;
   Model model(stack, 123, 2);
   // model.Evaluate(*validation, &error, &accuracy);
-  //model.Train(*training, 7, 0.0001, 0.00002);
-  model.Train(*training, 1, 0.0001, 0.00002);
-  // model.Evaluate(*validation, &error, &accuracy);
+  model.Train(*training, 7, 0.0006, 0.00012);
+  // model.Train(*training, 1, 0.0001, 0.00002);
+  model.Evaluate(*validation, &error, &accuracy);
 }
 
 int main() {

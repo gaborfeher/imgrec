@@ -39,8 +39,8 @@ void FullyConnectedLayer::Backward(const Matrix& output_gradient) {
       .Dot(output_gradient);
 }
 
-void FullyConnectedLayer::ApplyGradient(float learn_rate, float lambda) {
-  weights_.ApplyGradient(learn_rate, lambda);
+void FullyConnectedLayer::ApplyGradient(const GradientInfo& info) {
+  weights_.ApplyGradient(info);
 }
 
 int FullyConnectedLayer::NumParameters() const {

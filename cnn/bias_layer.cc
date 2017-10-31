@@ -32,8 +32,10 @@ void BiasLayer::Backward(const Matrix& output_gradient) {
       output_gradient.Sum(layered_, num_neurons_);
 }
 
-void BiasLayer::ApplyGradient(float learn_rate, float /* lambda */) {
-  biases_.ApplyGradient(learn_rate, 0.0f);
+void BiasLayer::ApplyGradient(const GradientInfo& info) {
+  GradientInfo copy = info;
+  copy.lambda = 0.0f;  // no regularization
+  biases_.ApplyGradient(copy);
 }
 
 int BiasLayer::NumParameters() const {

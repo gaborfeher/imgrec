@@ -33,7 +33,7 @@ class LayerStack : public Layer {
   virtual void Initialize(Random* random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
-  virtual void ApplyGradient(float learn_rate, float lambda);
+  virtual void ApplyGradient(const GradientInfo& info);
   virtual bool OnBeginPhase();
   virtual void OnEndPhase();
   virtual int NumParameters() const;

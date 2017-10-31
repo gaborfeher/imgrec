@@ -147,9 +147,11 @@ void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
       .Sum(layered_, num_neurons_);
 }
 
-void BatchNormalizationLayer::ApplyGradient(float learn_rate, float /* lambda */) {
-  beta_.ApplyGradient(learn_rate, 0.0f);
-  gamma_.ApplyGradient(learn_rate, 0.0f);
+void BatchNormalizationLayer::ApplyGradient(const GradientInfo& info) {
+  GradientInfo copy = info;
+  copy.lambda = 0.0f;  // no regularization
+  beta_.ApplyGradient(copy);
+  gamma_.ApplyGradient(copy);
 }
 
 bool BatchNormalizationLayer::OnBeginPhase() {

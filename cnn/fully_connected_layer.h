@@ -8,6 +8,7 @@
 
 class Random;
 class Matrix;
+struct GradientInfo;
 
 class FullyConnectedLayer : public Layer {
  public:
@@ -16,7 +17,7 @@ class FullyConnectedLayer : public Layer {
   virtual void Initialize(Random* random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
-  virtual void ApplyGradient(float learn_rate, float lambda);
+  virtual void ApplyGradient(const GradientInfo& info);
   virtual int NumParameters() const;
 
  private:

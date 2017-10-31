@@ -3,6 +3,7 @@
 
 #include "linalg/matrix.h"
 
+struct GradientInfo;
 class Random;
 
 class Layer {
@@ -22,7 +23,7 @@ class Layer {
   virtual void Initialize(Random* /* generator */) {};
   virtual void Forward(const Matrix& input) = 0;
   virtual void Backward(const Matrix& output_gradient) = 0;
-  virtual void ApplyGradient(float /* learn_rate */, float /* lambda */) {}
+  virtual void ApplyGradient(const GradientInfo&) {}
   virtual int NumParameters() const { return 0; }
 
   // Signals to the layer that a phase is beginning.

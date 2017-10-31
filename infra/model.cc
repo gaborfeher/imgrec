@@ -5,6 +5,7 @@
 
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
+#include "cnn/matrix_param.h"
 #include "infra/data_set.h"
 #include "linalg/matrix.h"
 #include "util/random.h"
@@ -49,10 +50,12 @@ void Model::Train(
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
   model_->BeginPhase(Layer::TRAIN_PHASE, 0);
   system_clock::time_point train_phase_start = system_clock::now();
+  int iteration = 0;
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
     for (int j = 0; j < data_set.NumBatches(); ++j) {
+      iteration += 1;
       system_clock::time_point minibatch_start = system_clock::now();
 
       ForwardPass(data_set, j);
@@ -60,11 +63,15 @@ void Model::Train(
       total_accuracy += error_->GetAccuracy();
       Matrix dummy;
       model_->Backward(dummy);
-      model_->ApplyGradient(learn_rate, regularization_lambda);
+      model_->ApplyGradient(GradientInfo(iteration, learn_rate, regularization_lambda));
 
       system_clock::time_point minibatch_end = system_clock::now();
-      float minibatch_duration = duration_cast<milliseconds>(minibatch_end - minibatch_start).count() / 1000.0f;
-      float avg_minibatch_duration = duration_cast<milliseconds>(minibatch_end - train_phase_start).count() / 1000.0f / (j + 1.0f + i * data_set.NumBatches());
+      float minibatch_duration =
+          duration_cast<milliseconds>(minibatch_end - minibatch_start).count()
+          / 1000.0f;
+      float avg_minibatch_duration =
+          duration_cast<milliseconds>(minibatch_end - train_phase_start).count()
+          / 1000.0f / iteration;
       if (log_level_ >= 2) {
         std::cout << "epoch " << i << " batch " << j
             << " (time= " << minibatch_duration << "s,"
