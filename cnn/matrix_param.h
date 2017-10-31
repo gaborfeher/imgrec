@@ -4,14 +4,21 @@
 #include "linalg/matrix.h"
 
 struct GradientInfo {
-  GradientInfo(int iteration, float learn_rate, float lambda) :
-      iteration(iteration),
+  enum Mode {
+    SGD,
+    ADAM
+  };
+
+  GradientInfo(float learn_rate, float lambda, Mode mode) :
+      iteration(0),  // invalid value
       learn_rate(learn_rate),
-      lambda(lambda) {}
+      lambda(lambda),
+      mode(mode) {}
 
   int iteration;
   float learn_rate;
   float lambda;
+  Mode mode;
 };
 
 class MatrixParam {
@@ -27,9 +34,6 @@ class MatrixParam {
 
   void ApplyGradient(const GradientInfo& info);
   int NumParameters() const;
-
- private:
-  int mode_;
 };
 
 #endif

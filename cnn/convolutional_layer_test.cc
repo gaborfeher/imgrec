@@ -692,8 +692,10 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   model.Train(
       *training_ds,
       5,  // epochs
-      0.03,  // learn_rate
-      0.0002);  // regularization
+      GradientInfo(
+          0.03,  // learn_rate
+          0.0002,  // regularization
+          GradientInfo::ADAM));  // algorithm
 
   float test_error;
   float test_accuracy;
@@ -712,8 +714,10 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   model.Train(
       *training_ds,
       5,  // epochs
-      0.006,  // learn_rate
-      0.001);  // regularization
+      GradientInfo(
+          0.006,  // learn_rate
+          0.001,  // regularization
+          GradientInfo::ADAM));  // algorithm
 
   float test_error;
   float test_accuracy;
@@ -753,8 +757,10 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   model.Train(
       *training_ds,
       5,  // epochs
-      0.006,  // learn_rate
-      0.0);  // regularization
+      GradientInfo(
+          0.006,  // learn_rate
+          0.0,  // regularization
+          GradientInfo::ADAM));
 
   float test_error;
   float test_accuracy;

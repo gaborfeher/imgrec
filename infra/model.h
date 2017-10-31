@@ -20,8 +20,7 @@ class Model {
   void Train(
       const DataSet& data_set,
       int epochs,
-      float learn_rate,
-      float regularization_lambda);
+      const GradientInfo& gradient_info);
   void Evaluate(
       const DataSet& data_set,
       float* error,

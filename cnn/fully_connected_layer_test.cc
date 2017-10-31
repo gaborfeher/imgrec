@@ -68,8 +68,7 @@ TEST(FullyConnectedLayerTest, Train_L2) {
   model.Train(
       *training,
       1000,
-      1,
-      0.0);
+      GradientInfo(1, 0, GradientInfo::ADAM));
   // stack->Print();
 
   float training_error;
@@ -103,8 +102,7 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   model.Train(
       *training,
       1000,
-      1,
-      0.0);
+      GradientInfo(1, 0, GradientInfo::ADAM));
   // stack->Print();
 
   float training_error;

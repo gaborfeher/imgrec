@@ -8,13 +8,11 @@
 MatrixParam::MatrixParam(int rows, int cols, int depth) :
     value(rows, cols, depth),
     gradient(rows, cols, depth),
-    mode_(1) {
-  if (mode_ == 1) {
-    m = Matrix(rows, cols, depth);
-    v = Matrix(rows, cols, depth);
-    m.Fill(0);
-    v.Fill(0);
-  }
+    // Only needed in ADAM mode:
+    m(rows, cols, depth),
+    v(rows, cols, depth) {
+  m.Fill(0);
+  v.Fill(0);
 }
 
 void MatrixParam::ApplyGradient(const GradientInfo& info) {
@@ -23,10 +21,11 @@ void MatrixParam::ApplyGradient(const GradientInfo& info) {
     dx.Add(value.Multiply(info.lambda / info.learn_rate));
   }
 
-  if (mode_ == 0) {
+  Matrix step;
+  if (info.mode == GradientInfo::SGD) {
     // SGD (Stochastic Gradient Descent)
-    value = value.Add(dx.Multiply(-info.learn_rate));
-  } else if (mode_ == 1) {
+    step = dx.Multiply(-info.learn_rate);
+  } else if (info.mode == GradientInfo::ADAM) {
     // ADAM (See: http://cs231n.github.io/neural-networks-3/)
     assert(info.iteration >= 1);
     float beta1 = 0.9f;
@@ -36,21 +35,24 @@ void MatrixParam::ApplyGradient(const GradientInfo& info) {
     m = m.Multiply(beta1).Add(dx.Multiply(1.0f - beta1));
     Matrix mt = m.Divide(
         1.0f - std::pow(beta1, info.iteration));
+    // mt = m;
     v = v.Multiply(beta2).Add(
         dx
             .Map1(::matrix_mappers::Square())
             .Multiply(1.0f - beta2));
     Matrix vt = v.Divide(
         1.0f - std::pow(beta2, info.iteration));
-    value = value.Add(mt
+    // vt = v;
+    step = mt
         .Multiply(-info.learn_rate)
         .ElementwiseDivide(
             vt
                 .Map1(::matrix_mappers::Sqrt())
-                .AddConst(eps)));
+                .AddConst(eps));
   } else {
     assert(false);
   }
+  value = value.Add(step);
 }
 
 int MatrixParam::NumParameters() const {

@@ -37,8 +37,7 @@ void Model::ForwardPass(const DataSet& data_set, int batch_id) {
 void Model::Train(
     const DataSet& data_set,
     int epochs,
-    float learn_rate,
-    float regularization_lambda) {
+    const GradientInfo& gradient_info) {
   using std::chrono::system_clock;
   using std::chrono::duration_cast;
   using std::chrono::milliseconds;
@@ -50,12 +49,13 @@ void Model::Train(
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
   model_->BeginPhase(Layer::TRAIN_PHASE, 0);
   system_clock::time_point train_phase_start = system_clock::now();
-  int iteration = 0;
+  GradientInfo grad_inf_copy = gradient_info;
+  grad_inf_copy.iteration = 0;
   for (int i = 0; i < epochs; ++i) {
     float total_error = 0.0f;
     float total_accuracy = 0.0f;
     for (int j = 0; j < data_set.NumBatches(); ++j) {
-      iteration += 1;
+      grad_inf_copy.iteration += 1;
       system_clock::time_point minibatch_start = system_clock::now();
 
       ForwardPass(data_set, j);
@@ -63,15 +63,14 @@ void Model::Train(
       total_accuracy += error_->GetAccuracy();
       Matrix dummy;
       model_->Backward(dummy);
-      model_->ApplyGradient(GradientInfo(iteration, learn_rate, regularization_lambda));
-
+      model_->ApplyGradient(grad_inf_copy);
       system_clock::time_point minibatch_end = system_clock::now();
       float minibatch_duration =
           duration_cast<milliseconds>(minibatch_end - minibatch_start).count()
           / 1000.0f;
       float avg_minibatch_duration =
           duration_cast<milliseconds>(minibatch_end - train_phase_start).count()
-          / 1000.0f / iteration;
+          / 1000.0f / grad_inf_copy.iteration;
       if (log_level_ >= 2) {
         std::cout << "epoch " << i << " batch " << j
             << " (time= " << minibatch_duration << "s,"

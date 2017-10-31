@@ -595,8 +595,7 @@ TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
   model.Train(
       training_ds,
       20,
-      0.1,
-      0);
+      GradientInfo(0.1, 0, GradientInfo::SGD));
   float test_error, test_accuracy;
   model.Evaluate(training_ds, &test_error, &test_accuracy);
   EXPECT_GT(1e-13, test_error);
@@ -626,8 +625,7 @@ TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
   model.Train(
       training_ds,
       20,
-      0.1,
-      0);
+      GradientInfo(0.1, 0, GradientInfo::SGD));
   float test_error, test_accuracy;
   model.Evaluate(training_ds, &test_error, &test_accuracy);
   EXPECT_GT(1e-13, test_error);
