@@ -40,15 +40,9 @@ void LayerStack::Backward(const Matrix& output_gradient) {
   }
 }
 
-void LayerStack::ApplyGradient(float learn_rate) {
+void LayerStack::ApplyGradient(float learn_rate, float lambda) {
   for (std::shared_ptr<Layer> layer : layers_) {
-    layer->ApplyGradient(learn_rate);
-  }
-}
-
-void LayerStack::Regularize(float lambda) {
-  for (std::shared_ptr<Layer> layer : layers_) {
-    layer->Regularize(lambda);
+    layer->ApplyGradient(learn_rate, lambda);
   }
 }
 

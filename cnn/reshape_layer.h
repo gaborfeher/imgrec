@@ -9,7 +9,6 @@ class ReshapeLayer : public Layer {
   ReshapeLayer(int unit_rows, int unit_cols, int unit_depth);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient); 
-  virtual void ApplyGradient(float learn_rate);
 
  private:
   int unit_rows_;

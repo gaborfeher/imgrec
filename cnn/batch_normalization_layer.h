@@ -2,6 +2,8 @@
 #define _BATCH_NORMALIZATION_LAYER_H_
 
 #include "cnn/bias_like_layer.h"
+#include "cnn/matrix_param.h"
+#include "linalg/matrix.h"
 
 #include "gtest/gtest_prod.h"
 
@@ -17,7 +19,7 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   virtual void Initialize(Random*);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
-  virtual void ApplyGradient(float learn_rate);
+  virtual void ApplyGradient(float learn_rate, float /* lambda */);
   virtual bool OnBeginPhase();
   virtual void OnEndPhase();
   virtual int NumParameters() const;
@@ -36,10 +38,8 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   int num_samples_;  // Number of minibatch samples seen in the last Forward pass.
 
   // Internal parameters and their gradients:
-  Matrix beta_;
-  Matrix beta_gradient_;
-  Matrix gamma_;
-  Matrix gamma_gradient_;
+  MatrixParam beta_;
+  MatrixParam gamma_;
 
   // Intermediate values shared between Forward and Backward.
   Matrix mean_;

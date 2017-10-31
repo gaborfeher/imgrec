@@ -19,6 +19,3 @@ void ReshapeLayer::Backward(const Matrix& output_gradient) {
   input_gradient_ = output_gradient.ReshapeFromColumns(
       unit_rows_, unit_cols_, unit_depth_);
 }
-
-void ReshapeLayer::ApplyGradient(float) {
-}

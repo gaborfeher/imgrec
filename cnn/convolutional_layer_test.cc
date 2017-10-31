@@ -43,16 +43,16 @@ class ConvolutionalLayerGradientTest : public ::testing::Test {
           training_x,
           filters,
           [&conv_layer] (const Matrix& p) -> void {
-              conv_layer->filters_ = p;
+              conv_layer->filters_.value = p;
           },
           [conv_layer] () -> Matrix {
-              return conv_layer->filters_gradient_;
+              return conv_layer->filters_.gradient;
           },
           0.08f,
           0.5f);
     }
 
-    conv_layer->filters_ = filters;
+    conv_layer->filters_.value = filters;
     {
       SCOPED_TRACE("input gradient check");
       InputGradientCheck(
@@ -635,8 +635,8 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 
   error_layer->SetExpectedValue(training_y);
   // We will check the gradient of filters at this point:
-  Matrix filters = conv_layer->filters_;
-  Matrix biases = bias_layer->biases_;
+  Matrix filters = conv_layer->filters_.value;
+  Matrix biases = bias_layer->biases_.value;
 
   {
     SCOPED_TRACE("gradient check on filters");
@@ -645,15 +645,15 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         training_x,
         filters,
         [&conv_layer] (const Matrix& p) -> void {
-            conv_layer->filters_ = p;
+            conv_layer->filters_.value = p;
         },
         [conv_layer] () -> Matrix {
-            return conv_layer->filters_gradient_;
+            return conv_layer->filters_.gradient;
         },
         0.003f,
         7.0f);
   }
-  conv_layer->filters_ = filters;
+  conv_layer->filters_.value = filters;
 
   // 2. Compute gradient on the biases:
   {
@@ -663,15 +663,15 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
         training_x,
         biases,
         [&bias_layer] (const Matrix& p) -> void {
-            bias_layer->biases_ = p;
+            bias_layer->biases_.value = p;
         },
         [bias_layer] () -> Matrix {
-            return bias_layer->biases_gradient_;
+            return bias_layer->biases_.gradient;
         },
         0.003f,
         2.5f);
   }
-  bias_layer->biases_ = biases;
+  bias_layer->biases_.value = biases;
 
   {
     SCOPED_TRACE("gradient check on inputs");

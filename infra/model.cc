@@ -60,8 +60,7 @@ void Model::Train(
       total_accuracy += error_->GetAccuracy();
       Matrix dummy;
       model_->Backward(dummy);
-      model_->ApplyGradient(learn_rate);
-      model_->Regularize(regularization_lambda);
+      model_->ApplyGradient(learn_rate, regularization_lambda);
 
       system_clock::time_point minibatch_end = system_clock::now();
       float minibatch_duration = duration_cast<milliseconds>(minibatch_end - minibatch_start).count() / 1000.0f;

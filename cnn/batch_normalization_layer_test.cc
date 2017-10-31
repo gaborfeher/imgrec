@@ -87,10 +87,10 @@ TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode) {
       1, -1,
   });
   BatchNormalizationLayer batch_layer(2, false);
-  batch_layer.beta_ = Matrix(2, 1, 1, {
+  batch_layer.beta_.value = Matrix(2, 1, 1, {
       1, 2,
   });
-  batch_layer.gamma_ = Matrix(2, 1, 1, {
+  batch_layer.gamma_.value = Matrix(2, 1, 1, {
       3, 4,
   });
   batch_layer.BeginPhase(Layer::TRAIN_PHASE, 0);
@@ -135,10 +135,10 @@ TEST(BatchNormalizationLayerTest, Forward_LayerMode) {
     4, 4, 4,
   });
   BatchNormalizationLayer batch_layer(2, true);
-  batch_layer.beta_ = Matrix(1, 1, 2, {
+  batch_layer.beta_.value = Matrix(1, 1, 2, {
       1, 2,
   });
-  batch_layer.gamma_ = Matrix(1, 1, 2, {
+  batch_layer.gamma_.value = Matrix(1, 1, 2, {
       3, 4,
   });
   batch_layer.BeginPhase(Layer::TRAIN_PHASE, 0);
@@ -249,8 +249,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
 
   Matrix beta(4, 1, 1, { 0, -1, 1, 2} );
   Matrix gamma(4, 1, 1, { -1, -0.5, 3, 1.2} );
-  batch_layer->beta_ = beta;
-  batch_layer->gamma_ = gamma;
+  batch_layer->beta_.value = beta;
+  batch_layer->gamma_.value = gamma;
 
   {
     SCOPED_TRACE("beta");
@@ -259,10 +259,10 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
         training_x,
         beta,
         [&batch_layer] (const Matrix& p) -> void {
-            batch_layer->beta_ = p;
+            batch_layer->beta_.value = p;
         },
         [batch_layer] () -> Matrix {
-            return batch_layer->beta_gradient_;
+            return batch_layer->beta_.gradient;
         },
         0.01f,
         0.1f);
@@ -275,10 +275,10 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
         training_x,
         gamma,
         [&batch_layer] (const Matrix& p) -> void {
-            batch_layer->gamma_ = p;
+            batch_layer->gamma_.value = p;
         },
         [batch_layer] () -> Matrix {
-            return batch_layer->gamma_gradient_;
+            return batch_layer->gamma_.gradient;
         },
         0.01f,
         0.1f);
@@ -334,8 +334,8 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
 
   Matrix beta(1, 1, 2, { 2, -1 } );
   Matrix gamma(1, 1, 2, { -1, -0.5 } );
-  batch_layer->beta_ = beta;
-  batch_layer->gamma_ = gamma;
+  batch_layer->beta_.value = beta;
+  batch_layer->gamma_.value = gamma;
 
   {
     SCOPED_TRACE("beta");
@@ -344,10 +344,10 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
         training_x,
         beta,
         [&batch_layer] (const Matrix& p) -> void {
-            batch_layer->beta_ = p;
+            batch_layer->beta_.value = p;
         },
         [batch_layer] () -> Matrix {
-            return batch_layer->beta_gradient_;
+            return batch_layer->beta_.gradient;
         },
         0.03f,
         1.0f);
@@ -360,10 +360,10 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
         training_x,
         gamma,
         [&batch_layer] (const Matrix& p) -> void {
-            batch_layer->gamma_ = p;
+            batch_layer->gamma_.value = p;
         },
         [batch_layer] () -> Matrix {
-            return batch_layer->gamma_gradient_;
+            return batch_layer->gamma_.gradient;
         },
         0.1f,
         1.0f);
@@ -395,8 +395,8 @@ TEST(BatchNormalizationLayerTest, GlobalSum_ColumnMode) {
   });
   BatchNormalizationLayer batch_layer(4, false);
   batch_layer.Initialize(NULL);
-  batch_layer.beta_ = Matrix(4, 1, 1, { 1, 1, -1, -1 } );
-  batch_layer.gamma_ = Matrix(4, 1, 1, { -2, -2, 2,2 } );
+  batch_layer.beta_.value = Matrix(4, 1, 1, { 1, 1, -1, -1 } );
+  batch_layer.gamma_.value = Matrix(4, 1, 1, { -2, -2, 2,2 } );
 
 
   EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 0));
@@ -460,8 +460,8 @@ TEST(BatchNormalizationLayerTest, GlobalSum_LayerMode) {
   });
   BatchNormalizationLayer batch_layer(2, true);
   batch_layer.Initialize(NULL);
-  batch_layer.beta_ = Matrix(1, 1, 2, { 1, -1 } );
-  batch_layer.gamma_ = Matrix(1, 1, 2, { -2, 2 } );
+  batch_layer.beta_.value = Matrix(1, 1, 2, { 1, -1 } );
+  batch_layer.gamma_.value = Matrix(1, 1, 2, { -2, 2 } );
 
 
   EXPECT_TRUE(batch_layer.BeginPhase(Layer::POST_TRAIN_PHASE, 0));

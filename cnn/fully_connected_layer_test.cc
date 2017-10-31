@@ -2,7 +2,6 @@
 
 #include "cnn/batch_normalization_layer.h"
 #include "cnn/bias_layer.h"
-#include "cnn/convolutional_layer.h"
 #include "cnn/fully_connected_layer.h"
 #include "cnn/l2_error_layer.h"
 #include "cnn/layer_stack.h"
@@ -145,10 +144,10 @@ TEST(FullyConnectedLayerTest, WeightGradient) {
       training_x,
       weights,
       [&fc_layer] (const Matrix& p) -> void {
-        fc_layer->weights_ = p;
+        fc_layer->weights_.value = p;
       },
       [fc_layer] () -> Matrix {
-        return fc_layer->weights_gradient_;
+        return fc_layer->weights_.gradient;
       },
       0.001f,
       1);
@@ -166,7 +165,7 @@ TEST(FullyConnectedLayerTest, InputGradient) {
   stack->AddLayer<L2ErrorLayer>();
 
   stack->GetLayer<L2ErrorLayer>(-1)->SetExpectedValue(training_y);
-  stack->GetLayer<FullyConnectedLayer>(0)->weights_ =
+  stack->GetLayer<FullyConnectedLayer>(0)->weights_.value =
       Matrix(1, 2, 1,  { 4.2, -3.0 });
 
   InputGradientCheck(

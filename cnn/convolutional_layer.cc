@@ -11,21 +11,20 @@ ConvolutionalLayer::ConvolutionalLayer(
     int padding, int layers_per_image) :
         padding_(padding),
         layers_per_image_(layers_per_image),
-        filters_(filter_rows, filter_cols, num_filters * layers_per_image),
-        filters_gradient_(filter_rows, filter_cols, num_filters * layers_per_image) {
+        filters_(filter_rows, filter_cols, num_filters * layers_per_image) {
 }
 
 void ConvolutionalLayer::Print() const {
   std::cout << "Convolutional Layer:" << std::endl;
-  filters_.Print();
+  filters_.value.Print();
 }
 
 void ConvolutionalLayer::Initialize(Random* random) {
   // http://cs231n.github.io/neural-networks-2/#init
   // https://stats.stackexchange.com/questions/198840/cnn-xavier-weight-initialization
-  float variance = 2.0f / (filters_.rows() * filters_.cols() * layers_per_image_);
+  float variance = 2.0f / (filters_.value.rows() * filters_.value.cols() * layers_per_image_);
   std::normal_distribution<float> dist(0, sqrt(variance));
-  filters_.RandomFill(random, &dist);
+  filters_.value.RandomFill(random, &dist);
 }
 
 void ConvolutionalLayer::Forward(const Matrix& input) {
@@ -33,7 +32,7 @@ void ConvolutionalLayer::Forward(const Matrix& input) {
   output_ = Matrix::Convolution(
       layers_per_image_,
       input, true, padding_, padding_,
-      filters_, true, 0, 0,
+      filters_.value, true, 0, 0,
       0, 0);
 }
 
@@ -52,14 +51,14 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //   the article, but there is extra juggling with the layers
   //   of inputs, outputs and filters.)
 
-  int num_filters = filters_.depth() / layers_per_image_;
+  int num_filters = filters_.value.depth() / layers_per_image_;
   int num_input_images = input_.depth() / layers_per_image_;
 
   // (22)
   input_gradient_ = Matrix::Convolution(
       num_filters,
-      output_gradient, true, filters_.rows() - 1, filters_.cols() - 1,
-      filters_.Rot180(), false, 0, 0,
+      output_gradient, true, filters_.value.rows() - 1, filters_.value.cols() - 1,
+      filters_.value.Rot180(), false, 0, 0,
       padding_, padding_);
   // Layer-wise this means:
   //  output_gradient_ is
@@ -74,9 +73,9 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //     img2-layer1, img2-layer2, img2-layer3
 
   // (14)
-  filters_gradient_ = Matrix::Convolution(
+  filters_.gradient = Matrix::Convolution(
       num_input_images,
-      output_gradient, false, filters_.rows() - 1, filters_.cols() - 1,
+      output_gradient, false, filters_.value.rows() - 1, filters_.value.cols() - 1,
       input_, false, padding_, padding_,
       0, 0)
           .Rot180();
@@ -93,15 +92,11 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //     filter2-layer1, filter2-layer2, filter2-layer3
 }
 
-void ConvolutionalLayer::ApplyGradient(float learn_rate) {
-  filters_ = filters_.Add(filters_gradient_.Multiply(-learn_rate));
-}
-
-void ConvolutionalLayer::Regularize(float lambda) {
-  filters_ = filters_.Multiply(1.0 - lambda);
+void ConvolutionalLayer::ApplyGradient(float learn_rate, float lambda) {
+  filters_.ApplyGradient(learn_rate, lambda);
 }
 
 int ConvolutionalLayer::NumParameters() const {
-  return filters_.size();
+  return filters_.NumParameters();
 }
 

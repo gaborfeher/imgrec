@@ -2,10 +2,12 @@
 #define _CNN_FULLY_CONNECTED_LAYER_H_
 
 #include "cnn/layer.h"
+#include "cnn/matrix_param.h"
+
 #include "gtest/gtest_prod.h"
-#include "linalg/matrix.h"
 
 class Random;
+class Matrix;
 
 class FullyConnectedLayer : public Layer {
  public:
@@ -14,18 +16,16 @@ class FullyConnectedLayer : public Layer {
   virtual void Initialize(Random* random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
-  virtual void ApplyGradient(float learn_rate);
-  virtual void Regularize(float lambda);
+  virtual void ApplyGradient(float learn_rate, float lambda);
   virtual int NumParameters() const;
 
  private:
-  FRIEND_TEST(FullyConnectedLayerTest, WeightGradient);
   FRIEND_TEST(FullyConnectedLayerTest, InputGradient);
+  FRIEND_TEST(FullyConnectedLayerTest, WeightGradient);
 
   int input_size_;
   int output_size_;
-  Matrix weights_;
-  Matrix weights_gradient_;
+  MatrixParam weights_;
 };
 
 

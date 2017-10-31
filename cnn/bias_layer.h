@@ -2,6 +2,7 @@
 #define _CNN_BIAS_LAYER_H_
 
 #include "cnn/bias_like_layer.h"
+#include "cnn/matrix_param.h"
 
 #include "gtest/gtest_prod.h"
 
@@ -16,7 +17,7 @@ class BiasLayer : public BiasLikeLayer {
   virtual void Initialize(Random* /* generator */);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& ouotput_gradient);
-  virtual void ApplyGradient(float learn_rate);
+  virtual void ApplyGradient(float learn_rate, float /* lambda */);
   virtual int NumParameters() const;
  private:
   FRIEND_TEST(BiasLayerTest, GradientCheck_ColumnMode);
@@ -25,8 +26,7 @@ class BiasLayer : public BiasLikeLayer {
   FRIEND_TEST(BiasLayerTest, Forwardpass_LayerMode);
   FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
 
-  Matrix biases_;
-  Matrix biases_gradient_;
+  MatrixParam biases_;
 };
 
 #endif  // _CNN_BIAS_LAYER_H_

@@ -42,10 +42,10 @@ TEST(BiasLayerTest, GradientCheck_ColumnMode) {
       training_x,
       biases,
       [&bias_layer] (const Matrix& p) -> void {
-          bias_layer->biases_ = p;
+          bias_layer->biases_.value = p;
       },
       [bias_layer] () -> Matrix {
-          return bias_layer->biases_gradient_;
+          return bias_layer->biases_.gradient;
       },
       0.001f,
       1.0f);
@@ -84,10 +84,10 @@ TEST(BiasLayerTest, GradientCheck_LayerMode) {
       training_x,
       biases,
       [&bias_layer] (const Matrix& p) -> void {
-          bias_layer->biases_ = p;
+          bias_layer->biases_.value = p;
       },
       [bias_layer] () -> Matrix {
-          return bias_layer->biases_gradient_;
+          return bias_layer->biases_.gradient;
       },
       0.001f,
       1.0f);
@@ -103,7 +103,7 @@ TEST(BiasLayerTest, Forwardpass_ColumnMode) {
   Matrix biases(4, 1, 1, { 1, -1, 1, 2} );
 
   BiasLayer bias_layer(4, false);
-  bias_layer.biases_ = biases;
+  bias_layer.biases_.value = biases;
 
   bias_layer.Forward(training_x);
   ExpectMatrixEquals(
@@ -135,7 +135,7 @@ TEST(BiasLayerTest, Forwardpass_LayerMode) {
   Matrix biases(1, 1, 2, { 1, -1 } );
 
   BiasLayer bias_layer(2, true);
-  bias_layer.biases_ = biases;
+  bias_layer.biases_.value = biases;
 
   bias_layer.Forward(training_x);
   ExpectMatrixEquals(

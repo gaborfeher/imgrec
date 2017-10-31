@@ -3,21 +3,19 @@
 #include <cassert>
 #include <iostream>
 
-#include "linalg/matrix.h"
-
 BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) :
     BiasLikeLayer(num_neurons, layered),
     epsilon_(0.0001) {
   if (layered) {
-    beta_ = Matrix(1, 1, num_neurons);
-    gamma_ = Matrix(1, 1, num_neurons);
+    beta_ = MatrixParam(1, 1, num_neurons);
+    gamma_ = MatrixParam(1, 1, num_neurons);
     global_mean_ = Matrix(1, 1, num_neurons);
     global_variance_ = Matrix(1, 1, num_neurons);
     global_multiplier_ = Matrix(1, 1, num_neurons);
     global_shift_ = Matrix(1, 1, num_neurons);
   } else {
-    beta_ = Matrix(num_neurons, 1, 1);
-    gamma_ = Matrix(num_neurons, 1, 1);
+    beta_ = MatrixParam(num_neurons, 1, 1);
+    gamma_ = MatrixParam(num_neurons, 1, 1);
     global_mean_ = Matrix(num_neurons, 1, 1);
     global_variance_ = Matrix(num_neurons, 1, 1);
     global_multiplier_ = Matrix(num_neurons, 1, 1);
@@ -34,8 +32,8 @@ void BatchNormalizationLayer::Print() const {
 }
 
 void BatchNormalizationLayer::Initialize(Random*) {
-  gamma_.Fill(1.0);
-  beta_.Fill(0.0);
+  gamma_.value.Fill(1.0);
+  beta_.value.Fill(0.0);
   global_multiplier_.Fill(1.0);
   global_shift_.Fill(0.0);
 }
@@ -92,8 +90,8 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
           .Repeat(layered_, input.rows(), input.cols(), input.depth());
       normalized_ = shifted_.ElementwiseDivide(sqrt_variance_plus_e_repeated_);
       output_ = normalized_
-          .ElementwiseMultiply(gamma_.Repeat(layered_, input))
-          .Add(beta_.Repeat(layered_, input));
+          .ElementwiseMultiply(gamma_.value.Repeat(layered_, input))
+          .Add(beta_.value.Repeat(layered_, input));
       break;
     }
 
@@ -113,7 +111,7 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
 
 void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
   Matrix normalized_grad = output_gradient
-      .ElementwiseMultiply(gamma_.Repeat(layered_, output_gradient));
+      .ElementwiseMultiply(gamma_.value.Repeat(layered_, output_gradient));
   Matrix variance_grad = normalized_grad
       .ElementwiseMultiply(shifted_)
       .ElementwiseMultiply(variance_plus_e_.Pow(-1.5).Repeat(layered_, output_gradient))
@@ -142,15 +140,16 @@ void BatchNormalizationLayer::Backward(const Matrix& output_gradient) {
   input_gradient_ = input_grad_part1
       .Add(input_grad_part2)
       .Add(input_grad_part3);
-  gamma_gradient_ = output_gradient
+  gamma_.gradient = output_gradient
       .ElementwiseMultiply(normalized_)
       .Sum(layered_, num_neurons_);
-  beta_gradient_ = output_gradient.Sum(layered_, num_neurons_);
+  beta_.gradient = output_gradient
+      .Sum(layered_, num_neurons_);
 }
 
-void BatchNormalizationLayer::ApplyGradient(float learn_rate) {
-  beta_ = beta_.Add(beta_gradient_.Multiply(-learn_rate));
-  gamma_ = gamma_.Add(gamma_gradient_.Multiply(-learn_rate));
+void BatchNormalizationLayer::ApplyGradient(float learn_rate, float /* lambda */) {
+  beta_.ApplyGradient(learn_rate, 0.0f);
+  gamma_.ApplyGradient(learn_rate, 0.0f);
 }
 
 bool BatchNormalizationLayer::OnBeginPhase() {
@@ -185,10 +184,10 @@ void BatchNormalizationLayer::OnEndPhase() {
               .AddConst(epsilon_)
               .Map1(::matrix_mappers::Sqrt());
       global_multiplier_ =
-          gamma_.ElementwiseDivide(global_variance_sqrt_e_);
-      global_shift_ = beta_
+          gamma_.value.ElementwiseDivide(global_variance_sqrt_e_);
+      global_shift_ = beta_.value
           .Add(
-              gamma_
+              gamma_.value
                   .ElementwiseMultiply(global_mean_)
                   .Multiply(-1.0)
                   .ElementwiseDivide(global_variance_sqrt_e_));
@@ -197,5 +196,5 @@ void BatchNormalizationLayer::OnEndPhase() {
 }
 
 int BatchNormalizationLayer::NumParameters() const {
-  return num_neurons_ * 2;
+  return beta_.NumParameters() + gamma_.NumParameters();
 }
