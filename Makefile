@@ -253,6 +253,7 @@ bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
 	bin/cnn/layer.o \
 	bin/cnn/layer_stack.o \
 	bin/cnn/nonlinearity_layer.o \
+	bin/cnn/matrix_param.o \
 	bin/cnn/pooling_layer.o \
 	bin/cnn/reshape_layer.o \
 	bin/cnn/softmax_error_layer.o \

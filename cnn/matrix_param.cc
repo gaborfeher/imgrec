@@ -8,8 +8,10 @@ MatrixParam::MatrixParam(int rows, int cols, int depth) :
 
 void MatrixParam::ApplyGradient(float learn_rate, float lambda) {
   value = value
-      .Add(gradient.Multiply(-learn_rate))  // SGD
-      .Multiply(1.0 - lambda);  // regularize
+      .Add(gradient.Multiply(-learn_rate));  // SGD
+  if (lambda > 0.0f) {
+    value = value.Multiply(1.0 - lambda);  // regularize
+  }
 }
 
 int MatrixParam::NumParameters() const {
