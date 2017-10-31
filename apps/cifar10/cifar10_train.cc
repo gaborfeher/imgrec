@@ -52,7 +52,7 @@ void TrainSingleLayerFCModel() {
   float error, accuracy;
   Model model(stack, 123, 1);
   model.Evaluate(*validation, &error, &accuracy);
-  model.Train(*training, 5, 0.4, 0.01);
+  model.Train(*training, 5, GradientInfo(0.4, 0.01, GradientInfo::SGD));
   model.Evaluate(*validation, &error, &accuracy);
 }
 
@@ -77,7 +77,7 @@ void TrainTwoLayerFCModel() {
   float error, accuracy;
   Model model(stack, 123, 1);
   model.Evaluate(*validation, &error, &accuracy);
-  model.Train(*training, 5, 0.008, 0.008);
+  model.Train(*training, 5, GradientInfo(0.008, 0.008, GradientInfo::SGD));
   model.Evaluate(*validation, &error, &accuracy);
 }
 
@@ -118,14 +118,9 @@ void TrainConvolutionalModel() {
   stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
-  // Convolutional layer #6:
-  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
-  stack->AddLayer<BatchNormalizationLayer>(24, true);
-  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
   stack->AddLayer<PoolingLayer>(2, 2);
 
-  // Convolutional layer #5:
+  // Convolutional layer #6:
   stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
   stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
@@ -137,20 +132,12 @@ void TrainConvolutionalModel() {
   stack->AddLayer<BatchNormalizationLayer>(10, false);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
-/*
-  // Fully connected layer #2:
-  stack->AddLayer<FullyConnectedLayer>(48, 10);
-  stack->AddLayer<BatchNormalizationLayer>(10, false);
-  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-*/
-
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
   float error, accuracy;
   Model model(stack, 123, 2);
   // model.Evaluate(*validation, &error, &accuracy);
-  model.Train(*training, 7, 0.0006, 0.00012);
-  // model.Train(*training, 1, 0.0001, 0.00002);
+  model.Train(*training, 7, GradientInfo(0.0006, 0.00012, GradientInfo::ADAM));
   model.Evaluate(*validation, &error, &accuracy);
 }
 
