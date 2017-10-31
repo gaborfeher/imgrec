@@ -38,6 +38,14 @@ void Model::Train(
     const DataSet& data_set,
     int epochs,
     const GradientInfo& gradient_info) {
+  Train(data_set, epochs, gradient_info, NULL);
+}
+
+void Model::Train(
+    const DataSet& data_set,
+    int epochs,
+    const GradientInfo& gradient_info,
+    const DataSet* validation_set) {
   using std::chrono::system_clock;
   using std::chrono::duration_cast;
   using std::chrono::milliseconds;
@@ -48,7 +56,6 @@ void Model::Train(
   system_clock::time_point training_start = system_clock::now();
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
   model_->BeginPhase(Layer::TRAIN_PHASE, 0);
-  system_clock::time_point train_phase_start = system_clock::now();
   GradientInfo grad_inf_copy = gradient_info;
   grad_inf_copy.iteration = 0;
   for (int i = 0; i < epochs; ++i) {
@@ -68,13 +75,9 @@ void Model::Train(
       float minibatch_duration =
           duration_cast<milliseconds>(minibatch_end - minibatch_start).count()
           / 1000.0f;
-      float avg_minibatch_duration =
-          duration_cast<milliseconds>(minibatch_end - train_phase_start).count()
-          / 1000.0f / grad_inf_copy.iteration;
       if (log_level_ >= 2) {
         std::cout << "epoch " << i << " batch " << j
-            << " (time= " << minibatch_duration << "s,"
-            << " avg_time= " << avg_minibatch_duration << "s)"
+            << " (time= " << minibatch_duration << "s)"
             << " error= " << error_->GetError() / data_set.MiniBatchSize()
             << " accuracy= " << 100.0 * error_->GetAccuracy() << "%"
             << std::endl;
@@ -87,7 +90,13 @@ void Model::Train(
           << " error= " << avg_error
           << " accuracy= " << 100.0 * avg_accuracy << "%"
           << std::endl;
-      // model_->Print();
+    }
+    if (validation_set) {
+      model_->EndPhase(Layer::TRAIN_PHASE, 0);
+      RunPhase(data_set, Layer::POST_TRAIN_PHASE);
+      float tmp1, tmp2;
+      Evaluate(*validation_set, &tmp1, &tmp2);
+      model_->BeginPhase(Layer::TRAIN_PHASE, 0);
     }
   }
   model_->EndPhase(Layer::TRAIN_PHASE, 0);
@@ -134,7 +143,7 @@ void Model::Evaluate(
   }
   *error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
   *accuracy = total_accuracy / data_set.NumBatches();
-  if (log_level_) {
+  if (log_level_ >= 1) {
     std::cout << "evaluation"
         << " error= " << *error
         << " accuracy= " << 100.0 * *accuracy << "%"

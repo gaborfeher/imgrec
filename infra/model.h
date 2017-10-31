@@ -20,6 +20,11 @@ class Model {
   void Train(
       const DataSet& data_set,
       int epochs,
+      const GradientInfo& gradient_info,
+      const DataSet* validation_set);
+  void Train(
+      const DataSet& data_set,
+      int epochs,
       const GradientInfo& gradient_info);
   void Evaluate(
       const DataSet& data_set,

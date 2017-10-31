@@ -15,6 +15,7 @@
 #include "cnn/pooling_layer.h"
 #include "cnn/reshape_layer.h"
 #include "cnn/softmax_error_layer.h"
+#include "util/random.h"
 
 std::shared_ptr<CifarDataSet> LoadTraining(int minibatch_size) {
   return std::make_shared<CifarDataSet>(
@@ -56,7 +57,7 @@ void TrainSingleLayerFCModel() {
   model.Evaluate(*validation, &error, &accuracy);
 }
 
-void TrainTwoLayerFCModel() {
+void TrainTwoLayerFCModel(bool dropout) {
   std::shared_ptr<CifarDataSet> training = LoadTraining(400);
   std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
 
@@ -68,6 +69,11 @@ void TrainTwoLayerFCModel() {
   stack->AddLayer<BatchNormalizationLayer>(50, false);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
+  if (dropout) {
+    std::shared_ptr<Random> rnd = std::make_shared<Random>(123456);
+    stack->AddLayer<InvertedDropoutLayer>(50, false, 0.9, rnd);
+  }
+
   stack->AddLayer<FullyConnectedLayer>(50, 10);
   stack->AddLayer<BiasLayer>(10, false);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
@@ -77,8 +83,12 @@ void TrainTwoLayerFCModel() {
   float error, accuracy;
   Model model(stack, 123, 1);
   model.Evaluate(*validation, &error, &accuracy);
-  model.Train(*training, 5, GradientInfo(0.008, 0.008, GradientInfo::SGD));
-  model.Evaluate(*validation, &error, &accuracy);
+  model.Train(
+      *training,
+      5,
+      GradientInfo(0.008, 0.008, GradientInfo::SGD),
+      validation.get() /* evaluate after each epoch */);
+  // model.Evaluate(*validation, &error, &accuracy);
 }
 
 
@@ -143,7 +153,8 @@ void TrainConvolutionalModel() {
 
 int main() {
   // TrainSingleLayerFCModel();
-  // TrainTwoLayerFCModel();
-  TrainConvolutionalModel();
+  TrainTwoLayerFCModel(false);
+  TrainTwoLayerFCModel(true);
+  // TrainConvolutionalModel();
   return 0;
 }
