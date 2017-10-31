@@ -862,10 +862,35 @@ TEST(SmallMatrixTest, Pooling_PoolingSwitch) {
   }
 }
 
-TEST(SmallMatrixTest, InvertedDropoutFill) {
+TEST(SmallMatrixTest, MakeInvertedDropoutMask_Layered) {
   Random rnd(42);
-  Matrix b(3, 3, 3);
-  b.InvertedDropoutFill(&rnd, 0.5);
+  Matrix b = Matrix::MakeInvertedDropoutMask(true, 27, 0.5, &rnd);
+  EXPECT_EQ(1, b.rows());
+  EXPECT_EQ(1, b.cols());
+  EXPECT_EQ(27, b.depth());
+
+  int zeros_cnt = 0;
+  int twos_cnt = 0;
+  for (float v : b.GetVector()) {
+    EXPECT_TRUE(v == 0.0f || v == 2.0f);
+    if (v == 0.0f) {
+      zeros_cnt++;
+    } else {
+      twos_cnt++;
+    }
+  }
+  EXPECT_EQ(27, zeros_cnt + twos_cnt);
+  EXPECT_LT(10, zeros_cnt);
+  EXPECT_LT(10, twos_cnt);
+}
+
+TEST(SmallMatrixTest, MakeInvertedDropoutMask_Columns) {
+  Random rnd(42);
+  Matrix b = Matrix::MakeInvertedDropoutMask(true, 27, 0.5, &rnd);
+  EXPECT_EQ(1, b.rows());
+  EXPECT_EQ(1, b.cols());
+  EXPECT_EQ(27, b.depth());
+
   int zeros_cnt = 0;
   int twos_cnt = 0;
   for (float v : b.GetVector()) {

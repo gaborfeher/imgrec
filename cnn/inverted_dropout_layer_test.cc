@@ -8,9 +8,15 @@
 #include "gtest/gtest.h"
 
 TEST(InvertedDropoutLayerTest, SmokeTest) {
-  InvertedDropoutLayer layer(0.5, std::make_shared<Random>(42));
+  InvertedDropoutLayer layer(true, 2, 0.5, std::make_shared<Random>(42));
   layer.BeginPhase(Layer::TRAIN_PHASE, 0);
   layer.Forward(Matrix(2, 3, 2, {
+      1, 1, 1,
+      1, 1, 1,
+      2, 2, 2,
+      2, 2, 2,
+  }));
+  layer.Backward(Matrix(2, 3, 2, {
       1, 1, 1,
       1, 1, 1,
       2, 2, 2,

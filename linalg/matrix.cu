@@ -1008,17 +1008,25 @@ __global__ void VecInvertedDropoutFill(
   }
 }
 
-void Matrix::InvertedDropoutFill(Random* random, float p) {
+// static
+Matrix Matrix::MakeInvertedDropoutMask(
+    bool layered, int num_neurons, float p, Random* random) {
   unsigned long seed = random->RandLongUnsigned();
-
   curandGenerator_t gen;
   CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
   CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed));
-  CURAND_CALL(curandGenerateUniform(gen, data_.get(), size_));
 
-  VecInvertedDropoutFill<<<(255 + size_) / 256, 256>>>(
-      data_.get(), size_, p);
+  Matrix result(
+      layered ? 1 : num_neurons,
+      1,
+      layered ? num_neurons : 1);
+  CURAND_CALL(curandGenerateUniform(gen, result.data_.get(), result.size()));
+
+  VecInvertedDropoutFill<<<(255 + result.size()) / 256, 256>>>(
+      result.data_.get(), result.size(), p);
   CUDA_ASYNC_CHECK();
+
+  return result;
 }
 
 Matrix Matrix::DeepCopy() const {

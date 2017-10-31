@@ -5,19 +5,21 @@
 #include <cassert>
 
 InvertedDropoutLayer::InvertedDropoutLayer(
+    int num_neurons,
+    bool layered,
     float p,
-    std::shared_ptr<Random> random) : p_(p), random_(random) {
+    std::shared_ptr<Random> random) :
+        BiasLikeLayer(num_neurons, layered),
+        p_(p),
+        random_(random) {
 }
 
 
 void InvertedDropoutLayer::Forward(const Matrix& input) {
   if (phase() == TRAIN_PHASE) {
-    if (mask_.rows() != input.rows() ||
-        mask_.cols() != input.cols() ||
-        mask_.depth() != input.depth()) {
-      mask_ = Matrix(input.rows(), input.cols(), input.depth());
-    }
-    mask_.InvertedDropoutFill(random_.get(), p_);
+    Matrix rands = Matrix::MakeInvertedDropoutMask(
+        layered_, num_neurons_, p_, random_.get());
+    mask_ = rands.Repeat(layered_, input);
     output_ = input.ElementwiseMultiply(mask_);
   } else {
     output_ = input;
