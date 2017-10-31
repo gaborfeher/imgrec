@@ -13,15 +13,10 @@ class InvertedDropoutLayer : public Layer {
   InvertedDropoutLayer(float p, std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
-
-  virtual bool BeginPhase(Phase phase, int phase_sub_id);
-  virtual void EndPhase(Phase phase, int phase_sub_id);
  private:
   float p_;
   std::shared_ptr<Random> random_;
   Matrix mask_;
-  Phase phase_;
-  int phase_sub_id_;
 };
 
 #endif  // _CNN_INVERTED_DROPOUT_LAYER_H_

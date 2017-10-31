@@ -18,8 +18,8 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
-  virtual bool BeginPhase(Phase phase, int phase_sub_id);
-  virtual void EndPhase(Phase phase, int phase_sub_id);
+  virtual bool OnBeginPhase();
+  virtual void OnEndPhase();
   virtual int NumParameters() const;
  private:
   FRIEND_TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode);
@@ -50,9 +50,6 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   Matrix normalized_;
 
   // For computing the global mean and variance, needed for inference:
-  Phase phase_;
-  int phase_sub_id_;
-
   Matrix global_mean_;
   Matrix global_mean_negative_repeated_;
   int global_num_samples_;
@@ -60,7 +57,6 @@ class BatchNormalizationLayer : public BiasLikeLayer {
 
   Matrix global_multiplier_;
   Matrix global_shift_;
-
 };
 
 #endif

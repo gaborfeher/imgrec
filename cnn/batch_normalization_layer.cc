@@ -53,18 +53,18 @@ void BatchNormalizationLayer::Forward(const Matrix& input) {
     num_samples_ = input.cols();
   }
 
-  switch (phase_) {
+  switch (phase()) {
     case NONE:
       assert(false);
       break;
     case POST_TRAIN_PHASE: {
-      // Two passes are needed to get global variance:
-      assert(phase_sub_id_ == 0 || phase_sub_id_ == 1);
-      if (phase_sub_id_ == 0) {
+      // Two passes are needed to get global variance. (Other layers
+      // may use more passes.)
+      if (phase_sub_id() == 0) {
         Matrix sum = input.Sum(layered_, num_neurons_);
         global_mean_ = global_mean_.Add(sum);
         global_num_samples_ += num_samples_;
-      } else if (phase_sub_id_ == 1) {
+      } else if (phase_sub_id() == 1) {
         Matrix local = input
             .Add(global_mean_negative_repeated_)
             .Map1(::matrix_mappers::Square())
@@ -153,34 +153,30 @@ void BatchNormalizationLayer::ApplyGradient(float learn_rate) {
   gamma_ = gamma_.Add(gamma_gradient_.Multiply(-learn_rate));
 }
 
-bool BatchNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {
-  phase_ = phase;
-  phase_sub_id_ = phase_sub_id;
-  if (phase == POST_TRAIN_PHASE) {
-    if (phase_sub_id_ == 0) {
+bool BatchNormalizationLayer::OnBeginPhase() {
+  if (phase() == POST_TRAIN_PHASE) {
+    if (phase_sub_id() == 0) {
       global_num_samples_ = 0;
       global_mean_.Fill(0.0f);
       global_variance_.Fill(0.0f);
       return true;
     }
-    if (phase_sub_id_ == 1) {
+    if (phase_sub_id() == 1) {
       return true;
     }
   }
   return false;
 }
 
-void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
-  assert(phase_sub_id == phase_sub_id_);
-  assert(phase == phase_);
-  if (phase_ == POST_TRAIN_PHASE) {
-    if (phase_sub_id_ == 0) {
+void BatchNormalizationLayer::OnEndPhase() {
+  if (phase() == POST_TRAIN_PHASE) {
+    if (phase_sub_id() == 0) {
       global_mean_ = global_mean_.Multiply(1.0 / global_num_samples_);
       global_mean_negative_repeated_ = global_mean_
           .Repeat(layered_, input_)
           .Multiply(-1.0);
     }
-    if (phase_sub_id_ == 1) {
+    if (phase_sub_id() == 1) {
       global_variance_ = global_variance_
           .Multiply(1.0 / global_num_samples_);
 
@@ -198,7 +194,6 @@ void BatchNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
                   .ElementwiseDivide(global_variance_sqrt_e_));
     }
   }
-  phase_ = NONE;
 }
 
 int BatchNormalizationLayer::NumParameters() const {

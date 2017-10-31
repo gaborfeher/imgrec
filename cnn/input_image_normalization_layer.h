@@ -15,15 +15,12 @@ class InputImageNormalizationLayer : public Layer {
   virtual void Print() const;
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& ouotput_gradient);
-  virtual bool BeginPhase(Phase phase, int phase_sub_id);
-  virtual void EndPhase(Phase phase, int phase_sub_id);
+  virtual bool OnBeginPhase();
+  virtual void OnEndPhase();
 
  private:
   int num_samples_;
   Matrix mean_;  // mean of all inputs times -1
-
-  Phase phase_;
-  int phase_sub_id_;
 };
 
 #endif  // _CNN_INPUT_IMAGE_NORMALIZATION_LAYER_H_

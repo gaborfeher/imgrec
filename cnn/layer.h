@@ -32,10 +32,8 @@ class Layer {
   // (See Model::RunPhase.)
   // Even layers returning false must be able to handle all the
   // phases.
-  virtual bool BeginPhase(Phase /* phase */, int /* phase_sub_id */) {
-    return false;
-  };
-  virtual void EndPhase(Phase /* phase */, int /* phase_sub_id */) {};
+  virtual bool BeginPhase(Phase phase, int phase_sub_id) final;
+  virtual void EndPhase(Phase phase, int phase_sub_id) final;
 
   virtual Matrix output() { return output_; }
   virtual Matrix input_gradient() { return input_gradient_; }
@@ -48,6 +46,22 @@ class Layer {
   Matrix input_;
   Matrix output_;
   Matrix input_gradient_;
+
+  // Override-able variants of BeginPhase and EndPhase. Use phase()
+  // and phase_sub_id() inside them.
+  virtual bool OnBeginPhase() {
+    return false;
+  };
+  virtual void OnEndPhase() {};
+
+  Phase phase() { return phase_; }
+  int phase_sub_id() { return phase_sub_id_; }
+
+ private:
+  // Identifiers of the current Phase.
+  Phase phase_;
+  int phase_sub_id_;
+
 };
 
 #endif  // _CNN_LAYER_H_

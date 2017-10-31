@@ -17,7 +17,7 @@ void InputImageNormalizationLayer::Print() const {
 
 void InputImageNormalizationLayer::Forward(const Matrix& input) {
   input_ = input;
-  if (phase_ == PRE_TRAIN_PHASE && phase_sub_id_ == 0) {
+  if (phase() == PRE_TRAIN_PHASE && phase_sub_id() == 0) {
     output_ = input;
     mean_ = mean_.Add(
         input_.PerLayerSum(mean_.depth()));
@@ -33,11 +33,9 @@ void InputImageNormalizationLayer::Backward(const Matrix& output_gradient) {
   input_gradient_ = output_gradient;
 }
 
-bool InputImageNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {
-  phase_ = phase;
-  phase_sub_id_ = phase_sub_id;
-  if (phase == PRE_TRAIN_PHASE) {
-    if (phase_sub_id_ == 0) {
+bool InputImageNormalizationLayer::OnBeginPhase() {
+  if (phase() == PRE_TRAIN_PHASE) {
+    if (phase_sub_id() == 0) {
       num_samples_ = 0;
       mean_.Fill(0);
       return true;
@@ -46,13 +44,10 @@ bool InputImageNormalizationLayer::BeginPhase(Phase phase, int phase_sub_id) {
   return false;
 }
 
-void InputImageNormalizationLayer::EndPhase(Phase phase, int phase_sub_id) {
-  assert(phase_sub_id == phase_sub_id_);
-  assert(phase == phase_);
-  if (phase_ == PRE_TRAIN_PHASE) {
-    if (phase_sub_id_ == 0) {
+void InputImageNormalizationLayer::OnEndPhase() {
+  if (phase() == PRE_TRAIN_PHASE) {
+    if (phase_sub_id() == 0) {
       mean_ = mean_.Multiply(-1.0f / num_samples_);
     }
   }
-  phase_ = NONE;
 }

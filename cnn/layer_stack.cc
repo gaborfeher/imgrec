@@ -52,11 +52,11 @@ void LayerStack::Regularize(float lambda) {
   }
 }
 
-bool LayerStack::BeginPhase(Phase phase, int phase_sub_id) {
+bool LayerStack::OnBeginPhase() {
   phase_last_child_id_ = -1;
   bool result = false;
   for (int i = 0; i < layers_.size(); ++i) {
-    if (layers_[i]->BeginPhase(phase, phase_sub_id)) {
+    if (layers_[i]->BeginPhase(phase(), phase_sub_id())) {
       result = true;
       phase_last_child_id_ = i;
     }
@@ -64,9 +64,9 @@ bool LayerStack::BeginPhase(Phase phase, int phase_sub_id) {
   return result;
 }
 
-void LayerStack::EndPhase(Phase phase, int phase_sub_id) {
+void LayerStack::OnEndPhase() {
   for (std::shared_ptr<Layer> layer : layers_) {
-    layer->EndPhase(phase, phase_sub_id);
+    layer->EndPhase(phase(), phase_sub_id());
   }
 }
 

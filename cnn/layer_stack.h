@@ -35,8 +35,8 @@ class LayerStack : public Layer {
   virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(float learn_rate);
   virtual void Regularize(float lambda);
-  virtual bool BeginPhase(Phase phase, int phase_sub_id);
-  virtual void EndPhase(Phase phase, int phase_sub_id);
+  virtual bool OnBeginPhase();
+  virtual void OnEndPhase();
   virtual int NumParameters() const;
 
   virtual Matrix output() {
