@@ -145,6 +145,7 @@ bin/cnn/fully_connected_layer_test: bin/cnn/fully_connected_layer_test.o \
 		bin/cnn/matrix_param.o \
 		bin/cnn/nonlinearity_layer.o \
 		bin/infra/data_set.o \
+		bin/infra/logger.o \
 		bin/infra/model.o \
 		bin/linalg/matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
@@ -179,6 +180,7 @@ bin/cnn/convolutional_layer_test: bin/cnn/convolutional_layer_test.o \
 		bin/cnn/reshape_layer.o \
 		bin/cnn/softmax_error_layer.o \
 		bin/infra/data_set.o \
+		bin/infra/logger.o \
 		bin/infra/model.o \
 		bin/linalg/matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
@@ -194,6 +196,7 @@ bin/cnn/batch_normalization_layer_test: bin/cnn/batch_normalization_layer_test.o
 		bin/cnn/layer_test_base.o \
 		bin/cnn/matrix_param.o \
 		bin/infra/data_set.o \
+		bin/infra/logger.o \
 		bin/infra/model.o \
 		bin/linalg/matrix.cu.o \
 		bin/linalg/matrix_test_util.o \
@@ -258,6 +261,7 @@ bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
 	bin/cnn/reshape_layer.o \
 	bin/cnn/softmax_error_layer.o \
 	bin/infra/data_set.o \
+	bin/infra/logger.o \
 	bin/infra/model.o \
 	bin/linalg/matrix.cu.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $(filter %.o,$^) -o $@

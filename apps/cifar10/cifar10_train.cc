@@ -3,7 +3,6 @@
 #include <utility>
 
 #include "apps/cifar10/cifar_data_set.h"
-#include "infra/model.h"
 #include "cnn/batch_normalization_layer.h"
 #include "cnn/bias_layer.h"
 #include "cnn/convolutional_layer.h"
@@ -15,6 +14,8 @@
 #include "cnn/pooling_layer.h"
 #include "cnn/reshape_layer.h"
 #include "cnn/softmax_error_layer.h"
+#include "infra/logger.h"
+#include "infra/model.h"
 #include "util/random.h"
 
 std::shared_ptr<CifarDataSet> LoadTraining(int minibatch_size) {
@@ -51,7 +52,7 @@ void TrainSingleLayerFCModel() {
   stack->AddLayer<SoftmaxErrorLayer>();
 
   float error, accuracy;
-  Model model(stack, 123, 1);
+  Model model(stack, 123, std::make_shared<Logger>(1));
   model.Evaluate(*validation, &error, &accuracy);
   model.Train(*training, 5, GradientInfo(0.4, 0.01, GradientInfo::SGD));
   model.Evaluate(*validation, &error, &accuracy);
@@ -81,7 +82,7 @@ void TrainTwoLayerFCModel(bool dropout) {
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
   float error, accuracy;
-  Model model(stack, 123, 1);
+  Model model(stack, 123, std::make_shared<Logger>(2));
   model.Evaluate(*validation, &error, &accuracy);
   model.Train(
       *training,
@@ -144,7 +145,7 @@ void TrainConvolutionalModel() {
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
-  Model model(stack, 123, 2);
+  Model model(stack, 123, std::make_shared<Logger>(2));
   // model.Evaluate(*validation, &error, &accuracy);
   model.Train(
       *training,

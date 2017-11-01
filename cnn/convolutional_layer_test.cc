@@ -17,6 +17,7 @@
 #include "cnn/reshape_layer.h"
 #include "cnn/softmax_error_layer.h"
 #include "infra/data_set.h"
+#include "infra/logger.h"
 #include "infra/model.h"
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
@@ -688,7 +689,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 43, 1);
+  Model model(stack, 43, std::make_shared<Logger>(1));
   model.Train(
       *training_ds,
       5,  // epochs
@@ -711,7 +712,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 43, 1);
+  Model model(stack, 43, std::make_shared<Logger>(1));
   model.Train(
       *training_ds,
       5,  // epochs
@@ -755,7 +756,7 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Model model(stack, 42, 1);
+  Model model(stack, 42, std::make_shared<Logger>(1));
   model.Train(
       *training_ds,
       5,  // epochs

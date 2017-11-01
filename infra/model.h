@@ -9,13 +9,19 @@ class DataSet;
 class Matrix;
 class ErrorLayer;
 class LayerStack;
+class Logger;
 class Random;
 
 class Model {
  public:
   // The last layer of model is assumed to be an ErrorLayer.
-  Model(std::shared_ptr<LayerStack> model, int random_seed);
-  Model(std::shared_ptr<LayerStack> model, int random_seed, int log_level);
+  Model(
+      std::shared_ptr<LayerStack> model,
+      int random_seed);
+  Model(
+      std::shared_ptr<LayerStack> model,
+      int random_seed,
+      std::shared_ptr<Logger> logger);
 
   void Train(
       const DataSet& data_set,
@@ -36,9 +42,9 @@ class Model {
   Model& operator=(const Model&) = delete;
 
  private:
-  int log_level_;
   std::shared_ptr<LayerStack> model_;
   std::shared_ptr<ErrorLayer> error_;
+  std::shared_ptr<Logger> logger_;
 
   void RunPhase(const DataSet& data_set, Layer::Phase phase);
   void ForwardPass(const DataSet& data_set, int batch_id);
