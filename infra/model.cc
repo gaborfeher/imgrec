@@ -46,14 +46,15 @@ void PrintBigPass(
     const std::string& color_code,
     float error, float accuracy) {
   std::cout
-      << " error= "
+      << " [e="
       << std::fixed << std::setw(6) << std::setprecision(4)
       << error
-      << " accuracy= "
+      << "] "
       << "\033[1;" << color_code << "m"
       << std::fixed << std::setw(6) << std::setprecision(2)
-      << 100.0 * accuracy
-      << "%" << "\033[0m";
+      << 100.0 * accuracy << "%"
+      << "\033[0m"
+      << std::flush;
 }
 
 void PrintSmallPass(
@@ -91,6 +92,11 @@ void Model::Train(
 
   if (log_level_ >= 1) {
     std::cout << "Training model with " << model_->NumParameters() << " parameters" << std::endl;
+    std::cout                       
+        << "              \033[1;34m TRAIN AVERAGE \033[0m "
+        << "      \033[1;31m TRAIN EVAL\033[0m "
+        << "  \033[1;32m VALIDATION EVAL \033[0m "
+        << std::endl;
   }
   system_clock::time_point training_start = system_clock::now();
   RunPhase(data_set, Layer::PRE_TRAIN_PHASE);
@@ -125,16 +131,19 @@ void Model::Train(
     if (log_level_ >= 1) {
       float avg_error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
       float avg_accuracy = total_accuracy / data_set.NumBatches();
-      std::cout << "EPOCH " << std::setw(4) << i;
-      PrintBigPass("31", avg_error, avg_accuracy);
-      std::cout << std::endl;
+      std::cout << "EPOCH " << std::setw(3) << i;
+      PrintBigPass("34", avg_error, avg_accuracy);
     }
     if (validation_set) {
       model_->EndPhase(Layer::TRAIN_PHASE, 0);
       RunPhase(data_set, Layer::POST_TRAIN_PHASE);
-      float tmp1, tmp2;
-      Evaluate(*validation_set, &tmp1, &tmp2);
+      float err, acc;
+      Evaluate0(data_set, &err, &acc);
+      PrintBigPass("31", err, acc);
+      Evaluate0(*validation_set, &err, &acc);
+      PrintBigPass("32", err, acc);
       model_->BeginPhase(Layer::TRAIN_PHASE, 0);
+      std::cout << std::endl;
     }
   }
   model_->EndPhase(Layer::TRAIN_PHASE, 0);
@@ -152,21 +161,21 @@ void Model::RunPhase(
     Layer::Phase phase) {
   int phase_sub_id = 0;
   while (model_->BeginPhase(phase, phase_sub_id)) {
-    if (log_level_ >= 2) {
-      std::cout << "Running phase " << phase << " " << phase_sub_id << std::endl;
-    }
+    // if (log_level_ >= 2) {
+    //   std::cout << "Running phase " << phase << " " << phase_sub_id << std::endl;
+    // }
     for (int j = 0; j < data_set.NumBatches(); ++j) {
       ForwardPass(data_set, j);
     }
     model_->EndPhase(phase, phase_sub_id);
-    if (log_level_ >= 2) {
-      std::cout << "Done: phase " << phase << " " << phase_sub_id << std::endl;
-    }
+    // if (log_level_ >= 2) {
+    //   std::cout << "Done: phase " << phase << " " << phase_sub_id << std::endl;
+    // }
     phase_sub_id++;
   }
 }
 
-void Model::Evaluate(
+void Model::Evaluate0(
     const DataSet& data_set,
     float* error,
     float* accuracy) {
@@ -181,10 +190,18 @@ void Model::Evaluate(
   }
   *error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
   *accuracy = total_accuracy / data_set.NumBatches();
+}
+
+void Model::Evaluate(
+    const DataSet& data_set,
+    float* error,
+    float* accuracy) {
+  Evaluate0(data_set, error, accuracy);
   if (log_level_ >= 1) {
-    std::cout << "EVALUATION";
+    std::cout << "EVALUATION ";
     PrintBigPass("32", *error, *accuracy);
     std::cout << std::endl;
   }
   model_->EndPhase(Layer::INFER_PHASE, 0);
 }
+

@@ -42,6 +42,10 @@ class Model {
 
   void RunPhase(const DataSet& data_set, Layer::Phase phase);
   void ForwardPass(const DataSet& data_set, int batch_id);
+  void Evaluate0(
+      const DataSet& data_set,
+      float* error,
+      float* accuracy);
 };
 
 
