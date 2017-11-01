@@ -1,5 +1,6 @@
 #include "infra/model.h"
 
+#include <iomanip>
 #include <iostream>
 #include <chrono>
 
@@ -41,6 +42,44 @@ void Model::Train(
   Train(data_set, epochs, gradient_info, NULL);
 }
 
+void PrintBigPass(
+    const std::string& color_code,
+    float error, float accuracy) {
+  std::cout
+      << " error= "
+      << std::fixed << std::setw(6) << std::setprecision(4)
+      << error
+      << " accuracy= "
+      << "\033[1;" << color_code << "m"
+      << std::fixed << std::setw(6) << std::setprecision(2)
+      << 100.0 * accuracy
+      << "%" << "\033[0m";
+}
+
+void PrintSmallPass(
+    int epoch, int batch,
+    float duration,
+    float error,
+    float accuracy) {
+  std::string color_code = "36";
+  std::cout << std::fixed;
+  std::cout
+      << "epoch "
+      << std::setw(3) << epoch
+      << " batch "
+      << std::setw(3) << batch
+      << " (time= "
+      << std::setw(6) << std::setprecision(4) << duration
+      << "s)"
+      << " error= "
+      << std::setw(6) << std::setprecision(4) << error
+      << " accuracy= "
+      << "\033[1;" << color_code << "m"
+      << std::setw(6) << std::setprecision(2) << 100.0 * accuracy
+      << "%" << "\033[0m"
+      << std::endl;
+}
+
 void Model::Train(
     const DataSet& data_set,
     int epochs,
@@ -72,24 +111,23 @@ void Model::Train(
       model_->Backward(dummy);
       model_->ApplyGradient(grad_inf_copy);
       system_clock::time_point minibatch_end = system_clock::now();
-      float minibatch_duration =
-          duration_cast<milliseconds>(minibatch_end - minibatch_start).count()
-          / 1000.0f;
       if (log_level_ >= 2) {
-        std::cout << "epoch " << i << " batch " << j
-            << " (time= " << minibatch_duration << "s)"
-            << " error= " << error_->GetError() / data_set.MiniBatchSize()
-            << " accuracy= " << 100.0 * error_->GetAccuracy() << "%"
-            << std::endl;
+        float minibatch_duration =
+            duration_cast<milliseconds>(minibatch_end - minibatch_start).count()
+            / 1000.0f;
+        PrintSmallPass(
+            i, j,
+            minibatch_duration,
+            error_->GetError() / data_set.MiniBatchSize(),
+            error_->GetAccuracy());
       }
     }
-    float avg_error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
-    float avg_accuracy = total_accuracy / data_set.NumBatches();
     if (log_level_ >= 1) {
-      std::cout << "epoch " << i
-          << " error= " << avg_error
-          << " accuracy= " << 100.0 * avg_accuracy << "%"
-          << std::endl;
+      float avg_error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
+      float avg_accuracy = total_accuracy / data_set.NumBatches();
+      std::cout << "EPOCH " << std::setw(4) << i;
+      PrintBigPass("31", avg_error, avg_accuracy);
+      std::cout << std::endl;
     }
     if (validation_set) {
       model_->EndPhase(Layer::TRAIN_PHASE, 0);
@@ -144,10 +182,9 @@ void Model::Evaluate(
   *error = total_error / data_set.NumBatches() / data_set.MiniBatchSize();
   *accuracy = total_accuracy / data_set.NumBatches();
   if (log_level_ >= 1) {
-    std::cout << "evaluation"
-        << " error= " << *error
-        << " accuracy= " << 100.0 * *accuracy << "%"
-        << std::endl;
+    std::cout << "EVALUATION";
+    PrintBigPass("32", *error, *accuracy);
+    std::cout << std::endl;
   }
   model_->EndPhase(Layer::INFER_PHASE, 0);
 }

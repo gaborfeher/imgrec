@@ -144,17 +144,20 @@ void TrainConvolutionalModel() {
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
-  float error, accuracy;
   Model model(stack, 123, 2);
   // model.Evaluate(*validation, &error, &accuracy);
-  model.Train(*training, 7, GradientInfo(0.0006, 0.00012, GradientInfo::ADAM));
-  model.Evaluate(*validation, &error, &accuracy);
+  model.Train(
+      *training,
+      7,
+      GradientInfo(0.0006, 0.00012, GradientInfo::ADAM),
+      validation.get());
+  // model.Evaluate(*validation, &error, &accuracy);
 }
 
 int main() {
   // TrainSingleLayerFCModel();
-  TrainTwoLayerFCModel(false);
-  TrainTwoLayerFCModel(true);
-  // TrainConvolutionalModel();
+  // TrainTwoLayerFCModel(false);
+  // TrainTwoLayerFCModel(true);
+  TrainConvolutionalModel();
   return 0;
 }

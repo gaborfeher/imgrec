@@ -141,7 +141,7 @@ std::vector<float> Matrix::GetVector() const {
 }
 
 void Matrix::Print() const {
-  std::cout << std::fixed << std::setw( 6 ) << std::setprecision( 4 );
+  std::cout << std::fixed << std::setw(6) << std::setprecision(4);
   std::shared_ptr<float> host_data(get_host_data());
   std::cout << "Matrix "
       << rows_ << "x"
