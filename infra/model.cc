@@ -88,7 +88,10 @@ void Model::Train(
     }
   }
   model_->EndPhase(Layer::TRAIN_PHASE, 0);
-  RunPhase(data_set, Layer::POST_TRAIN_PHASE);
+  if (validation_set == NULL) {
+    // If not NULL, then POST_TRAIN_PHASE was already run above.
+    RunPhase(data_set, Layer::POST_TRAIN_PHASE);
+  }
   logger_->LogTrainingEnd();
 }
 
