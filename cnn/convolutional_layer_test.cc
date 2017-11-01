@@ -695,7 +695,8 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
       GradientInfo(
           0.03,  // learn_rate
           0.0002,  // regularization
-          GradientInfo::ADAM));  // algorithm
+          GradientInfo::ADAM),  // algorithm
+      test_ds.get());
 
   float test_error;
   float test_accuracy;
@@ -717,7 +718,8 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
       GradientInfo(
           0.006,  // learn_rate
           0.001,  // regularization
-          GradientInfo::ADAM));  // algorithm
+          GradientInfo::ADAM),  // algorithm
+      test_ds.get());
 
   float test_error;
   float test_accuracy;
@@ -760,7 +762,8 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
       GradientInfo(
           0.006,  // learn_rate
           0.0,  // regularization
-          GradientInfo::ADAM));
+          GradientInfo::ADAM),
+      test_ds.get());
 
   float test_error;
   float test_accuracy;
