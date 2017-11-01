@@ -161,16 +161,16 @@ void Model::RunPhase(
     Layer::Phase phase) {
   int phase_sub_id = 0;
   while (model_->BeginPhase(phase, phase_sub_id)) {
-    // if (log_level_ >= 2) {
-    //   std::cout << "Running phase " << phase << " " << phase_sub_id << std::endl;
-    // }
+    if (log_level_ >= 2) {
+      std::cout << "Running phase " << phase << " " << phase_sub_id << std::endl;
+    }
     for (int j = 0; j < data_set.NumBatches(); ++j) {
       ForwardPass(data_set, j);
     }
     model_->EndPhase(phase, phase_sub_id);
-    // if (log_level_ >= 2) {
-    //   std::cout << "Done: phase " << phase << " " << phase_sub_id << std::endl;
-    // }
+    if (log_level_ >= 2) {
+       std::cout << "Done phase " << phase << " " << phase_sub_id << std::endl;
+    }
     phase_sub_id++;
   }
 }
