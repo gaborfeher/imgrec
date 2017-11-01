@@ -11,6 +11,7 @@ A toy convolutional neural network training framework written from scratch using
 * Reshape Layer (to transition from Convoutional layers to Fully connected layers; most layers can handle both cases)
 * L2 Error Layer
 * Softmax Error Layer
+
 All layers support handling batches of samples.
 
 Optimization algorithms:
