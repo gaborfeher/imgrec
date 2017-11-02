@@ -1,5 +1,5 @@
-#ifndef _INFRA_MODEL_H_
-#define _INFRA_MODEL_H_
+#ifndef _INFRA_TRAINER_H_
+#define _INFRA_TRAINER_H_
 
 #include <memory>
 
@@ -12,13 +12,13 @@ class LayerStack;
 class Logger;
 class Random;
 
-class Model {
+class Trainer {
  public:
   // The last layer of model is assumed to be an ErrorLayer.
-  Model(
+  Trainer(
       std::shared_ptr<LayerStack> model,
       std::shared_ptr<Random> random);
-  Model(
+  Trainer(
       std::shared_ptr<LayerStack> model,
       std::shared_ptr<Random> random,
       std::shared_ptr<Logger> logger);
@@ -38,8 +38,8 @@ class Model {
       float* accuracy);
 
   // Prevent copy and assignment.
-  Model(const Model&) = delete;
-  Model& operator=(const Model&) = delete;
+  Trainer(const Trainer&) = delete;
+  Trainer& operator=(const Trainer&) = delete;
 
  private:
   std::shared_ptr<LayerStack> model_;
@@ -55,4 +55,4 @@ class Model {
 };
 
 
-#endif  // _INFRA_MODEL_H_
+#endif  // _INFRA_TRAINER_H_

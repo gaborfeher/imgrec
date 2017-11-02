@@ -151,7 +151,7 @@ bin/core.a: bin/cnn/fully_connected_layer_test.o \
 		bin/cnn/softmax_error_layer.o \
 		bin/infra/data_set.o \
 		bin/infra/logger.o \
-		bin/infra/model.o
+		bin/infra/trainer.o
 	ar rc $@ $^
 
 # Fully linked end-product binary files:

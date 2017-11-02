@@ -7,7 +7,7 @@
 #include "cnn/layer_stack.h"
 #include "cnn/layer_test_base.h"
 #include "infra/data_set.h"
-#include "infra/model.h"
+#include "infra/trainer.h"
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
@@ -591,13 +591,13 @@ TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
   stack->AddLayer<BatchNormalizationLayer>(4, false);
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, nullptr);
-  model.Train(
+  Trainer trainer(stack, nullptr);
+  trainer.Train(
       training_ds,
       20,
       GradientInfo(0.1, 0, GradientInfo::SGD));
   float test_error, test_accuracy;
-  model.Evaluate(training_ds, &test_error, &test_accuracy);
+  trainer.Evaluate(training_ds, &test_error, &test_accuracy);
   EXPECT_GT(1e-13, test_error);
 }
 
@@ -621,12 +621,12 @@ TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
   stack->AddLayer<BatchNormalizationLayer>(4, true);
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, nullptr);
-  model.Train(
+  Trainer trainer(stack, nullptr);
+  trainer.Train(
       training_ds,
       20,
       GradientInfo(0.1, 0, GradientInfo::SGD));
   float test_error, test_accuracy;
-  model.Evaluate(training_ds, &test_error, &test_accuracy);
+  trainer.Evaluate(training_ds, &test_error, &test_accuracy);
   EXPECT_GT(1e-13, test_error);
 }

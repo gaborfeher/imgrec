@@ -18,7 +18,7 @@
 #include "cnn/softmax_error_layer.h"
 #include "infra/data_set.h"
 #include "infra/logger.h"
-#include "infra/model.h"
+#include "infra/trainer.h"
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 #include "util/random.h"
@@ -690,11 +690,11 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(
+  Trainer trainer(
       stack,
       std::make_shared<Random>(43),
       std::make_shared<Logger>(1));
-  model.Train(
+  trainer.Train(
       *training_ds,
       5,  // epochs
       GradientInfo(
@@ -705,7 +705,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(*test_ds, &test_error, &test_accuracy);
+  trainer.Evaluate(*test_ds, &test_error, &test_accuracy);
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
   // stack->Print();
@@ -716,11 +716,11 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(
+  Trainer trainer(
       stack,
       std::make_shared<Random>(43),
       std::make_shared<Logger>(1));
-  model.Train(
+  trainer.Train(
       *training_ds,
       5,  // epochs
       GradientInfo(
@@ -731,7 +731,7 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(*test_ds, &test_error, &test_accuracy);
+  trainer.Evaluate(*test_ds, &test_error, &test_accuracy);
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
   // stack->Print();
@@ -742,11 +742,11 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Model model(
+  Trainer trainer(
       stack,
       std::make_shared<Random>(42),
       std::make_shared<Logger>(1));
-  model.Train(
+  trainer.Train(
       *training_ds,
       5,  // epochs
       GradientInfo(
@@ -757,7 +757,7 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(*test_ds, &test_error, &test_accuracy);
+  trainer.Evaluate(*test_ds, &test_error, &test_accuracy);
   // :-|
   EXPECT_LT(test_error, 0.1);
   EXPECT_LT(0.98, test_accuracy);

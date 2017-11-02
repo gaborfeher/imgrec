@@ -9,7 +9,7 @@
 #include "cnn/reshape_layer.h"
 #include "cnn/nonlinearity_layer.h"
 #include "infra/data_set.h"
-#include "infra/model.h"
+#include "infra/trainer.h"
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 #include "util/random.h"
@@ -65,8 +65,8 @@ TEST(FullyConnectedLayerTest, Train_L2) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, std::make_shared<Random>(42));
-  model.Train(
+  Trainer trainer(stack, std::make_shared<Random>(42));
+  trainer.Train(
       *training,
       1000,
       GradientInfo(1, 0, GradientInfo::ADAM));
@@ -74,7 +74,7 @@ TEST(FullyConnectedLayerTest, Train_L2) {
 
   float training_error;
   float training_accuracy;
-  model.Evaluate(
+  trainer.Evaluate(
       *training,
       &training_error,
       &training_accuracy);
@@ -82,7 +82,7 @@ TEST(FullyConnectedLayerTest, Train_L2) {
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(
+  trainer.Evaluate(
       *test,
       &test_error,
       &test_accuracy);
@@ -99,8 +99,8 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, std::make_shared<Random>(42));
-  model.Train(
+  Trainer trainer(stack, std::make_shared<Random>(42));
+  trainer.Train(
       *training,
       1000,
       GradientInfo(1, 0, GradientInfo::ADAM));
@@ -108,7 +108,7 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
 
   float training_error;
   float training_accuracy;
-  model.Evaluate(
+  trainer.Evaluate(
       *training,
       &training_error,
       &training_accuracy);
@@ -116,7 +116,7 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
 
   float test_error;
   float test_accuracy;
-  model.Evaluate(
+  trainer.Evaluate(
       *test,
       &test_error,
       &test_accuracy);

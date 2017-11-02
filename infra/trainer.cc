@@ -1,4 +1,4 @@
-#include "infra/model.h"
+#include "infra/trainer.h"
 
 #include "cnn/error_layer.h"
 #include "cnn/layer_stack.h"
@@ -8,7 +8,7 @@
 #include "linalg/matrix.h"
 #include "util/random.h"
 
-Model::Model(
+Trainer::Trainer(
     std::shared_ptr<LayerStack> model,
     std::shared_ptr<Random> random) :
         model_(model),
@@ -17,7 +17,7 @@ Model::Model(
   model->Initialize(random.get());
 }
 
-Model::Model(
+Trainer::Trainer(
     std::shared_ptr<LayerStack> model,
     std::shared_ptr<Random> random,
     std::shared_ptr<Logger> logger) :
@@ -27,19 +27,19 @@ Model::Model(
   model->Initialize(random.get());
 }
 
-void Model::ForwardPass(const DataSet& data_set, int batch_id) {
+void Trainer::ForwardPass(const DataSet& data_set, int batch_id) {
   error_->SetExpectedValue(data_set.GetBatchOutput(batch_id));
   model_->Forward(data_set.GetBatchInput(batch_id));
 }
 
-void Model::Train(
+void Trainer::Train(
     const DataSet& data_set,
     int epochs,
     const GradientInfo& gradient_info) {
   Train(data_set, epochs, gradient_info, NULL);
 }
 
-void Model::Train(
+void Trainer::Train(
     const DataSet& data_set,
     int epochs,
     const GradientInfo& gradient_info,
@@ -92,7 +92,7 @@ void Model::Train(
   logger_->LogTrainingEnd();
 }
 
-void Model::RunPhase(
+void Trainer::RunPhase(
     const DataSet& data_set,
     Layer::Phase phase) {
   int phase_sub_id = 0;
@@ -107,7 +107,7 @@ void Model::RunPhase(
   }
 }
 
-void Model::Evaluate0(
+void Trainer::Evaluate0(
     const DataSet& data_set,
     float* error,
     float* accuracy) {
@@ -125,7 +125,7 @@ void Model::Evaluate0(
   model_->EndPhase(Layer::INFER_PHASE, 0);
 }
 
-void Model::Evaluate(
+void Trainer::Evaluate(
     const DataSet& data_set,
     float* error,
     float* accuracy) {
