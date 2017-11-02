@@ -94,6 +94,9 @@ void TrainTwoLayerFCModel(bool dropout) {
 
 
 void TrainConvolutionalModel() {
+  std::shared_ptr<Random> rnd = std::make_shared<Random>(123456);
+  float dropout = 0.5f;
+
   std::shared_ptr<CifarDataSet> training = LoadTraining(400);
   std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
 
@@ -134,6 +137,7 @@ void TrainConvolutionalModel() {
   // Convolutional layer #6:
   stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
   stack->AddLayer<BatchNormalizationLayer>(24, true);
+  stack->AddLayer<InvertedDropoutLayer>(24, true, dropout, rnd);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   stack->AddLayer<ReshapeLayer>(8, 8, 24);
@@ -149,9 +153,12 @@ void TrainConvolutionalModel() {
   // model.Evaluate(*validation, &error, &accuracy);
   model.Train(
       *training,
-      7,
-      GradientInfo(0.0006, 0.00012, GradientInfo::ADAM),
-      validation.get());
+      20,  // number of training epochs
+      GradientInfo(
+          0.0006,   // learning rate
+          0.00012,  // L2 regularization
+          GradientInfo::ADAM),  // optimization algorithm
+      validation.get());  // evaluate on validation set after each epoch
   // model.Evaluate(*validation, &error, &accuracy);
 }
 
