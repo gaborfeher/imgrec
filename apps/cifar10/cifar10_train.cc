@@ -55,7 +55,7 @@ void TrainSingleLayerFCModel() {
   Trainer trainer(
       stack,
       std::make_shared<Random>(123),
-      std::make_shared<Logger>(1));
+      std::make_shared<Logger>(1, "apps/cifar10/results/fc1"));
   trainer.Evaluate(*validation, &error, &accuracy);
   trainer.Train(*training, 5, GradientInfo(0.4, 0.01, GradientInfo::SGD));
   trainer.Evaluate(*validation, &error, &accuracy);
@@ -88,7 +88,11 @@ void TrainTwoLayerFCModel(bool dropout) {
   Trainer trainer(
       stack,
       std::make_shared<Random>(123),
-      std::make_shared<Logger>(1));
+      std::make_shared<Logger>(
+          2,
+          dropout
+              ? "apps/cifar10/results/fc2drop"
+              : "apps/cifar10/results/fc2nodrop"));
   trainer.Evaluate(*validation, &error, &accuracy);
   trainer.Train(
       *training,
@@ -158,7 +162,9 @@ void TrainConvolutionalModel() {
   Trainer trainer(
       stack,
       std::make_shared<Random>(123),
-      std::make_shared<Logger>(2));
+      std::make_shared<Logger>(
+          2,
+          "apps/cifar10/results/conv1"));
   // model.Evaluate(*validation, &error, &accuracy);
   trainer.Train(
       *training,

@@ -1,0 +1,9 @@
+EVALUATION  [e=2.3343]  10.06%
+Training model with 154210 parameters
+               TRAIN AVERAGE         TRAIN EVAL    VALIDATION EVAL  
+EPOCH   0 [e=2.1623]  22.77% [e=1.9510]  31.39% [e=1.9963]  29.32%
+EPOCH   1 [e=1.8785]  33.49% [e=1.7416]  38.74% [e=1.8717]  33.55%
+EPOCH   2 [e=1.7788]  37.39% [e=1.6308]  43.41% [e=1.8612]  33.89%
+EPOCH   3 [e=1.6986]  40.67% [e=1.5302]  47.44% [e=1.8715]  34.14%
+EPOCH   4 [e=1.6280]  43.36% [e=1.4639]  49.41% [e=1.9228]  33.07%
+Training time: 45.97s

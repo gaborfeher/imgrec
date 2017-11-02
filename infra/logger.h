@@ -1,7 +1,10 @@
 #ifndef _INFRA_LOGGER_H_
 #define _INFRA_LOGGER_H_
 
+#include <fstream>
 #include <chrono>
+#include <memory>
+#include <string>
 
 #include "cnn/layer.h"
 
@@ -23,6 +26,7 @@ class Clock {
 class Logger {
  public:
   Logger(int log_level);
+  Logger(int log_level, const std::string& log_dir);
 
   void LogTrainingStart(int num_params);
   void LogTrainingEnd();
@@ -52,6 +56,12 @@ class Logger {
 
  private:
   int log_level_;
+  std::shared_ptr<std::ofstream> summary_log_;
+  std::shared_ptr<std::ofstream> detail_log_;
+
+  void PrintBigPass(
+    const std::string& color_code,
+    float error, float accuracy);
 
   Clock training_clock_;
   Clock minibatch_clock_;

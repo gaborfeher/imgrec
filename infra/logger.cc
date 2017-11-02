@@ -1,5 +1,6 @@
 #include "infra/logger.h"
 
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 
@@ -36,7 +37,17 @@ float Clock::ElapsedSeconds() const {
   return duration_cast<milliseconds>(elapsed).count() / 1000.0f;
 }
 
-Logger::Logger(int log_level) : log_level_(log_level) {}
+Logger::Logger(int log_level)
+    : log_level_(log_level) {}
+
+Logger::Logger(int log_level, const std::string& log_dir)
+    : log_level_(log_level),
+      summary_log_(std::make_shared<std::ofstream>(log_dir + "/summary.txt")),
+      detail_log_(std::make_shared<std::ofstream>(log_dir + "/details.txt")) {
+  std::cout << "Log files:" << std::endl;
+  std::cout << log_dir + "/summary.txt" << std::endl;
+  std::cout << log_dir + "/details.txt" << std::endl;
+}
 
 void Logger::LogTrainingStart(int num_params) {
   training_clock_.Start();
@@ -47,15 +58,26 @@ void Logger::LogTrainingStart(int num_params) {
         << "      \033[1;31m TRAIN EVAL\033[0m "
         << "  \033[1;32m VALIDATION EVAL \033[0m "
         << std::endl;
+    if (summary_log_) {
+      *summary_log_ << "Training model with " << num_params << " parameters" << std::endl;
+      *summary_log_
+          << "               TRAIN AVERAGE  "
+          << "       TRAIN EVAL "
+          << "   VALIDATION EVAL  "
+          << std::endl;
+    }
   }
 }
 
 void Logger::LogTrainingEnd() {
   if (log_level_ >= 1) {
+    float time = training_clock_.ElapsedSeconds();
     std::cout
-        << "Training time: "
-        << training_clock_.ElapsedSeconds()
-        << "s" << std::endl;
+        << "Training time: " << time << "s" << std::endl;
+    if (summary_log_) {
+      *summary_log_
+          << "Training time: " << time << "s" << std::endl;
+    }
   }
 }
 
@@ -68,9 +90,8 @@ void Logger::LogMinibatchEnd(
     float error,
     float accuracy) {
   if (log_level_ >= 2) {
-    std::string color_code = "36";
-    std::cout << std::fixed;
-    std::cout
+    *detail_log_ << std::fixed;
+    *detail_log_
         << "epoch "
         << std::setw(3) << epoch
         << " batch "
@@ -81,14 +102,12 @@ void Logger::LogMinibatchEnd(
         << " error= "
         << std::setw(6) << std::setprecision(4) << error
         << " accuracy= "
-        << "\033[1;" << color_code << "m"
         << std::setw(6) << std::setprecision(2) << 100.0 * accuracy
-        << "%" << "\033[0m"
         << std::endl;
   }
 }
 
-void PrintBigPass(
+void Logger::PrintBigPass(
     const std::string& color_code,
     float error, float accuracy) {
   std::cout
@@ -101,6 +120,16 @@ void PrintBigPass(
       << 100.0 * accuracy << "%"
       << "\033[0m"
       << std::flush;
+  if (summary_log_) {
+      *summary_log_
+        << " [e="
+        << std::fixed << std::setw(6) << std::setprecision(4)
+        << error
+        << "] "
+        << std::fixed << std::setw(6) << std::setprecision(2)
+        << 100.0 * accuracy << "%"
+        << std::flush;
+  }
 }
 
 void Logger::LogEpochAverage(
@@ -109,6 +138,9 @@ void Logger::LogEpochAverage(
     float accuracy) {
   if (log_level_ >= 1) {
     std::cout << "EPOCH " << std::setw(3) << epoch;
+    if (summary_log_) {
+      *summary_log_ << "EPOCH " << std::setw(3) << epoch;
+    }
     PrintBigPass("34", error, accuracy);
   }
 }
@@ -116,6 +148,9 @@ void Logger::LogEpochAverage(
 void Logger::FinishEpochLine() {
   if (log_level_ >= 1) {
     std::cout << std::endl;
+    if (summary_log_) {
+      *summary_log_ << std::endl;
+    }
   }
 }
 
@@ -133,25 +168,34 @@ void Logger::LogEpochValidationEval(
   if (log_level_ >= 1) {
     PrintBigPass("32", error, accuracy);
     std::cout << std::endl;
+    if (summary_log_) {
+      *summary_log_ << std::endl;
+    }
   }
 }
 
 void Logger::LogEvaluation(float error, float accuracy) {
   if (log_level_ >= 1) {
     std::cout << "EVALUATION ";
+    if (summary_log_) {
+      *summary_log_ << "EVALUATION ";
+    }
     PrintBigPass("32", error, accuracy);
     std::cout << std::endl;
+    if (summary_log_) {
+      *summary_log_ << std::endl;
+    }
   }
 }
 
 void Logger::LogPhaseStart(Layer::Phase phase, int sub_id) {
   if (log_level_ >= 2) {
-    std::cout << "Running phase " << phase << " " << sub_id << std::endl;
+    *detail_log_ << "Running phase " << phase << " " << sub_id << std::endl;
   }
 }
 
 void Logger::LogPhaseEnd(Layer::Phase phase, int sub_id) {
   if (log_level_ >= 2) {
-    std::cout << "Finished phase " << phase << " " << sub_id << std::endl;
+    *detail_log_ << "Finished phase " << phase << " " << sub_id << std::endl;
   }
 }
