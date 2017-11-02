@@ -17,10 +17,10 @@ class Model {
   // The last layer of model is assumed to be an ErrorLayer.
   Model(
       std::shared_ptr<LayerStack> model,
-      int random_seed);
+      std::shared_ptr<Random> random);
   Model(
       std::shared_ptr<LayerStack> model,
-      int random_seed,
+      std::shared_ptr<Random> random,
       std::shared_ptr<Logger> logger);
 
   void Train(

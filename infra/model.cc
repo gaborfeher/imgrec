@@ -8,26 +8,23 @@
 #include "linalg/matrix.h"
 #include "util/random.h"
 
-void Initialize(std::shared_ptr<LayerStack> model, int random_seed) {
-  Random random(random_seed);
-  model->Initialize(&random);
-}
-
-Model::Model(std::shared_ptr<LayerStack> model, int random_seed) :
-    model_(model),
-    error_(model->GetLayer<ErrorLayer>(-1)),
-    logger_(std::make_shared<Logger>(0)) {
-  Initialize(model, random_seed);
+Model::Model(
+    std::shared_ptr<LayerStack> model,
+    std::shared_ptr<Random> random) :
+        model_(model),
+        error_(model->GetLayer<ErrorLayer>(-1)),
+        logger_(std::make_shared<Logger>(0)) {
+  model->Initialize(random.get());
 }
 
 Model::Model(
     std::shared_ptr<LayerStack> model,
-    int random_seed,
+    std::shared_ptr<Random> random,
     std::shared_ptr<Logger> logger) :
     model_(model),
     error_(model->GetLayer<ErrorLayer>(-1)),
     logger_(logger) {
-  Initialize(model, random_seed);
+  model->Initialize(random.get());
 }
 
 void Model::ForwardPass(const DataSet& data_set, int batch_id) {

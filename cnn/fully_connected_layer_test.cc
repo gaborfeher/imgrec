@@ -12,6 +12,7 @@
 #include "infra/model.h"
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
+#include "util/random.h"
 
 #include "gtest/gtest.h"
 
@@ -64,7 +65,7 @@ TEST(FullyConnectedLayerTest, Train_L2) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, 42);
+  Model model(stack, std::make_shared<Random>(42));
   model.Train(
       *training,
       1000,
@@ -98,7 +99,7 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Model model(stack, 42);
+  Model model(stack, std::make_shared<Random>(42));
   model.Train(
       *training,
       1000,

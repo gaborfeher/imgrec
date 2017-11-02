@@ -21,6 +21,7 @@
 #include "infra/model.h"
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
+#include "util/random.h"
 
 
 class ConvolutionalLayerGradientTest : public ::testing::Test {
@@ -689,7 +690,10 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 43, std::make_shared<Logger>(1));
+  Model model(
+      stack,
+      std::make_shared<Random>(43),
+      std::make_shared<Logger>(1));
   model.Train(
       *training_ds,
       5,  // epochs
@@ -712,7 +716,10 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Model model(stack, 43, std::make_shared<Logger>(1));
+  Model model(
+      stack,
+      std::make_shared<Random>(43),
+      std::make_shared<Logger>(1));
   model.Train(
       *training_ds,
       5,  // epochs
@@ -730,33 +737,15 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   // stack->Print();
 }
 
-/*
-TODO
-TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Overfit) {
-  std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(1, 1, 142);
-  std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
-
-  Model model(stack, 43, 1);
-  model.Train(
-      *training_ds,
-      10,  // epochs
-      0.1,  // learn_rate
-      0.0);  // regularization
-
-  float test_error;
-  float test_accuracy;
-  model.Evaluate(*training_ds, &test_error, &test_accuracy);
-  EXPECT_FLOAT_EQ(1.0, test_accuracy);
-  // stack->Print();
-}
-*/
-
 TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(500, 60, 142);
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Model model(stack, 42, std::make_shared<Logger>(1));
+  Model model(
+      stack,
+      std::make_shared<Random>(42),
+      std::make_shared<Logger>(1));
   model.Train(
       *training_ds,
       5,  // epochs

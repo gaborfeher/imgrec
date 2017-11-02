@@ -52,7 +52,10 @@ void TrainSingleLayerFCModel() {
   stack->AddLayer<SoftmaxErrorLayer>();
 
   float error, accuracy;
-  Model model(stack, 123, std::make_shared<Logger>(1));
+  Model model(
+      stack,
+      std::make_shared<Random>(123),
+      std::make_shared<Logger>(1));
   model.Evaluate(*validation, &error, &accuracy);
   model.Train(*training, 5, GradientInfo(0.4, 0.01, GradientInfo::SGD));
   model.Evaluate(*validation, &error, &accuracy);
@@ -82,7 +85,10 @@ void TrainTwoLayerFCModel(bool dropout) {
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
   float error, accuracy;
-  Model model(stack, 123, std::make_shared<Logger>(2));
+  Model model(
+      stack,
+      std::make_shared<Random>(123),
+      std::make_shared<Logger>(1));
   model.Evaluate(*validation, &error, &accuracy);
   model.Train(
       *training,
@@ -149,7 +155,10 @@ void TrainConvolutionalModel() {
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
-  Model model(stack, 123, std::make_shared<Logger>(2));
+  Model model(
+      stack,
+      std::make_shared<Random>(123),
+      std::make_shared<Logger>(2));
   // model.Evaluate(*validation, &error, &accuracy);
   model.Train(
       *training,
