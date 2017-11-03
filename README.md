@@ -1,13 +1,13 @@
 # Features
 
 A toy convolutional neural network training framework written from scratch using CUDA. Supported layers:
-* Convolutional Layer (padding is supported, striding always have to be one)
+* Convolutional Layer
 * Fully Connected Layer
-* Nonlinearity layer: Sigmoid, ReLU, LReLU
 * Constant Bias Layer (the above two are unbiased)
 * Batch Normalization Layer
+* Nonlinearity layer: Sigmoid, ReLU, LReLU
 * (Inverted) Dropout Layer
-* Pooling Layer (the pooling regions have to tile the image)
+* Max-pooling Layer (the pooling regions have to tile the image)
 * Reshape Layer (to transition from Convoutional layers to Fully connected layers; most layers can handle both cases)
 * L2 Error Layer
 * Softmax Error Layer
@@ -18,19 +18,35 @@ Optimization algorithms:
 * SGD
 * ADAM
 
-Linear algebra: a `Matrix` class implements a lot of operations on top of CUDA. The operations are not too heavily optimizied,
-but in return, easier to read.
+Linear algebra: a `Matrix` class implements a lot of operations on top of CUDA. The operations are not too
+heavily optimizied, but in return, easier to read.
 
-See the following file for example model training scenarios for CIFAR-10: https://github.com/gaborfeher/imgrec/blob/master/apps/cifar10/cifar10_train.cc
+# Results
 
+The following file contains the model-building code for CIFAR-10:
+https://github.com/gaborfeher/imgrec/blob/master/apps/cifar10/cifar10_train.cc
+
+Detailed results are here:
+https://github.com/gaborfeher/imgrec/tree/master/apps/cifar10/results
+
+Accuracy of top scored result on the CIFAR-10 data set using the above models:
+
+| Model | Validation | Test |
+| --- | --- | --- |
+| fc1 | 20.19% | TBD |
+| fc2nodrop | 32.41% | TBD |
+| fc2drop | 33.07% | TBD |
+| conv1 | 59.33% | TBD |
 
 # Installation
 
 ## Prerequisites
 
-* https://developer.nvidia.com/cuda-downloads
+* CUDA Toolkit (https://developer.nvidia.com/cuda-downloads)
 * Clang++
-* CMake and GNU C++ for building GoogleTest (downloading and building will happen automatically, but you need to install these)
+* GoogleTest
+  * CMake
+  * GNU C++
 
 ## Building and running
 
