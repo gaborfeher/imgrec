@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include <sstream>
 #include <utility>
 
 #include "linalg/matrix.h"
@@ -904,6 +905,30 @@ TEST(SmallMatrixTest, MakeInvertedDropoutMask_Columns) {
   EXPECT_EQ(27, zeros_cnt + twos_cnt);
   EXPECT_LT(10, zeros_cnt);
   EXPECT_LT(10, twos_cnt);
+}
+
+TEST(SmallMatrixTest, SaveLoad) {
+  Matrix a1(2, 2, 1, { 42.0f, -42.0f, 6.0f, 7.0f });
+  Matrix a2(2, 3, 4, {
+      1.2345678, 24.2323e-12, 3,
+      4, 5, 6,
+
+      11, 12, 13,
+      14, 15, 16,
+
+      21, 22, 23,
+      24, 25, 26,
+
+      31, 32, 33,
+      34, 35, 36,
+  });
+  std::stringstream st;
+  a1.SaveMatrix(&st);
+  a2.SaveMatrix(&st);
+  Matrix b1 = Matrix::LoadMatrix(&st);
+  Matrix b2 = Matrix::LoadMatrix(&st);
+  ExpectMatrixEquals(a1, b1);
+  ExpectMatrixEquals(a2, b2);
 }
 
 TEST(BigMatrixTest, DotProduct) {

@@ -1,6 +1,7 @@
 #ifndef _LINALG_MATRIX_H_
 #define _LINALG_MATRIX_H_
 
+#include <iostream>
 #include <memory>
 #include <random>
 #include <vector>
@@ -35,7 +36,6 @@ Map1Func Sqrt();
 // (compiler generated) and they are performing shallow copies.
 // Copies of the same matrix refer to the same GPU memory region,
 // which is freed when the last copy of the matrix is destroyed.
-
 class Matrix {
  public:
   Matrix();  // "NULL" matrix
@@ -168,6 +168,9 @@ class Matrix {
   void AssertSameDimensions(const Matrix& other) const;
   void AssertRows(int rows) const;
   void AssertDepth(int depth) const;
+
+  void SaveMatrix(std::ostream* out) const;
+  static Matrix LoadMatrix(std::istream* in);
 
  private:
   FRIEND_TEST(SmallMatrixTest, HostDeviceTransfer);
