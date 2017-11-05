@@ -1026,6 +1026,8 @@ Matrix Matrix::MakeInvertedDropoutMask(
       result.data_.get(), result.size(), p);
   CUDA_ASYNC_CHECK();
 
+  CURAND_CALL(curandDestroyGenerator(gen));
+
   return result;
 }
 
