@@ -26,6 +26,16 @@ Map1Func Sqrt();
 
 }  // namespace matrix_mappers
 
+
+// This class represents a rows x cols x depth matrix consisting
+// of float values, stored in GPU.
+// Most operations are leaving the matrix intact (const) and they
+// create a new matrix.
+// The copy-constructor and assignment operators are supported
+// (compiler generated) and they are performing shallow copies.
+// Copies of the same matrix refer to the same GPU memory region,
+// which is freed when the last copy of the matrix is destroyed.
+
 class Matrix {
  public:
   Matrix();  // "NULL" matrix
@@ -158,9 +168,6 @@ class Matrix {
   void AssertSameDimensions(const Matrix& other) const;
   void AssertRows(int rows) const;
   void AssertDepth(int depth) const;
-
-  // Shallow-copy is supported by the compiler-generated
-  // copy constructor and assignment operator.
 
  private:
   FRIEND_TEST(SmallMatrixTest, HostDeviceTransfer);
