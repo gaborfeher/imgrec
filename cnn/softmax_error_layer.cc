@@ -25,10 +25,10 @@ float SoftmaxErrorLayer::GetAccuracy() const {
   return input_.NumMatches(expected_value_) / expected_value_.cols();
 }
 
-void SoftmaxErrorLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+void SoftmaxErrorLayer::save(cereal::PortableBinaryOutputArchive&) const {
 }
 
-void SoftmaxErrorLayer::load(cereal::PortableBinaryInputArchive& ar) {
+void SoftmaxErrorLayer::load(cereal::PortableBinaryInputArchive&) {
 }
 
 CEREAL_REGISTER_TYPE(SoftmaxErrorLayer);

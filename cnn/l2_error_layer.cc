@@ -29,10 +29,10 @@ float L2ErrorLayer::GetAccuracy() const {
   return -1.0;  // TODO
 }
 
-void L2ErrorLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+void L2ErrorLayer::save(cereal::PortableBinaryOutputArchive&) const {
 }
 
-void L2ErrorLayer::load(cereal::PortableBinaryInputArchive& ar) {
+void L2ErrorLayer::load(cereal::PortableBinaryInputArchive&) {
 }
 
 CEREAL_REGISTER_TYPE(L2ErrorLayer);

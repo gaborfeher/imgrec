@@ -23,8 +23,8 @@ class L2ErrorLayer : public ErrorLayer {
   virtual float GetAccuracy() const;
 
   // serialization/deserialization
-  void save(cereal::PortableBinaryOutputArchive& ar) const;
-  void load(cereal::PortableBinaryInputArchive& ar);
+  void save(cereal::PortableBinaryOutputArchive&) const;
+  void load(cereal::PortableBinaryInputArchive&);
 
  private:
   Matrix expected_value_;

@@ -22,7 +22,7 @@ void BiasLayer::Print() const {
   biases_.value.Print();
 }
 
-void BiasLayer::Initialize(Random*) {
+void BiasLayer::Initialize(std::shared_ptr<Random>) {
   biases_.value.Fill(0);
 }
 

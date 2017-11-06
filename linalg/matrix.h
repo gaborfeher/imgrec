@@ -151,7 +151,9 @@ class Matrix {
   void Fill(float value);
 
   template <class Distribution>
-  void RandomFill(Random* random, const Distribution& distribution) {
+  void RandomFill(
+      std::shared_ptr<Random> random,
+      const Distribution& distribution) {
     std::vector<float> result;
     result.reserve(size_);
     for (int i = 0; i < size_; ++i) {

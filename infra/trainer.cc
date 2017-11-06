@@ -8,24 +8,17 @@
 #include "linalg/matrix.h"
 #include "util/random.h"
 
-Trainer::Trainer(
-    std::shared_ptr<LayerStack> model,
-    std::shared_ptr<Random> random) :
-        model_(model),
-        error_(model->GetLayer<ErrorLayer>(-1)),
-        logger_(std::make_shared<Logger>(0)) {
-  model->Initialize(random.get());
-}
+Trainer::Trainer(std::shared_ptr<LayerStack> model)
+    : model_(model),
+      error_(model->GetLayer<ErrorLayer>(-1)),
+      logger_(std::make_shared<Logger>(0)) {}
 
 Trainer::Trainer(
     std::shared_ptr<LayerStack> model,
-    std::shared_ptr<Random> random,
-    std::shared_ptr<Logger> logger) :
-    model_(model),
-    error_(model->GetLayer<ErrorLayer>(-1)),
-    logger_(logger) {
-  model->Initialize(random.get());
-}
+    std::shared_ptr<Logger> logger)
+    : model_(model),
+      error_(model->GetLayer<ErrorLayer>(-1)),
+      logger_(logger) {}
 
 void Trainer::ForwardPass(const DataSet& data_set, int batch_id) {
   error_->SetExpectedValue(data_set.GetBatchOutput(batch_id));

@@ -1,6 +1,8 @@
 #ifndef _CNN_LAYER_H_
 #define _CNN_LAYER_H_
 
+#include <memory>
+
 #include "linalg/matrix.h"
 
 struct GradientInfo;
@@ -20,7 +22,7 @@ class Layer {
   virtual ~Layer() {}
 
   virtual void Print() const {};
-  virtual void Initialize(Random* /* generator */) {};
+  virtual void Initialize(std::shared_ptr<Random> /* generator */) {};
   virtual void Forward(const Matrix& input) = 0;
   virtual void Backward(const Matrix& output_gradient) = 0;
   virtual void ApplyGradient(const GradientInfo&) {}

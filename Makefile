@@ -126,7 +126,7 @@ bin/test.a: bin/linalg/matrix_test_util.o \
 
 # bin/linalg/martrix.cu.o should be here but it's a special kind of file
 # because of CUDA and it doesn't work here.
-bin/core.a: bin/cnn/fully_connected_layer_test.o \
+bin/core.a: \
 		bin/cnn/batch_normalization_layer.o \
 		bin/cnn/bias_layer.o \
 		bin/cnn/convolutional_layer.o \

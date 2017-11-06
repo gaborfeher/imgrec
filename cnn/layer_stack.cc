@@ -19,7 +19,7 @@ void LayerStack::Print() const {
   }
 }
 
-void LayerStack::Initialize(Random* random) {
+void LayerStack::Initialize(std::shared_ptr<Random> random) {
   for (std::shared_ptr<Layer> layer : layers_) {
     layer->Initialize(random);
   }

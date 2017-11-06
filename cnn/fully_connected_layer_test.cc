@@ -65,7 +65,8 @@ TEST(FullyConnectedLayerTest, Train_L2) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Trainer trainer(stack, std::make_shared<Random>(42));
+  stack->Initialize(std::make_shared<Random>(42));
+  Trainer trainer(stack);
   trainer.Train(
       *training,
       1000,
@@ -99,7 +100,8 @@ TEST(FullyConnectedLayerTest, Train_BatchNorm) {
   stack->AddLayer<NonlinearityLayer>(::activation_functions::Sigmoid());
   stack->AddLayer<L2ErrorLayer>();
 
-  Trainer trainer(stack, std::make_shared<Random>(42));
+  stack->Initialize(std::make_shared<Random>(42));
+  Trainer trainer(stack);
   trainer.Train(
       *training,
       1000,

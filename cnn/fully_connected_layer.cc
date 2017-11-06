@@ -20,7 +20,7 @@ void FullyConnectedLayer::Print() const {
   weights_.value.Print();
 }
 
-void FullyConnectedLayer::Initialize(Random* random) {
+void FullyConnectedLayer::Initialize(std::shared_ptr<Random> random) {
   // http://cs231n.github.io/neural-networks-2/#init
   float variance = 2.0f / input_size_;
   std::normal_distribution<float> dist(0, sqrt(variance));

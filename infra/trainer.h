@@ -15,12 +15,9 @@ class Random;
 class Trainer {
  public:
   // The last layer of model is assumed to be an ErrorLayer.
+  Trainer(std::shared_ptr<LayerStack> model);
   Trainer(
       std::shared_ptr<LayerStack> model,
-      std::shared_ptr<Random> random);
-  Trainer(
-      std::shared_ptr<LayerStack> model,
-      std::shared_ptr<Random> random,
       std::shared_ptr<Logger> logger);
 
   void Train(

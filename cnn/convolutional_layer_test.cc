@@ -630,7 +630,10 @@ TEST(ConvolutionalLayerTest, IntegratedGradientTest) {
 
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
   Random random(44);
-  stack->Initialize(&random);  // Note: the initialization of the convolutional layer will be overridden, but this is needed for the fully connected layer.
+  stack->Initialize(std::make_shared<Random>(44));
+  // Note: we will overwrite the above random initialization of
+  // the convolutional layer, but we'll keep it for the fully
+  // connected layer.
   std::shared_ptr<ConvolutionalLayer> conv_layer =
       stack->GetLayer<ConvolutionalLayer>(1);
   std::shared_ptr<BiasLayer> bias_layer =
@@ -692,9 +695,9 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
+  stack->Initialize(std::make_shared<Random>(43));
   Trainer trainer(
       stack,
-      std::make_shared<Random>(43),
       std::make_shared<Logger>(1));
   trainer.Train(
       *training_ds,
@@ -718,10 +721,8 @@ TEST(ConvolutionalLayerTest, TrainTest_SaveLoad) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack1 = CreateConvolutionalTestEnv(true);
 
-  Trainer trainer1(
-      stack1,
-      std::make_shared<Random>(43),
-      std::make_shared<Logger>(1));
+  stack1->Initialize(std::make_shared<Random>(43));
+  Trainer trainer1(stack1, std::make_shared<Logger>(1));
   // Train model a little to have non-trivial behavior. (Not
   // too much to avoid 100% accuracy.)
   trainer1.Train(
@@ -750,11 +751,8 @@ TEST(ConvolutionalLayerTest, TrainTest_SaveLoad) {
     input(stack2);
   }
 
-  // Evaluate save+reloaded model:
-  Trainer trainer2(
-      stack2,
-      std::make_shared<Random>(43),
-      std::make_shared<Logger>(1));
+  // Evaluate save+reloaded model (no initialization here):
+  Trainer trainer2(stack2, std::make_shared<Logger>(1));
   float test_error2;
   float test_accuracy2;
   trainer2.Evaluate(*test_ds, &test_error2, &test_accuracy2);
@@ -770,10 +768,8 @@ TEST(ConvolutionalLayerTest, TrainTest_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(false);
 
-  Trainer trainer(
-      stack,
-      std::make_shared<Random>(43),
-      std::make_shared<Logger>(1));
+  stack->Initialize(std::make_shared<Random>(43));
+  Trainer trainer(stack, std::make_shared<Logger>(1));
   trainer.Train(
       *training_ds,
       5,  // epochs
@@ -796,10 +792,8 @@ TEST(ConvolutionalLayerTest, TrainTest_BatchNorm_Big) {
   std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
   std::shared_ptr<LayerStack> stack = CreateConvolutionalTestEnv(true);
 
-  Trainer trainer(
-      stack,
-      std::make_shared<Random>(42),
-      std::make_shared<Logger>(1));
+  stack->Initialize(std::make_shared<Random>(42));
+  Trainer trainer(stack, std::make_shared<Logger>(1));
   trainer.Train(
       *training_ds,
       5,  // epochs

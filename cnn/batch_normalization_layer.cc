@@ -35,7 +35,7 @@ void BatchNormalizationLayer::Print() const {
   global_shift_.Print();
 }
 
-void BatchNormalizationLayer::Initialize(Random*) {
+void BatchNormalizationLayer::Initialize(std::shared_ptr<Random>) {
   gamma_.value.Fill(1.0);
   beta_.value.Fill(0.0);
   global_multiplier_.Fill(1.0);

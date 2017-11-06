@@ -19,7 +19,7 @@ class FullyConnectedLayer : public Layer {
  public:
   FullyConnectedLayer(int input_size, int output_size);
   virtual void Print() const;
-  virtual void Initialize(Random* random);
+  virtual void Initialize(std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(const GradientInfo& info);

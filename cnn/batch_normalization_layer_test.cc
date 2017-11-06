@@ -244,8 +244,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_ColumnMode) {
   batch_layer->BeginPhase(Layer::TRAIN_PHASE, 0);
   error_layer->SetExpectedValue(training_y);
 
-  Random random(42);
-  stack->Initialize(&random);
+  stack->Initialize(std::make_shared<Random>(42));
 
   Matrix beta(4, 1, 1, { 0, -1, 1, 2} );
   Matrix gamma(4, 1, 1, { -1, -0.5, 3, 1.2} );
@@ -329,8 +328,7 @@ TEST(BatchNormalizationLayerTest, GradientCheck_LayerMode) {
   batch_layer->BeginPhase(Layer::TRAIN_PHASE, 0);
   error_layer->SetExpectedValue(training_y);
 
-  Random random(42);
-  stack->Initialize(&random);
+  stack->Initialize(std::make_shared<Random>(42));
 
   Matrix beta(1, 1, 2, { 2, -1 } );
   Matrix gamma(1, 1, 2, { -1, -0.5 } );
@@ -591,7 +589,8 @@ TEST(BatchNormalizationLayerTest, TrainTest_ColumnMode) {
   stack->AddLayer<BatchNormalizationLayer>(4, false);
   stack->AddLayer<L2ErrorLayer>();
 
-  Trainer trainer(stack, nullptr);
+  stack->Initialize(nullptr);
+  Trainer trainer(stack);
   trainer.Train(
       training_ds,
       20,
@@ -621,7 +620,8 @@ TEST(BatchNormalizationLayerTest, TrainTest_LayerMode) {
   stack->AddLayer<BatchNormalizationLayer>(4, true);
   stack->AddLayer<L2ErrorLayer>();
 
-  Trainer trainer(stack, nullptr);
+  stack->Initialize(nullptr);
+  Trainer trainer(stack);
   trainer.Train(
       training_ds,
       20,

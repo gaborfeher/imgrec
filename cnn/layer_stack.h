@@ -30,7 +30,7 @@ class LayerStack : public Layer {
     return std::dynamic_pointer_cast<T>(layers_[id]);
   }
   virtual void Print() const;
-  virtual void Initialize(Random* random);
+  virtual void Initialize(std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
   virtual void ApplyGradient(const GradientInfo& info);

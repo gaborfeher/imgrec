@@ -32,8 +32,7 @@ TEST(BiasLayerTest, GradientCheck_ColumnMode) {
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
   error_layer->SetExpectedValue(training_y);
 
-  Random random(42);
-  stack->Initialize(&random);  // (Bias layer always inits to zero.)
+  stack->Initialize(nullptr);
   
   Matrix biases(4, 1, 1, { 0, -1, 1, 2} );
 
@@ -74,8 +73,7 @@ TEST(BiasLayerTest, GradientCheck_LayerMode) {
   std::shared_ptr<ErrorLayer> error_layer = stack->GetLayer<ErrorLayer>(1);
   error_layer->SetExpectedValue(training_y);
 
-  Random random(42);
-  stack->Initialize(&random);  // (Bias layer always inits to zero.)
+  stack->Initialize(nullptr);
   
   Matrix biases(1, 1, 2, { -1, 1 } );
 

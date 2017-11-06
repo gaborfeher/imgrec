@@ -23,7 +23,7 @@ void ConvolutionalLayer::Print() const {
   filters_.value.Print();
 }
 
-void ConvolutionalLayer::Initialize(Random* random) {
+void ConvolutionalLayer::Initialize(std::shared_ptr<Random> random) {
   // http://cs231n.github.io/neural-networks-2/#init
   // https://stats.stackexchange.com/questions/198840/cnn-xavier-weight-initialization
   float variance = 2.0f / (filters_.value.rows() * filters_.value.cols() * layers_per_image_);
