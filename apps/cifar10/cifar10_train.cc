@@ -119,23 +119,14 @@ void TrainConvolutional_1_Model() {
   stack->AddLayer<ConvolutionalLayer>(8, 3, 3, 1, 8);
   stack->AddLayer<BatchNormalizationLayer>(8, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
+  // Convolutional layer #3:
   stack->AddLayer<ConvolutionalLayer>(8, 3, 3, 1, 8);
   stack->AddLayer<BatchNormalizationLayer>(8, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
-  // Convolutional layer #3:
+  // Convolutional layer #4:
   stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 8);
   stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
-  // Convolutional layer #4:
-  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
-  stack->AddLayer<BatchNormalizationLayer>(24, true);
-  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
-  stack->AddLayer<PoolingLayer>(2, 2);
-
   // Convolutional layer #5:
   stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
   stack->AddLayer<BatchNormalizationLayer>(24, true);
@@ -144,6 +135,13 @@ void TrainConvolutional_1_Model() {
   stack->AddLayer<PoolingLayer>(2, 2);
 
   // Convolutional layer #6:
+  stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
+  stack->AddLayer<BatchNormalizationLayer>(24, true);
+  stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  stack->AddLayer<PoolingLayer>(2, 2);
+
+  // Convolutional layer #7:
   stack->AddLayer<ConvolutionalLayer>(24, 5, 5, 2, 24);
   stack->AddLayer<BatchNormalizationLayer>(24, true);
   stack->AddLayer<InvertedDropoutLayer>(24, true, dropout, rnd);
@@ -193,24 +191,22 @@ void TrainConvolutional_2_Model() {
   stack->AddLayer<ConvolutionalLayer>(16, 3, 3, 1, 16);
   stack->AddLayer<BatchNormalizationLayer>(16, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
+  // Convolutional layer #3:
   stack->AddLayer<ConvolutionalLayer>(16, 3, 3, 1, 16);
   stack->AddLayer<BatchNormalizationLayer>(16, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
-  // Convolutional layer #3:
+  // Convolutional layer #4:
   stack->AddLayer<ConvolutionalLayer>(32, 5, 5, 2, 16);
   stack->AddLayer<BatchNormalizationLayer>(32, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
-
-  // Convolutional layer #4:
+  // Convolutional layer #5:
   stack->AddLayer<ConvolutionalLayer>(32, 5, 5, 2, 32);
   stack->AddLayer<BatchNormalizationLayer>(32, true);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   stack->AddLayer<PoolingLayer>(2, 2);
 
-  // Convolutional layer #5:
+  // Convolutional layer #6:
   stack->AddLayer<ConvolutionalLayer>(32, 5, 5, 2, 32);
   stack->AddLayer<BatchNormalizationLayer>(32, true);
   stack->AddLayer<InvertedDropoutLayer>(32, true, dropout, rnd);
@@ -218,7 +214,7 @@ void TrainConvolutional_2_Model() {
 
   stack->AddLayer<PoolingLayer>(2, 2);
 
-  // Convolutional layer #6:
+  // Convolutional layer #7:
   stack->AddLayer<ConvolutionalLayer>(32, 5, 5, 2, 32);
   stack->AddLayer<BatchNormalizationLayer>(32, true);
   stack->AddLayer<InvertedDropoutLayer>(32, true, dropout, rnd);
