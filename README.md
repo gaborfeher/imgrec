@@ -43,9 +43,9 @@ Accuracy of top scored result on the CIFAR-10 data set using the above models:
 ## Prerequisites
 
 * CUDA Toolkit (https://developer.nvidia.com/cuda-downloads)
+* GoogleTest (https://github.com/google/googletest)
+* cereal (https://github.com/USCiLab/cereal)
 * Clang++
-* GoogleTest
-* cereal
 
 ## Building and running
 
