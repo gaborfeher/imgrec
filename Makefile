@@ -1,16 +1,13 @@
-GTEST_DIR = googletest/downloaded_deps/googletest/googletest
-MAIN_GTEST_HEADER = $(GTEST_DIR)/include/gtest/gtest.h
-
-CEREAL_DIR = cereal/downloaded_deps/cereal
-MAIN_CEREAL_HEADER = $(CEREAL_DIR)/include/cereal/archives/portable_binary.hpp
+GTEST_INCLUDE_DIR = googletest/downloaded_deps/googletest/googletest/include
+CEREAL_INCLUDE_DIR = cereal/downloaded_deps/cereal/include
 
 CXX = clang++
-CPPFLAGS += -isystem $(GTEST_DIR)/include -I . -isystem $(CEREAL_DIR)/include
+CPPFLAGS += -isystem $(GTEST_INCLUDE_DIR) -I . -isystem $(CEREAL_INCLUDE_DIR)
 CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11
 CXXLINKFLAGS += -L$(CUDA_LIB) -lpthread -lcudart -lcurand
 
 NVCC = /usr/local/cuda/bin/nvcc
-NVCCFLAGS += --include-path=. --system-include=$(CEREAL_DIR)/include --system-include=$(GTEST_DIR)/include -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
+NVCCFLAGS += --include-path=. --system-include=$(CEREAL_INCLUDE_DIR) --system-include=$(GTEST_INCLUDE_DIR) -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
 CUDA_LIB=/usr/local/cuda/lib64
 
 SOURCES := $(wildcard **/*.cc) $(wildcard **/*.cu)
@@ -24,7 +21,7 @@ TEST_OBJS := $(addprefix bin/,$(subst .cc,.o,$(TEST_SOURCES)))
 
 .PHONY: clean clean_all test matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
 
-test: $(MAIN_GTEST_HEADER) matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
+test: matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
 
 clean:
 	rm -Rf bin
@@ -114,10 +111,7 @@ include $(addprefix bin/,$(subst .cc,.d,$(subst .cu,.cu.d,$(SOURCES))))
 
 bin/%.cu.o: %.cu
 	@set -e; mkdir -p $(dir bin/$*)
-	$(NVCC) $(filter %.cu %.cc,$^) \
-		$(NVCCFLAGS) \
-		--lib \
-		--output-file=$@
+	$(NVCC) $(filter %.cu %.cc,$^) $(NVCCFLAGS) --lib --output-file=$@
 
 bin/%.o: %.cc
 	@set -e; mkdir -p $(dir bin/$*)
