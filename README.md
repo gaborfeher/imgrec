@@ -37,6 +37,7 @@ Accuracy of top scored result on the CIFAR-10 data set using the above models:
 | fc2nodrop | 32.41% | TBD |
 | fc2drop | 33.07% | TBD |
 | conv1 | 59.33% | TBD |
+| conv2 | 61.90% | TBD |
 
 # Installation
 
