@@ -1,4 +1,3 @@
-#!/bin/bash -e
 
 BIN_DIR=../bin/googletest
 
@@ -13,9 +12,7 @@ downloaded_deps/googletest.tar.gz :
 downloaded_deps/googletest : downloaded_deps/googletest.tar.gz
 	cd downloaded_deps && \
 	tar xf googletest.tar.gz && \
-	ln -s googletest-release-1.8.0 googletest && \
-	cd googletest/googletest && \
-	cmake .
+	ln -s googletest-release-1.8.0 googletest
 
 clean:
 	rm -Rf downloaded_deps

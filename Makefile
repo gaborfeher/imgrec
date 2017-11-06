@@ -1,13 +1,16 @@
-GTEST_DIR = googletest/downloaded_deps/googletest/googletest/
+GTEST_DIR = googletest/downloaded_deps/googletest/googletest
 MAIN_GTEST_HEADER = $(GTEST_DIR)/include/gtest/gtest.h
 
+CEREAL_DIR = cereal/downloaded_deps/cereal
+MAIN_CEREAL_HEADER = $(CEREAL_DIR)/include/cereal/archives/portable_binary.hpp
+
 CXX = clang++
-CPPFLAGS += -isystem $(GTEST_DIR)/include -I . -isystem cereal/cereal-1.2.2/include
+CPPFLAGS += -isystem $(GTEST_DIR)/include -I . -isystem $(CEREAL_DIR)/include
 CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11
 CXXLINKFLAGS += -L$(CUDA_LIB) -lpthread -lcudart -lcurand
 
 NVCC = /usr/local/cuda/bin/nvcc
-NVCCFLAGS += --include-path=. --system-include=./cereal/cereal-1.2.2/include --system-include=$(GTEST_DIR)/include -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
+NVCCFLAGS += --include-path=. --system-include=$(CEREAL_DIR)/include --system-include=$(GTEST_DIR)/include -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
 CUDA_LIB=/usr/local/cuda/lib64
 
 SOURCES := $(wildcard **/*.cc) $(wildcard **/*.cu)
@@ -28,6 +31,7 @@ clean:
 
 clean_all: clean
 	$(MAKE) -C googletest clean
+	$(MAKE) -C cereal clean
 	rm -Rf apps/cifar10/downloaded_deps
 
 matrix_test: bin/linalg/matrix_test
@@ -63,18 +67,10 @@ layer_stack_test: bin/cnn/layer_stack_test
 cifar10_train: bin/apps/cifar10/cifar10_train
 	$<
 
-# Make sure GoogleTest is downloaded before compiling test targets:
+# Build GoogleTest
 #######
 
-$(MAIN_GTEST_HEADER) :
-	$(MAKE) -C googletest downloaded_deps/googletest
-
-$(TEST_OBJS): $(MAIN_GTEST_HEADER)
-$(TEST_DS): $(MAIN_GTEST_HEADER)
-
-# Build GoogleTest
-
-bin/googletest/gtest_main.a : $(MAIN_GTEST_HEADER)
+bin/googletest/gtest_main.a:
 	mkdir -p bin/googletest
 	$(MAKE) -C googletest ../$@
 
