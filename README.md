@@ -50,11 +50,11 @@ Accuracy of top scored result on the CIFAR-10 data set using the above models:
 
 ## Building and running
 
-Make sure that the `NVCC` and `CUDA_LIB` variables in the `Makefile` are pointing to the correct locations.
-
-1. Check this repo out.
-2. Run `./download_deps.sh` to get GoogleTest and cereal.
-3. Run `make` to run the tests, or run `make cifar10_train` to train a model on CIFAR-10 data.
+1. Check out this repo.
+2. Make sure to install GoogleTest's and cereal's prerequisites.
+3. Run `./download_deps.sh` to get GoogleTest and cereal.
+3. Check the values of `NVCC` and `CUDA_LIB` in the `Makefile` and fix them if needed.
+4. Run `make` to run the tests, or run `make cifar10_train` to train a model on CIFAR-10 data.
 
 # Sources
 
