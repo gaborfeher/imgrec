@@ -1,5 +1,7 @@
 #include "cnn/softmax_error_layer.h"
-#include <iostream>
+
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/polymorphic.hpp"
 
 SoftmaxErrorLayer::SoftmaxErrorLayer() {}
 
@@ -22,3 +24,13 @@ void SoftmaxErrorLayer::Backward(const Matrix& output_gradient) {
 float SoftmaxErrorLayer::GetAccuracy() const {
   return input_.NumMatches(expected_value_) / expected_value_.cols();
 }
+
+void SoftmaxErrorLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+}
+
+void SoftmaxErrorLayer::load(cereal::PortableBinaryInputArchive& ar) {
+}
+
+CEREAL_REGISTER_TYPE(SoftmaxErrorLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, SoftmaxErrorLayer);
+

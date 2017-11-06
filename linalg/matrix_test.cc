@@ -6,6 +6,8 @@
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
+#include <cereal/archives/portable_binary.hpp>
+
 TEST(SmallMatrixTest, HostDeviceTransfer) {
   Matrix a(2, 2, 1, {1, 6, 7, 42});
   ExpectMatrixEquals(
@@ -910,7 +912,7 @@ TEST(SmallMatrixTest, MakeInvertedDropoutMask_Columns) {
 TEST(SmallMatrixTest, SaveLoad) {
   Matrix a1(2, 2, 1, { 42.0f, -42.0f, 6.0f, 7.0f });
   Matrix a2(2, 3, 4, {
-      1.2345678, 24.2323e-12, 3,
+      1.2345678, 24.2323e-12, 1.0f / 7.0f,
       4, 5, 6,
 
       11, 12, 13,
@@ -923,12 +925,19 @@ TEST(SmallMatrixTest, SaveLoad) {
       34, 35, 36,
   });
   std::stringstream st;
-  a1.SaveMatrix(&st);
-  a2.SaveMatrix(&st);
-  Matrix b1 = Matrix::LoadMatrix(&st);
-  Matrix b2 = Matrix::LoadMatrix(&st);
-  ExpectMatrixEquals(a1, b1);
-  ExpectMatrixEquals(a2, b2);
+  {
+    cereal::PortableBinaryOutputArchive output(st);
+    output(a1);
+    output(a2);
+  }
+  {
+    cereal::PortableBinaryInputArchive input(st);
+    Matrix b1, b2;
+    input(b1);
+    input(b2);
+    ExpectMatrixEquals(a1, b1);
+    ExpectMatrixEquals(a2, b2);
+  }
 }
 
 TEST(BigMatrixTest, DotProduct) {

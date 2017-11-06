@@ -2,6 +2,10 @@
 
 #include <iostream>
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 #include "linalg/matrix.h"
 
 BiasLayer::BiasLayer(int num_neurons, bool layered) :
@@ -41,3 +45,15 @@ void BiasLayer::ApplyGradient(const GradientInfo& info) {
 int BiasLayer::NumParameters() const {
   return biases_.NumParameters();
 }
+
+void BiasLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  ar(num_neurons_, layered_, biases_);
+}
+
+void BiasLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(num_neurons_, layered_, biases_);
+}
+
+CEREAL_REGISTER_TYPE(BiasLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, BiasLayer);
+

@@ -1,8 +1,10 @@
-#include <functional>
+
 #include <iostream>
 #include <random>
 #include <vector>
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
 #include "gtest/gtest.h"
 
 #include "cnn/batch_normalization_layer.h"
@@ -709,6 +711,58 @@ TEST(ConvolutionalLayerTest, TrainTest_Small) {
   EXPECT_LT(test_error, 0.01);
   EXPECT_FLOAT_EQ(1.0, test_accuracy);
   // stack->Print();
+}
+
+TEST(ConvolutionalLayerTest, TrainTest_SaveLoad) {
+  std::shared_ptr<InMemoryDataSet> training_ds = CreateTestCase2(100, 20, 142);
+  std::shared_ptr<InMemoryDataSet> test_ds = CreateTestCase2(10, 20, 143);
+  std::shared_ptr<LayerStack> stack1 = CreateConvolutionalTestEnv(true);
+
+  Trainer trainer1(
+      stack1,
+      std::make_shared<Random>(43),
+      std::make_shared<Logger>(1));
+  // Train model a little to have non-trivial behavior. (Not
+  // too much to avoid 100% accuracy.)
+  trainer1.Train(
+      *training_ds,
+      1,  // epochs
+      GradientInfo(
+          0.001,  // learn_rate
+          0.001,  // regularization
+          GradientInfo::ADAM),  // algorithm
+      test_ds.get());
+
+  // Evaluate original model:
+  float test_error1;
+  float test_accuracy1;
+  trainer1.Evaluate(*test_ds, &test_error1, &test_accuracy1);
+
+  // Save+reload model:
+  std::stringstream buffer;
+  {
+    cereal::PortableBinaryOutputArchive output(buffer);
+    output(stack1);
+  }
+  std::shared_ptr<LayerStack> stack2;
+  {
+    cereal::PortableBinaryInputArchive input(buffer);
+    input(stack2);
+  }
+
+  // Evaluate save+reloaded model:
+  Trainer trainer2(
+      stack2,
+      std::make_shared<Random>(43),
+      std::make_shared<Logger>(1));
+  float test_error2;
+  float test_accuracy2;
+  trainer2.Evaluate(*test_ds, &test_error2, &test_accuracy2);
+
+  // Check that save+reloaded model behaves the same way as the
+  // original.
+  EXPECT_EQ(test_error1, test_error2);
+  EXPECT_EQ(test_accuracy1, test_accuracy2);
 }
 
 TEST(ConvolutionalLayerTest, TrainTest_Big) {

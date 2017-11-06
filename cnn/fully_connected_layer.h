@@ -9,6 +9,11 @@
 class Random;
 class Matrix;
 struct GradientInfo;
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
 
 class FullyConnectedLayer : public Layer {
  public:
@@ -20,15 +25,19 @@ class FullyConnectedLayer : public Layer {
   virtual void ApplyGradient(const GradientInfo& info);
   virtual int NumParameters() const;
 
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
  private:
+  FullyConnectedLayer() {}  // for cereal
+  friend class cereal::access;
   FRIEND_TEST(FullyConnectedLayerTest, InputGradient);
   FRIEND_TEST(FullyConnectedLayerTest, WeightGradient);
+  FRIEND_TEST(LayerStackTest, SaveLoad);
 
   int input_size_;
   int output_size_;
   MatrixParam weights_;
 };
-
-
 
 #endif  // _CNN_FULLY_CONNECTED_LAYER_H_

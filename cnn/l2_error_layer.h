@@ -4,6 +4,11 @@
 #include "cnn/error_layer.h"
 #include "linalg/matrix.h"
 
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+}
+
 // Note: this implements L2^2, because its gradient is "nicely"
 // going to zero near its zero value, unlike L2, which just
 // jumps to zero. (The main motivation for this change was
@@ -16,6 +21,10 @@ class L2ErrorLayer : public ErrorLayer {
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
   virtual float GetAccuracy() const;
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
 
  private:
   Matrix expected_value_;

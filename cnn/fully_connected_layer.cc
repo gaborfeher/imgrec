@@ -4,6 +4,10 @@
 #include <iostream>
 #include <random>
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 #include "linalg/matrix.h"
 
 FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
@@ -46,4 +50,15 @@ void FullyConnectedLayer::ApplyGradient(const GradientInfo& info) {
 int FullyConnectedLayer::NumParameters() const {
   return weights_.NumParameters();
 }
+
+void FullyConnectedLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  ar(input_size_, output_size_, weights_);
+}
+
+void FullyConnectedLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(input_size_, output_size_, weights_);
+}
+
+CEREAL_REGISTER_TYPE(FullyConnectedLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, FullyConnectedLayer);
 

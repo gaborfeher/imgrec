@@ -10,6 +10,11 @@
 
 #include "gtest/gtest_prod.h"
 
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+}
+
 namespace matrix_mappers {
 
 typedef void (*Map1Func)(float* a, float* b, int size);
@@ -169,13 +174,15 @@ class Matrix {
   void AssertRows(int rows) const;
   void AssertDepth(int depth) const;
 
-  void SaveMatrix(std::ostream* out) const;
-  static Matrix LoadMatrix(std::istream* in);
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
 
  private:
   FRIEND_TEST(SmallMatrixTest, HostDeviceTransfer);
   FRIEND_TEST(SmallMatrixTest, MakeInvertedDropoutMask_Layered);
   FRIEND_TEST(SmallMatrixTest, MakeInvertedDropoutMask_Columns);
+  FRIEND_TEST(SmallMatrixTest, SaveLoad);
   // TODO: use public API for these tests:
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&);
   friend void ExpectMatrixEquals(const Matrix&, const Matrix&, float, float);

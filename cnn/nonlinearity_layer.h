@@ -6,6 +6,12 @@
 #include "cnn/layer.h"
 #include "linalg/matrix.h"
 
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
+
 namespace activation_functions {
 
 typedef std::pair<::matrix_mappers::Map1Func, ::matrix_mappers::Map1Func> ActivationFunc;
@@ -22,7 +28,15 @@ class NonlinearityLayer : public Layer {
       ::activation_functions::ActivationFunc activation);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
+
  private:
+  NonlinearityLayer() {}  // for cereal
+  friend class cereal::access;
+
   ::matrix_mappers::Map1Func activation_function_;
   ::matrix_mappers::Map1Func activation_function_gradient_;
 };

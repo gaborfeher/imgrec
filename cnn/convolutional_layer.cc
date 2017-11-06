@@ -4,6 +4,10 @@
 #include <random>
 #include <iostream>
 
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/polymorphic.hpp>
+
 #include "util/random.h"
 
 ConvolutionalLayer::ConvolutionalLayer(
@@ -99,4 +103,15 @@ void ConvolutionalLayer::ApplyGradient(const GradientInfo& info) {
 int ConvolutionalLayer::NumParameters() const {
   return filters_.NumParameters();
 }
+
+void ConvolutionalLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  ar(padding_, layers_per_image_, filters_);
+}
+
+void ConvolutionalLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(padding_, layers_per_image_, filters_);
+}
+
+CEREAL_REGISTER_TYPE(ConvolutionalLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, ConvolutionalLayer);
 

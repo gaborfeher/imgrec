@@ -7,6 +7,11 @@
 #include "cnn/matrix_param.h"
 
 class Random;
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
 
 class ConvolutionalLayer : public Layer {
  public:
@@ -23,13 +28,18 @@ class ConvolutionalLayer : public Layer {
   virtual void ApplyGradient(const GradientInfo& info);
   virtual int NumParameters() const;
 
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
  private:
+  ConvolutionalLayer() {}  // for cereal
+  friend class cereal::access;
   FRIEND_TEST(ConvolutionalLayerTest, IntegratedGradientTest);
   friend class ConvolutionalLayerGradientTest;
+  FRIEND_TEST(LayerStackTest, SaveLoad);
 
   int padding_;
   int layers_per_image_;
-  int stride_;
   MatrixParam filters_;
 };
 

@@ -1,5 +1,8 @@
 #include "cnn/l2_error_layer.h"
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 L2ErrorLayer::L2ErrorLayer() {}
 
 void L2ErrorLayer::SetExpectedValue(const Matrix& expected_value) {
@@ -25,3 +28,13 @@ void L2ErrorLayer::Backward(const Matrix& output_gradient) {
 float L2ErrorLayer::GetAccuracy() const {
   return -1.0;  // TODO
 }
+
+void L2ErrorLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+}
+
+void L2ErrorLayer::load(cereal::PortableBinaryInputArchive& ar) {
+}
+
+CEREAL_REGISTER_TYPE(L2ErrorLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, L2ErrorLayer);
+

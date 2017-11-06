@@ -3,6 +3,11 @@
 
 #include "linalg/matrix.h"
 
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+}
+
 struct GradientInfo {
   enum Mode {
     SGD,
@@ -34,6 +39,10 @@ class MatrixParam {
 
   void ApplyGradient(const GradientInfo& info);
   int NumParameters() const;
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
 };
 
 #endif

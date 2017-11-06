@@ -10,6 +10,10 @@
 #include <cuda.h>  // strangely, not needed by nvcc
 #include <curand.h>
 
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/vector.hpp>
+
 int Matrix::Index(int i, int j, int k) const {
   return k * rows_ * cols_ + i * cols_ + j;
 }
@@ -1059,40 +1063,14 @@ void Matrix::SetValue(int row, int col, int depth, float value) {
       cudaMemcpyHostToDevice));
 }
 
-void Matrix::SaveMatrix(std::ostream* out) const {
-  *out << "MATRIXBEGIN " << rows_ << "x" << cols_ << "x" << depth_ << std::endl;
-  std::vector<float> v = GetVector();
-  for (int i = 0; i < size_; ++i) {
-    *out << std::hexfloat << v[i] << std::endl;
-  }
-  *out << "MATRIXEND" << std::endl;
+void Matrix::save(cereal::PortableBinaryOutputArchive& ar) const {
+  std::vector<float> values = GetVector();
+  ar(rows_, cols_, depth_, values);
 }
 
-// static
-Matrix Matrix::LoadMatrix(std::istream* in) {
-  char buf[128];
-  // Read the token "MATRIXBEGIN "
-  in->get(buf, 13);
-  assert(strncmp("MATRIXBEGIN ", buf, 13) == 0);
-  // Read dimensions:
-  int rows, cols, depth;
-  *in >> rows;
-  assert(in->get() == 'x');
-  *in >> cols;
-  assert(in->get() == 'x');
-  *in >> depth;
-  assert(in->get() == '\n');
-  // Read cell values:
-  std::vector<float> items;
-  for (int i = 0; i < rows * cols * depth; ++i) {
-    // Reading hexfloat doesn't seem to work.
-    in->getline(buf, 128);
-    float f = std::strtof(buf, NULL);
-    items.push_back(f);
-  }
-  // Read the token "MATRIXEND"
-  in->getline(buf, 10);
-  assert(strncmp("MATRIXEND", buf, 10) == 0);
-  return Matrix(rows, cols, depth, items);
+void Matrix::load(cereal::PortableBinaryInputArchive& ar) {
+  std::vector<float> values;
+  ar(rows_, cols_, depth_, values);
+  size_ = rows_ * cols_ * depth_;
+  SetVector(values);
 }
-

@@ -3,6 +3,10 @@
 #include <iostream>
 #include <cassert>
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 #include "cnn/layer.h"
 #include "linalg/matrix.h"
 
@@ -51,3 +55,15 @@ void InputImageNormalizationLayer::OnEndPhase() {
     }
   }
 }
+
+void InputImageNormalizationLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  ar(mean_, num_samples_);
+}
+
+void InputImageNormalizationLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(mean_, num_samples_);
+}
+
+CEREAL_REGISTER_TYPE(InputImageNormalizationLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, InputImageNormalizationLayer);
+

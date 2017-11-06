@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 
+#include <cereal/archives/portable_binary.hpp>
+
 #include "linalg/matrix.h"
 
 MatrixParam::MatrixParam(int rows, int cols, int depth) :
@@ -58,3 +60,14 @@ void MatrixParam::ApplyGradient(const GradientInfo& info) {
 int MatrixParam::NumParameters() const {
   return value.size();
 }
+
+void MatrixParam::save(cereal::PortableBinaryOutputArchive& ar) const {
+  ar(value);
+  // TODO: if we saved m and v here, then training could continue
+  // after a save/load.
+}
+
+void MatrixParam::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(value);
+}
+

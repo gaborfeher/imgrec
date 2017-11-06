@@ -45,6 +45,9 @@ class LayerStack : public Layer {
     return layers_.front()->input_gradient();
   }
 
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
  private:
   std::vector<std::shared_ptr<Layer>> layers_;
   // When not all children return true for BeginPhase, then

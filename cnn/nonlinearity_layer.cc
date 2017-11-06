@@ -1,5 +1,11 @@
 #include "cnn/nonlinearity_layer.h"
 
+#include <cassert>
+
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 namespace activation_functions {
 
 ActivationFunc Sigmoid() {
@@ -38,3 +44,36 @@ void NonlinearityLayer::Backward(const Matrix& output_gradient) {
       .ElementwiseMultiply(output_gradient);
 }
 
+void NonlinearityLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  std::string fun;
+  if (activation_function_ == ::matrix_mappers::Sigmoid()) {
+    fun = "Sigmoid";
+  } else if (activation_function_ == ::matrix_mappers::ReLU()) {
+    fun = "ReLU";
+  } else if (activation_function_ == ::matrix_mappers::LReLU()) {
+    fun = "LReLU";
+  } else {
+    assert(false);
+  }
+  ar(fun);
+}
+
+void NonlinearityLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  std::string fun;
+  ar(fun);
+  if (fun == "Sigmoid") {
+    activation_function_ = ::matrix_mappers::Sigmoid();
+    activation_function_gradient_ = ::matrix_mappers::Sigmoid();
+  } else if (fun == "ReLU") {
+    activation_function_ = ::matrix_mappers::ReLU();
+    activation_function_gradient_ = ::matrix_mappers::ReLU();
+  } else if (fun == "LReLU") {
+    activation_function_ = ::matrix_mappers::LReLU();
+    activation_function_gradient_ = ::matrix_mappers::LReLU();
+  } else {
+    assert(false);
+  }
+}
+
+CEREAL_REGISTER_TYPE(NonlinearityLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, NonlinearityLayer);

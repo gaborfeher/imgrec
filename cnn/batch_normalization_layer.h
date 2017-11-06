@@ -9,6 +9,11 @@
 
 class Matrix;
 class Random;
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
 
 // https://arxiv.org/pdf/1502.03167.pdf
 class BatchNormalizationLayer : public BiasLikeLayer {
@@ -23,7 +28,14 @@ class BatchNormalizationLayer : public BiasLikeLayer {
   virtual bool OnBeginPhase();
   virtual void OnEndPhase();
   virtual int NumParameters() const;
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
  private:
+  BatchNormalizationLayer() : BiasLikeLayer(0, false) {}  // for cereal
+  friend class cereal::access;
+
   FRIEND_TEST(BatchNormalizationLayerTest, ForwardNormalization_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, ForwardBetaGamma_ColumnMode);
   FRIEND_TEST(BatchNormalizationLayerTest, Forward_LayerMode);

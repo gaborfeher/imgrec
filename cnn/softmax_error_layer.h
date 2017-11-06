@@ -4,6 +4,11 @@
 #include "cnn/error_layer.h"
 #include "linalg/matrix.h"
 
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+}
+
 class SoftmaxErrorLayer : public ErrorLayer {
  public:
   SoftmaxErrorLayer();
@@ -11,6 +16,10 @@ class SoftmaxErrorLayer : public ErrorLayer {
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
   virtual float GetAccuracy() const;
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
 
  private:
   Matrix expected_value_;

@@ -2,12 +2,12 @@ GTEST_DIR = googletest/downloaded_deps/googletest/googletest/
 MAIN_GTEST_HEADER = $(GTEST_DIR)/include/gtest/gtest.h
 
 CXX = clang++
-CPPFLAGS += -isystem $(GTEST_DIR)/include -I .
+CPPFLAGS += -isystem $(GTEST_DIR)/include -I . -isystem cereal/cereal-1.2.2/include
 CXXFLAGS += -g -Wall -Wextra -pthread --std=c++11
 CXXLINKFLAGS += -L$(CUDA_LIB) -lpthread -lcudart -lcurand
 
 NVCC = /usr/local/cuda/bin/nvcc
-NVCCFLAGS += --include-path=. --system-include=$(GTEST_DIR)/include -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
+NVCCFLAGS += --include-path=. --system-include=./cereal/cereal-1.2.2/include --system-include=$(GTEST_DIR)/include -Wno-deprecated-gpu-targets --compiler-bindir=$(CXX) --std=c++11
 CUDA_LIB=/usr/local/cuda/lib64
 
 SOURCES := $(wildcard **/*.cc) $(wildcard **/*.cu)
@@ -55,6 +55,9 @@ pooling_layer_test: bin/cnn/pooling_layer_test
 	$<
 
 inverted_dropout_layer_test: bin/cnn/inverted_dropout_layer_test
+	$<
+
+layer_stack_test: bin/cnn/layer_stack_test
 	$<
 
 cifar10_train: bin/apps/cifar10/cifar10_train
@@ -213,6 +216,13 @@ bin/cnn/pooling_layer_test: bin/cnn/pooling_layer_test.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
 
 bin/cnn/inverted_dropout_layer_test: bin/cnn/inverted_dropout_layer_test.o \
+		bin/core.a \
+		bin/test.a \
+		bin/linalg/matrix.cu.o \
+		bin/googletest/gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
+
+bin/cnn/layer_stack_test: bin/cnn/layer_stack_test.o \
 		bin/core.a \
 		bin/test.a \
 		bin/linalg/matrix.cu.o \

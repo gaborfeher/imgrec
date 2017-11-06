@@ -3,6 +3,10 @@
 #include <cassert>
 #include <iostream>
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) :
     BiasLikeLayer(num_neurons, layered),
     epsilon_(0.0001) {
@@ -200,3 +204,31 @@ void BatchNormalizationLayer::OnEndPhase() {
 int BatchNormalizationLayer::NumParameters() const {
   return beta_.NumParameters() + gamma_.NumParameters();
 }
+
+void BatchNormalizationLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  // We don't save forward/backward pass temp variables.
+  ar(
+      num_neurons_,
+      layered_,
+      epsilon_,
+      num_samples_,
+      beta_,
+      gamma_,
+      global_multiplier_,
+      global_shift_);
+}
+
+void BatchNormalizationLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(
+      num_neurons_,
+      layered_,
+      epsilon_,
+      num_samples_,
+      beta_,
+      gamma_,
+      global_multiplier_,
+      global_shift_);
+}
+
+CEREAL_REGISTER_TYPE(BatchNormalizationLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, BatchNormalizationLayer);

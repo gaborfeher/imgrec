@@ -8,6 +8,11 @@
 
 class Matrix;
 class Random;
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
 
 class BiasLayer : public BiasLikeLayer {
  public:
@@ -19,7 +24,14 @@ class BiasLayer : public BiasLikeLayer {
   virtual void Backward(const Matrix& ouotput_gradient);
   virtual void ApplyGradient(const GradientInfo& info);
   virtual int NumParameters() const;
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
  private:
+  BiasLayer() : BiasLikeLayer(0, false) {}  // for cereal
+  friend class cereal::access;
+
   FRIEND_TEST(BiasLayerTest, GradientCheck_ColumnMode);
   FRIEND_TEST(BiasLayerTest, GradientCheck_LayerMode);
   FRIEND_TEST(BiasLayerTest, Forwardpass_ColumnMode);
