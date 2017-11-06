@@ -52,9 +52,9 @@ void TrainSingleLayerFCModel() {
   stack->AddLayer<SoftmaxErrorLayer>();
 
   float error, accuracy;
+  stack->Initialize(std::make_shared<Random>(123));
   Trainer trainer(
       stack,
-      std::make_shared<Random>(123),
       std::make_shared<Logger>(1, "apps/cifar10/results/fc1"));
   trainer.Evaluate(*validation, &error, &accuracy);
   trainer.Train(*training, 5, GradientInfo(0.4, 0.01, GradientInfo::SGD));
@@ -85,9 +85,9 @@ void TrainTwoLayerFCModel(bool dropout) {
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
   float error, accuracy;
+  stack->Initialize(std::make_shared<Random>(123));
   Trainer trainer(
       stack,
-      std::make_shared<Random>(123),
       std::make_shared<Logger>(
           2,
           dropout
@@ -156,9 +156,9 @@ void TrainConvolutional_1_Model() {
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
+  stack->Initialize(std::make_shared<Random>(123));
   Trainer trainer(
       stack,
-      std::make_shared<Random>(123),
       std::make_shared<Logger>(
           2,
           "apps/cifar10/results/conv1"));
@@ -229,9 +229,9 @@ void TrainConvolutional_2_Model() {
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
+  stack->Initialize(std::make_shared<Random>(123));
   Trainer trainer(
       stack,
-      std::make_shared<Random>(123),
       std::make_shared<Logger>(
           2,
           "apps/cifar10/results/conv2"));
