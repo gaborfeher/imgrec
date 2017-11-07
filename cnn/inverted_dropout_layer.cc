@@ -1,8 +1,12 @@
 #include "cnn/inverted_dropout_layer.h"
 
-#include "util/random.h"
-
 #include <cassert>
+
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
+
+#include "util/random.h"
 
 InvertedDropoutLayer::InvertedDropoutLayer(
     int num_neurons,
@@ -34,3 +38,13 @@ void InvertedDropoutLayer::Backward(const Matrix& output_gradient) {
   }
 }
 
+void InvertedDropoutLayer::save(cereal::PortableBinaryOutputArchive& ar) const {
+  ar(num_neurons_, layered_, p_);
+}
+
+void InvertedDropoutLayer::load(cereal::PortableBinaryInputArchive& ar) {
+  ar(num_neurons_, layered_, p_);
+}
+
+CEREAL_REGISTER_TYPE(InvertedDropoutLayer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Layer, InvertedDropoutLayer);

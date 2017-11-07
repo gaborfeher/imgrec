@@ -6,6 +6,11 @@
 #include <memory>
 
 class Random;
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
 
 // https://www.cs.toronto.edu/~hinton/absps/JMLRdropout.pdf
 class InvertedDropoutLayer : public BiasLikeLayer {
@@ -17,7 +22,15 @@ class InvertedDropoutLayer : public BiasLikeLayer {
       std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
+
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
+
  private:
+  InvertedDropoutLayer() : BiasLikeLayer(0, false) {}  // for cereal
+  friend class cereal::access;
+
   float p_;
   std::shared_ptr<Random> random_;
   Matrix mask_;
