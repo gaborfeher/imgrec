@@ -3,6 +3,12 @@
 
 #include "cnn/layer.h"
 
+namespace cereal {
+class PortableBinaryOutputArchive;
+class PortableBinaryInputArchive;
+class access;
+}
+
 // Splits the input into pool_rows x pool_cols subregions
 // and takes the max from each of them.
 class PoolingLayer : public Layer {
@@ -17,7 +23,14 @@ class PoolingLayer : public Layer {
   // OK.)
   virtual void Backward(const Matrix& output_gradient);
 
+  // serialization/deserialization
+  void save(cereal::PortableBinaryOutputArchive& ar) const;
+  void load(cereal::PortableBinaryInputArchive& ar);
+
  private:
+  PoolingLayer() {}  // for cereal
+  friend class cereal::access;
+
   int pool_rows_;
   int pool_cols_;
   Matrix switch_;

@@ -31,6 +31,7 @@ class ConvolutionalLayer : public Layer {
   // serialization/deserialization
   void save(cereal::PortableBinaryOutputArchive& ar) const;
   void load(cereal::PortableBinaryInputArchive& ar);
+
  private:
   ConvolutionalLayer() {}  // for cereal
   friend class cereal::access;

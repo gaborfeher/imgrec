@@ -4,9 +4,9 @@
 #include <random>
 #include <iostream>
 
-#include <cereal/archives/portable_binary.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/types/polymorphic.hpp>
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/polymorphic.hpp"
 
 #include "util/random.h"
 
