@@ -6,7 +6,7 @@
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
-#include <cereal/archives/portable_binary.hpp>
+#include "cereal/archives/portable_binary.hpp"
 
 TEST(SmallMatrixTest, HostDeviceTransfer) {
   Matrix a(2, 2, 1, {1, 6, 7, 42});

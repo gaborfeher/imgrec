@@ -67,6 +67,7 @@ void Trainer::Train(
       // Compute additional stats.
       model_->EndPhase(Layer::TRAIN_PHASE, 0);
       RunPhase(data_set, Layer::POST_TRAIN_PHASE);
+      logger_->SaveModel(i, model_);
       float err, acc;
       Evaluate0(data_set, &err, &acc);
       logger_->LogEpochTrainEval(err, acc);

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "cnn/layer.h"
+#include "cnn/layer_stack.h"
 
 class Clock {
  public:
@@ -20,7 +21,6 @@ class Clock {
   bool running_;
   std::chrono::steady_clock::time_point last_start_;
   std::chrono::steady_clock::duration elapsed_;
-  
 };
 
 class Logger {
@@ -54,8 +54,11 @@ class Logger {
 
   void LogEvaluation(float error, float accuracy);
 
+  void SaveModel(int epoch, std::shared_ptr<LayerStack> model);
+
  private:
   int log_level_;
+  std::string log_dir_;
   std::shared_ptr<std::ofstream> summary_log_;
   std::shared_ptr<std::ofstream> detail_log_;
 

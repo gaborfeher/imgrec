@@ -4,6 +4,9 @@
 #include <iomanip>
 #include <iostream>
 
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/types/memory.hpp"
+
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -42,6 +45,7 @@ Logger::Logger(int log_level)
 
 Logger::Logger(int log_level, const std::string& log_dir)
     : log_level_(log_level),
+      log_dir_(log_dir),
       summary_log_(std::make_shared<std::ofstream>(log_dir + "/summary.txt")),
       detail_log_(std::make_shared<std::ofstream>(log_dir + "/details.txt")) {
   std::cout << "Log files:" << std::endl;
@@ -197,5 +201,15 @@ void Logger::LogPhaseStart(Layer::Phase phase, int sub_id) {
 void Logger::LogPhaseEnd(Layer::Phase phase, int sub_id) {
   if (log_level_ >= 2) {
     *detail_log_ << "Finished phase " << phase << " " << sub_id << std::endl;
+  }
+}
+
+void Logger::SaveModel(int epoch, std::shared_ptr<LayerStack> model) {
+  if (log_level_ >= 2) {
+    std::ofstream os(
+        log_dir_ + "/epoch" + std::to_string(epoch) + ".model",
+        std::ios::out | std::ios::binary);
+    cereal::PortableBinaryOutputArchive output(os);
+    output(model);
   }
 }
