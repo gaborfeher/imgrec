@@ -53,18 +53,18 @@ Accuracy of top scored result on the CIFAR-10 data set using the above models:
 1. Check out this repo.
 2. Make sure to install GoogleTest's and cereal's prerequisites.
 3. Run `./download_deps.sh` to get GoogleTest and cereal.
-3. Check the values of `NVCC` and `CUDA_LIB` in the `Makefile` and fix them if needed.
-4. Run `make` to run the tests.
-5. Run `make cifar10_train` to train a model on CIFAR-10 data.
-6. Run `make bin/apps/cifar10/use_model` if you want to try your
+4. Check the values of `NVCC` and `CUDA_LIB` in the `Makefile` and fix them if needed.
+5. Run `make` to run the tests.
+6. Run `make cifar10_train` to train a model on CIFAR-10 data.
+7. Run `make bin/apps/cifar10/use_model` if you want to try your
 new model.
-7. To evaluate the model on a data set, run something like
+8. To evaluate the model on a data set, run something like
 ```
 bin/apps/cifar10/score_image \
   ./apps/cifar10/results/conv2.2/epoch10.model \
   ./apps/cifar10/downloaded_deps/cifar-10-batches-bin/data_batch_5.bin
 ```
-8. To feed an arbitrary image into the model, run something like:
+9. To feed an arbitrary image into the model, run something like:
 ```
 apps/util/import_photo.py <your JPG file> img_xyz
 bin/apps/cifar10/score_image \
