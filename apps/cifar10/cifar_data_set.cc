@@ -37,17 +37,15 @@ CifarDataSet::CifarDataSet(
 void CifarDataSet::ReadImage(
     std::ifstream* input,
     std::vector<float> *x, std::vector<float>* y) const {
-  char buffer[img_size_ + 1];
   assert(!input->eof() && input->good());
-  input->read(buffer, img_size_ + 1);
-  // assert that the read was successful:
-  assert(input->eof() || input->good());
-
-  int class_id = static_cast<int>(buffer[0]);
+  int class_id = static_cast<int>(input->get());
   y->push_back(class_id);
 
   for (int i = 1; i < img_size_ + 1; ++i) {
-    x->push_back(static_cast<float>(buffer[i]) / 256.0f);
+    unsigned char ch = input->get();
+    x->push_back(static_cast<float>(ch) / 255.0f);
+    // assert that the read was successful:
+    assert(input->eof() || input->good());
   }
   
 }
