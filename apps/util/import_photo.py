@@ -23,7 +23,7 @@ cmd = [
     '-crop', '{}x{}+{}+{}'.format(new_size, new_size, crop_x, crop_y),
     '-sample', '32x32',
     '-colorspace', 'sRGB', '-colors', '16777216',  # try to get 3x8 bits
-    sys.argv[2]]
+    sys.argv[2] + '.bmp']
 print(cmd)
 subprocess.check_call(cmd)
 
