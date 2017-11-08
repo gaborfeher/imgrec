@@ -29,7 +29,9 @@ https://github.com/gaborfeher/imgrec/blob/master/apps/cifar10/cifar10_train.cc
 Detailed results are here:
 https://github.com/gaborfeher/imgrec/tree/master/apps/cifar10/results
 
-Accuracy of top scored result on the CIFAR-10 data set using the above models:
+Accuracy of top scored result on the CIFAR-10 data set using the above models. (These are numbers from before the data import fix
+[`b83e911`](https://github.com/gaborfeher/imgrec/commit/b83e911c867002a4ffed47a2eca5ef611638d3a7)
+. The new models seem to be much better!)
 
 | Model | Validation | Test |
 | --- | --- | --- |
