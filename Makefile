@@ -226,3 +226,10 @@ bin/apps/cifar10/cifar10_train: bin/apps/cifar10/cifar10_train.o \
 		bin/test.a \
 		bin/linalg/matrix.cu.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $(filter %.o %.a,$^) -o $@
+
+bin/apps/cifar10/use_model: bin/apps/cifar10/use_model.o \
+		bin/apps/cifar10/cifar_data_set.o \
+		bin/core.a \
+		bin/test.a \
+		bin/linalg/matrix.cu.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $(filter %.o %.a,$^) -o $@

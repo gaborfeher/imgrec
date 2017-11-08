@@ -171,6 +171,7 @@ class Matrix {
   float GetValue(int row, int col, int depth) const;
   void SetValue(int row, int col, int depth, float value);
 
+  void AssertEquals(const Matrix& other) const;
   void AssertDimensions(int rows, int cols, int depth) const;
   void AssertSameDimensions(const Matrix& other) const;
   void AssertRows(int rows) const;

@@ -145,7 +145,7 @@ std::vector<float> Matrix::GetVector() const {
 }
 
 void Matrix::Print() const {
-  std::cout << std::fixed << std::setw(6) << std::setprecision(4);
+  std::cout << std::fixed << std::setw(4) << std::setprecision(2);
   std::shared_ptr<float> host_data(get_host_data());
   std::cout << "Matrix "
       << rows_ << "x"
@@ -160,8 +160,12 @@ void Matrix::Print() const {
       std::cout << std::endl;
     }
     std::cout << std::endl;
-    break;
   }
+}
+
+void Matrix::AssertEquals(const Matrix& other) const {
+  AssertSameDimensions(other);
+  assert(GetVector() == other.GetVector());
 }
 
 void Matrix::AssertDimensions(int rows, int cols, int depth) const {
