@@ -55,13 +55,13 @@ void TrainSingleLayerFCModel() {
   stack->Initialize(std::make_shared<Random>(123));
   Trainer trainer(
       stack,
-      std::make_shared<Logger>(1, "apps/cifar10/results/fc1"));
+      std::make_shared<Logger>(2, "apps/cifar10/results/fc1"));
   trainer.Evaluate(*validation, &error, &accuracy);
-  trainer.Train(*training, 5, GradientInfo(0.4, 0.01, GradientInfo::SGD));
+  trainer.Train(*training, 10, GradientInfo(0.4, 0.01, GradientInfo::SGD), validation.get());
   trainer.Evaluate(*validation, &error, &accuracy);
 }
 
-void TrainTwoLayerFCModel(bool dropout) {
+void TrainTwoLayerFCModel(bool dropout, bool one_more_layer) {
   std::shared_ptr<CifarDataSet> training = LoadTraining(400);
   std::shared_ptr<CifarDataSet> validation = LoadValidation(10);
 
@@ -69,37 +69,49 @@ void TrainTwoLayerFCModel(bool dropout) {
   stack->AddLayer<InputImageNormalizationLayer>(32, 32, 3);
   stack->AddLayer<ReshapeLayer>(32, 32, 3);
 
-  stack->AddLayer<FullyConnectedLayer>(32 * 32 * 3, 50);
-  stack->AddLayer<BatchNormalizationLayer>(50, false);
+  stack->AddLayer<FullyConnectedLayer>(32 * 32 * 3, 128);
+  stack->AddLayer<BatchNormalizationLayer>(128, false);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+
+  if (one_more_layer) {
+    stack->AddLayer<FullyConnectedLayer>(128, 128);
+    stack->AddLayer<BatchNormalizationLayer>(128, false);
+    stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
+  }
 
   if (dropout) {
     std::shared_ptr<Random> rnd = std::make_shared<Random>(123456);
-    stack->AddLayer<InvertedDropoutLayer>(50, false, 0.9, rnd);
+    stack->AddLayer<InvertedDropoutLayer>(128, false, 0.8, rnd);
   }
 
-  stack->AddLayer<FullyConnectedLayer>(50, 10);
+  stack->AddLayer<FullyConnectedLayer>(128, 10);
   stack->AddLayer<BiasLayer>(10, false);
   stack->AddLayer<NonlinearityLayer>(::activation_functions::LReLU());
 
   stack->AddLayer(std::make_shared<SoftmaxErrorLayer>());
 
-  float error, accuracy;
+  std::string log_dir_name = "apps/cifar10/results/fc";
+  if (one_more_layer) {
+    log_dir_name += "3";
+  } else {
+    log_dir_name += "2";
+  }
+  if (dropout) {
+    log_dir_name += "drop";
+  } else {
+    log_dir_name += "nodrop";
+  }
   stack->Initialize(std::make_shared<Random>(123));
   Trainer trainer(
       stack,
-      std::make_shared<Logger>(
-          2,
-          dropout
-              ? "apps/cifar10/results/fc2drop"
-              : "apps/cifar10/results/fc2nodrop"));
+      std::make_shared<Logger>(2, log_dir_name));
+  float error, accuracy;
   trainer.Evaluate(*validation, &error, &accuracy);
   trainer.Train(
       *training,
-      5,
-      GradientInfo(0.008, 0.008, GradientInfo::SGD),
+      10,
+      GradientInfo(0.006, 0.002, GradientInfo::ADAM),
       validation.get() /* evaluate after each epoch */);
-  // model.Evaluate(*validation, &error, &accuracy);
 }
 
 void TrainConvolutional_1_Model() {
@@ -246,10 +258,12 @@ void TrainConvolutional_2_Model() {
 }
 
 int main() {
-  // TrainSingleLayerFCModel();
-  // TrainTwoLayerFCModel(false);
-  // TrainTwoLayerFCModel(true);
-  // TrainConvolutional_1_Model();
+  TrainSingleLayerFCModel();
+  TrainTwoLayerFCModel(false, false);
+  TrainTwoLayerFCModel(true, false);
+  TrainTwoLayerFCModel(false, true);
+  TrainTwoLayerFCModel(true, true);
+  TrainConvolutional_1_Model();
   TrainConvolutional_2_Model();
   return 0;
 }

@@ -29,17 +29,17 @@ https://github.com/gaborfeher/imgrec/blob/master/apps/cifar10/cifar10_train.cc
 Detailed results are here:
 https://github.com/gaborfeher/imgrec/tree/master/apps/cifar10/results
 
-Accuracy of top scored result on the CIFAR-10 data set using the above models. (These are numbers from before the data import fix
-[`b83e911`](https://github.com/gaborfeher/imgrec/commit/b83e911c867002a4ffed47a2eca5ef611638d3a7)
-. The new models seem to be much better!)
+Accuracy of top scored result on the CIFAR-10 data set using the above models.
 
 | Model | Validation | Test |
 | --- | --- | --- |
-| fc1 | 20.19% | TBD |
-| fc2nodrop | 32.41% | TBD |
-| fc2drop | 33.07% | TBD |
-| conv1 | 59.33% | TBD |
-| conv2 | 61.90% | TBD |
+| fc1 | 32.93% | TBD |
+| fc2nodrop | 51.43% | TBD |
+| fc2drop | 51.42% | TBD |
+| fc3nodrop | 51.56% | TBD |
+| fc3drop | 52.84% | TBD |
+| conv1 | 67.98% | TBD |
+| conv2 | 71.61% | TBD |
 
 # Installation
 
