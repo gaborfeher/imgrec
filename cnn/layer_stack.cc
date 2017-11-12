@@ -12,9 +12,9 @@ LayerStack::LayerStack()
     : phase_last_child_id_(-1),
       logger_(std::make_shared<Logger>(0)) {}
 
-LayerStack::LayerStack(std::shared_ptr<Logger> logger)
-    : phase_last_child_id_(-1),
-      logger_(logger) {}
+void LayerStack::SetLogger(std::shared_ptr<Logger> logger) {
+  logger_ = logger;
+}
 
 void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);

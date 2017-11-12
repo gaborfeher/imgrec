@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <chrono>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -16,11 +17,13 @@ class Clock {
   void Stop();
   void Resume();
   float ElapsedSeconds() const;
+  float AverageSeconds() const;
 
  private:
   bool running_;
   std::chrono::steady_clock::time_point last_start_;
   std::chrono::steady_clock::duration elapsed_;
+  int num_runs_;
 };
 
 class Logger {
@@ -72,11 +75,12 @@ class Logger {
   std::shared_ptr<std::ofstream> detail_log_;
 
   void PrintBigPass(
-    const std::string& color_code,
-    float error, float accuracy);
+      const std::string& color_code,
+      float error, float accuracy);
 
   Clock training_clock_;
   Clock minibatch_clock_;
+  std::map<std::string, std::map<std::string, Clock>> layer_clocks_;
 };
 
 

@@ -1,5 +1,6 @@
 #include "infra/logger.h"
 
+#include <cassert>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -19,12 +20,14 @@ void Clock::Start() {
   last_start_ = steady_clock::now();
   elapsed_ = steady_clock::duration::zero();
   running_ = true;
+  num_runs_ = 0;
 }
 
 void Clock::Stop() {
-  steady_clock::time_point now = steady_clock::now();
-  elapsed_ += last_start_ - now;
+  assert(running_ == true);
+  elapsed_ += steady_clock::now() - last_start_;
   running_ = false;
+  num_runs_++;
 }
 
 void Clock::Resume() {
@@ -38,6 +41,12 @@ float Clock::ElapsedSeconds() const {
     elapsed += steady_clock::now() - last_start_;
   }
   return duration_cast<milliseconds>(elapsed).count() / 1000.0f;
+}
+
+float Clock::AverageSeconds() const {
+  assert(running_ == false);
+  assert(num_runs_ > 0);
+  return ElapsedSeconds() / num_runs_;
 }
 
 Logger::Logger(int log_level)
@@ -108,6 +117,22 @@ void Logger::LogMinibatchEnd(
         << " accuracy= "
         << std::setw(6) << std::setprecision(2) << 100.0 * accuracy
         << std::endl;
+  }
+  if (log_level_ >= 3) {
+    for (std::map<std::string, std::map<std::string, Clock>>::value_type item : layer_clocks_) {
+      std::string pad = std::string(
+          std::max(0, 36 - static_cast<int>(item.first.size())),
+          '.');
+      *detail_log_
+          << std::fixed
+          << item.first << pad << ":"
+          << std::setprecision(2)
+          << std::setw(8)
+          << item.second["FW"].AverageSeconds() * 1000 << "ms "
+          << std::setw(8)
+          << item.second["BW"].AverageSeconds() * 1000 << "ms"
+          << std::endl;
+    }
   }
 }
 
@@ -202,6 +227,7 @@ void Logger::LogPhaseEnd(Layer::Phase phase, int sub_id) {
   if (log_level_ >= 2) {
     *detail_log_ << "Finished phase " << phase << " " << sub_id << std::endl;
   }
+  layer_clocks_.clear();
 }
 
 void Logger::SaveModel(int epoch, std::shared_ptr<LayerStack> model) {
@@ -214,14 +240,31 @@ void Logger::SaveModel(int epoch, std::shared_ptr<LayerStack> model) {
   }
 }
 
+std::string GetClockId(
+    int id,
+    const std::string& name) {
+  std::stringstream ss;
+  ss
+      << "["
+      << std::fixed << std::setw(2) << std::setfill('0')
+      << id
+      << "]"
+      << name;
+  return ss.str();
+}
+
 void Logger::LogLayerStart(
     int id,
     const std::string& name,
     const std::string& op_kind) {
+  // If needed, then this creates a Clock with default constructor. The default constructor
+  // Start()s the clock. Resume()ing a Start()ed clock just restarts it.
+  layer_clocks_[GetClockId(id, name)][op_kind].Resume();
 }
 
 void Logger::LogLayerFinish(
     int id,
     const std::string& name,
     const std::string& op_kind) {
+  layer_clocks_[GetClockId(id, name)][op_kind].Stop();
 }

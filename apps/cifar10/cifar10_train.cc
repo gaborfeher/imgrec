@@ -245,7 +245,7 @@ void TrainConvolutional_2_Model() {
   Trainer trainer(
       stack,
       std::make_shared<Logger>(
-          2,
+          3,
           "apps/cifar10/results/conv2"));
   trainer.Train(
       *training,

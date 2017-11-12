@@ -18,7 +18,9 @@ Trainer::Trainer(
     std::shared_ptr<Logger> logger)
     : model_(model),
       error_(model->GetLayer<ErrorLayer>(-1)),
-      logger_(logger) {}
+      logger_(logger) {
+  model->SetLogger(logger);
+}
 
 void Trainer::ForwardPass(const DataSet& data_set, int batch_id) {
   error_->SetExpectedValue(data_set.GetBatchOutput(batch_id));

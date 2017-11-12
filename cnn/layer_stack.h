@@ -12,8 +12,8 @@ class Random;
 class LayerStack : public Layer {
  public:
   LayerStack();
-  explicit LayerStack(std::shared_ptr<Logger> logger);
 
+  void SetLogger(std::shared_ptr<Logger> logger);
   void AddLayer(std::shared_ptr<Layer> layer);
 
   // Like AddLayer, but creates a new layer object. The arguments
