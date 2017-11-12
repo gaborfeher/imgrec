@@ -48,7 +48,7 @@ void LayerStack::Forward(const Matrix& input) {
   for (int i = 0; i < limit; ++i) {
     logger_->LogLayerStart(i, layers_[i]->Name(), "FW");
     layers_[i]->Forward(last_input);
-    logger_->LogLayerFinish(i, layers_[i]->Name(), "FW");
+    logger_->LogLayerEnd(i, layers_[i]->Name(), "FW");
     last_input = layers_[i]->output();
   }
 }
@@ -58,7 +58,7 @@ void LayerStack::Backward(const Matrix& output_gradient) {
   for (int i = layers_.size() - 1; i >= 0; i--) {
     logger_->LogLayerStart(i, layers_[i]->Name(), "BW");
     layers_[i]->Backward(last_output_gradient);
-    logger_->LogLayerFinish(i, layers_[i]->Name(), "BW");
+    logger_->LogLayerEnd(i, layers_[i]->Name(), "BW");
     last_output_gradient = layers_[i]->input_gradient();
   }
 }

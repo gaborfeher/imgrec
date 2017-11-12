@@ -47,10 +47,12 @@ class Logger {
       int id,
       const std::string& name,
       const std::string& op_kind);
-  void LogLayerFinish(
+  void LogLayerEnd(
       int id,
       const std::string& name,
       const std::string& op_kind);
+  void LogLayerSectionStart(const std::string& op_kind);
+  void LogLayerSectionEnd(const std::string& op_kind);
 
   void LogEpochAverage(
       int epoch,
@@ -81,6 +83,8 @@ class Logger {
   Clock training_clock_;
   Clock minibatch_clock_;
   std::map<std::string, std::map<std::string, Clock>> layer_clocks_;
+
+  std::string current_layer_id_;
 };
 
 

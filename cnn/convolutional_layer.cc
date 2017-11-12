@@ -8,6 +8,7 @@
 #include "cereal/types/memory.hpp"
 #include "cereal/types/polymorphic.hpp"
 
+#include "infra/logger.h"
 #include "util/random.h"
 
 ConvolutionalLayer::ConvolutionalLayer(
@@ -62,6 +63,7 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   int num_filters = filters_.value.depth() / layers_per_image_;
   int num_input_images = input_.depth() / layers_per_image_;
 
+  logger_->LogLayerSectionStart("BW1");
   // (22)
   input_gradient_ = Matrix::Convolution(
       num_filters,
@@ -79,7 +81,9 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //  input_gradient_ is
   //     img1-layer1, img1-layer2, img1-layer3
   //     img2-layer1, img2-layer2, img2-layer3
+  logger_->LogLayerSectionEnd("BW1");
 
+  logger_->LogLayerSectionStart("BW2");
   // (14)
   filters_.gradient = Matrix::Convolution(
       num_input_images,
@@ -98,6 +102,7 @@ void ConvolutionalLayer::Backward(const Matrix& output_gradient) {
   //  filters_gradient_ is:
   //     filter1-layer1, filter1-layer2, filter1-layer3
   //     filter2-layer1, filter2-layer2, filter2-layer3
+  logger_->LogLayerSectionEnd("BW2");
 }
 
 void ConvolutionalLayer::ApplyGradient(const GradientInfo& info) {

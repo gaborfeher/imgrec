@@ -5,10 +5,10 @@
 
 #include "infra/logger.h"
 
-Layer::Layer() :
-    phase_(NONE),
-    phase_sub_id_(-1),
-    logger_(std::make_shared<Logger>(0)) {}
+Layer::Layer()
+    : logger_(std::make_shared<Logger>(0)),
+      phase_(NONE),
+      phase_sub_id_(-1) {}
 
 void Layer::Print() const {
   std::cout << Name() << std::endl;

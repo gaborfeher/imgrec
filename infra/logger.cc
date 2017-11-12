@@ -132,8 +132,16 @@ void Logger::LogMinibatchEnd(
           << std::setw(8)
           << item.second["FW"].AverageSeconds() * 1000 << "ms "
           << std::setw(8)
-          << item.second["BW"].AverageSeconds() * 1000 << "ms"
-          << std::endl;
+          << item.second["BW"].AverageSeconds() * 1000 << "ms";
+      for (std::map<std::string, Clock>::value_type sub_item : item.second) {
+        if (sub_item.first != "FW" && sub_item.first != "BW") {
+          *detail_log_
+              << " " << sub_item.first << ":"
+              << std::setw(8)
+              << sub_item.second.AverageSeconds() * 1000 << "ms ";
+        }
+      }
+      *detail_log_ << std::endl;
     }
   }
 }
@@ -242,7 +250,7 @@ void Logger::SaveModel(int epoch, std::shared_ptr<LayerStack> model) {
   }
 }
 
-std::string GetClockId(
+std::string GetLayerId(
     int id,
     const std::string& name) {
   std::stringstream ss;
@@ -262,15 +270,32 @@ void Logger::LogLayerStart(
   if (log_level_ >= 3) {
     // If needed, then this creates a Clock with default constructor. The default constructor
     // Start()s the clock. Resume()ing a Start()ed clock just restarts it.
-    layer_clocks_[GetClockId(id, name)][op_kind].Resume();
+    current_layer_id_ = GetLayerId(id, name);
+    layer_clocks_[current_layer_id_][op_kind].Resume();
   }
 }
 
-void Logger::LogLayerFinish(
+void Logger::LogLayerEnd(
     int id,
     const std::string& name,
     const std::string& op_kind) {
   if (log_level_ >= 3) {
-    layer_clocks_[GetClockId(id, name)][op_kind].Stop();
+    assert(current_layer_id_ == GetLayerId(id, name));
+    layer_clocks_[current_layer_id_][op_kind].Stop();
+    current_layer_id_ = "";
+  }
+}
+
+void Logger::LogLayerSectionStart(const std::string& op_kind) {
+  if (log_level_ >= 3) {
+    assert(current_layer_id_ != "");
+    layer_clocks_[current_layer_id_][op_kind].Resume();
+  }
+}
+
+void Logger::LogLayerSectionEnd(const std::string& op_kind) {
+  if (log_level_ >= 3) {
+    assert(current_layer_id_ != "");
+    layer_clocks_[current_layer_id_][op_kind].Stop();
   }
 }
