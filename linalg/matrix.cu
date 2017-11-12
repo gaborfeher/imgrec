@@ -14,6 +14,14 @@
 #include <cereal/types/memory.hpp>
 #include <cereal/types/vector.hpp>
 
+namespace matrix_cuda_util {
+
+void SynchronizeForPerfLogging() {
+  cudaDeviceSynchronize();
+}
+
+}
+
 int Matrix::Index(int i, int j, int k) const {
   return k * rows_ * cols_ + i * cols_ + j;
 }

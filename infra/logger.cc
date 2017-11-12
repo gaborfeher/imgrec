@@ -8,6 +8,8 @@
 #include "cereal/archives/portable_binary.hpp"
 #include "cereal/types/memory.hpp"
 
+#include "linalg/matrix.h"
+
 using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -281,6 +283,7 @@ void Logger::LogLayerEnd(
     const std::string& op_kind) {
   if (log_level_ >= 3) {
     assert(current_layer_id_ == GetLayerId(id, name));
+    matrix_cuda_util::SynchronizeForPerfLogging();
     layer_clocks_[current_layer_id_][op_kind].Stop();
     current_layer_id_ = "";
   }
@@ -296,6 +299,7 @@ void Logger::LogLayerSectionStart(const std::string& op_kind) {
 void Logger::LogLayerSectionEnd(const std::string& op_kind) {
   if (log_level_ >= 3) {
     assert(current_layer_id_ != "");
+    matrix_cuda_util::SynchronizeForPerfLogging();
     layer_clocks_[current_layer_id_][op_kind].Stop();
   }
 }

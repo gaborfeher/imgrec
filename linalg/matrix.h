@@ -15,8 +15,13 @@ class PortableBinaryOutputArchive;
 class PortableBinaryInputArchive;
 }
 
-namespace matrix_mappers {
+namespace matrix_cuda_util {
 
+void SynchronizeForPerfLogging();
+
+}
+
+namespace matrix_mappers {
 typedef void (*Map1Func)(float* a, float* b, int size);
 typedef void (*Map2Func)(float* a, float* b, float *c, int size);
 typedef void (*Map1PFunc)(float* a, float* b, int size, float param);
