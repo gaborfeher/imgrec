@@ -15,7 +15,7 @@ class PoolingLayer : public Layer {
  public:
   PoolingLayer(int pool_rows, int pool_cols);
 
-  virtual void Print() const;
+  virtual std::string Name() const;
   virtual void Forward(const Matrix& input);
   // TODO: if the input has multiple values tied at max,
   // then backprop makes an arbitrary choice and only sends

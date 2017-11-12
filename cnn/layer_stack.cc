@@ -1,5 +1,6 @@
 #include "cnn/layer_stack.h"
 
+#include "infra/logger.h"
 #include "util/random.h"
 
 #include <cereal/archives/portable_binary.hpp>
@@ -7,13 +8,24 @@
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/vector.hpp>
 
-LayerStack::LayerStack() : phase_last_child_id_(-1) {}
+LayerStack::LayerStack()
+    : phase_last_child_id_(-1),
+      logger_(std::make_shared<Logger>(0)) {}
+
+LayerStack::LayerStack(std::shared_ptr<Logger> logger)
+    : phase_last_child_id_(-1),
+      logger_(logger) {}
 
 void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {
   layers_.push_back(layer);
 }
 
+std::string LayerStack::Name() const {
+  return "LayerStack";
+}
+
 void LayerStack::Print() const {
+  std::cout << Name() << ":" << std::endl;
   for (std::shared_ptr<Layer> layer : layers_) {
     layer->Print();
   }
@@ -32,7 +44,9 @@ void LayerStack::Forward(const Matrix& input) {
   }
   Matrix last_input = input;
   for (int i = 0; i < limit; ++i) {
+    logger_->LogLayerStart(i, layers_[i]->Name(), "FW");
     layers_[i]->Forward(last_input);
+    logger_->LogLayerFinish(i, layers_[i]->Name(), "FW");
     last_input = layers_[i]->output();
   }
 }
@@ -40,7 +54,9 @@ void LayerStack::Forward(const Matrix& input) {
 void LayerStack::Backward(const Matrix& output_gradient) {
   Matrix last_output_gradient = output_gradient;
   for (int i = layers_.size() - 1; i >= 0; i--) {
+    logger_->LogLayerStart(i, layers_[i]->Name(), "BW");
     layers_[i]->Backward(last_output_gradient);
+    logger_->LogLayerFinish(i, layers_[i]->Name(), "BW");
     last_output_gradient = layers_[i]->input_gradient();
   }
 }

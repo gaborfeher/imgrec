@@ -21,6 +21,7 @@ class ConvolutionalLayer : public Layer {
       int filter_height,
       int padding,
       int layers_per_image);
+  virtual std::string Name() const;
   virtual void Print() const;
   virtual void Initialize(std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);

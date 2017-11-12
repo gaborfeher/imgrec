@@ -18,6 +18,7 @@ class BiasLayer : public BiasLikeLayer {
  public:
   // See BiasLikeLayer for param docs.
   BiasLayer(int num_neurons, bool layered);
+  virtual std::string Name() const;
   virtual void Print() const;
   virtual void Initialize(std::shared_ptr<Random> /* generator */);
   virtual void Forward(const Matrix& input);

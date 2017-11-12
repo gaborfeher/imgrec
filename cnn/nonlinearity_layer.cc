@@ -33,6 +33,10 @@ NonlinearityLayer::NonlinearityLayer(
   activation_function_(activation.first),
   activation_function_gradient_(activation.second) {}
 
+std::string NonlinearityLayer::Name() const {
+  return "NonlinearityLayer";
+}
+
 void NonlinearityLayer::Forward(const Matrix& input) {
   input_ = input;
   output_ = input.Map1(activation_function_);

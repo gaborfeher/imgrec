@@ -18,8 +18,12 @@ ConvolutionalLayer::ConvolutionalLayer(
         filters_(filter_rows, filter_cols, num_filters * layers_per_image) {
 }
 
+std::string ConvolutionalLayer::Name() const {
+  return "ConvolutionalLayer";
+}
+
 void ConvolutionalLayer::Print() const {
-  std::cout << "Convolutional Layer:" << std::endl;
+  std::cout << Name() << ":" << std::endl;
   filters_.value.Print();
 }
 

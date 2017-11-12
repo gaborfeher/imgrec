@@ -40,6 +40,15 @@ class Logger {
       float error,
       float accuracy);
 
+  void LogLayerStart(
+      int id,
+      const std::string& name,
+      const std::string& op_kind);
+  void LogLayerFinish(
+      int id,
+      const std::string& name,
+      const std::string& op_kind);
+
   void LogEpochAverage(
       int epoch,
       float error,

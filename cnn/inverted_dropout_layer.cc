@@ -18,6 +18,9 @@ InvertedDropoutLayer::InvertedDropoutLayer(
         random_(random) {
 }
 
+std::string InvertedDropoutLayer::Name() const {
+  return "InvertedDropoutLayer";
+}
 
 void InvertedDropoutLayer::Forward(const Matrix& input) {
   if (phase() == TRAIN_PHASE) {

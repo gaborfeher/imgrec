@@ -17,6 +17,7 @@ class PortableBinaryInputArchive;
 class L2ErrorLayer : public ErrorLayer {
  public:
   L2ErrorLayer();
+  virtual std::string Name() const;
   virtual void SetExpectedValue(const Matrix& expected_value);
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);

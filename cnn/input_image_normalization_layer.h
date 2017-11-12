@@ -17,6 +17,7 @@ class access;
 class InputImageNormalizationLayer : public Layer {
  public:
   InputImageNormalizationLayer(int rows, int cols, int depth);
+  virtual std::string Name() const;
   virtual void Print() const;
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& ouotput_gradient);

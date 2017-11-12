@@ -17,8 +17,12 @@ BiasLayer::BiasLayer(int num_neurons, bool layered) :
   }
 }
 
+std::string BiasLayer::Name() const {
+  return "BiasLayer";
+}
+
 void BiasLayer::Print() const {
-  std::cout << "Bias Layer:" << std::endl;
+  std::cout << Name() << ":" << std::endl;
   biases_.value.Print();
 }
 

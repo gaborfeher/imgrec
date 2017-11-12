@@ -27,8 +27,12 @@ BatchNormalizationLayer::BatchNormalizationLayer(int num_neurons, bool layered) 
   }
 }
 
+std::string BatchNormalizationLayer::Name() const {
+  return "BatchNormalizationLayer";
+}
+
 void BatchNormalizationLayer::Print() const {
-  std::cout << "Batch Normalization Layer" << std::endl;
+  std::cout << Name() << ":" << std::endl;
   std::cout << " Multiplier:" << std::endl;
   global_multiplier_.Print();
   std::cout << " Shift:" << std::endl;

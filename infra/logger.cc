@@ -213,3 +213,15 @@ void Logger::SaveModel(int epoch, std::shared_ptr<LayerStack> model) {
     output(model);
   }
 }
+
+void Logger::LogLayerStart(
+    int id,
+    const std::string& name,
+    const std::string& op_kind) {
+}
+
+void Logger::LogLayerFinish(
+    int id,
+    const std::string& name,
+    const std::string& op_kind) {
+}

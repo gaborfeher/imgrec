@@ -6,11 +6,13 @@
 
 #include "cnn/layer.h"
 
+class Logger;
 class Random;
 
 class LayerStack : public Layer {
  public:
   LayerStack();
+  explicit LayerStack(std::shared_ptr<Logger> logger);
 
   void AddLayer(std::shared_ptr<Layer> layer);
 
@@ -29,6 +31,7 @@ class LayerStack : public Layer {
     id = id % layers_.size();
     return std::dynamic_pointer_cast<T>(layers_[id]);
   }
+  virtual std::string Name() const;
   virtual void Print() const;
   virtual void Initialize(std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);
@@ -55,6 +58,7 @@ class LayerStack : public Layer {
   // returning true. (If all returned false this is disabled.)
   int phase_last_child_id_;
 
+  std::shared_ptr<Logger> logger_;
 };
 
 #endif  // _CNN_LAYER_STACK_H_

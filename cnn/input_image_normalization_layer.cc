@@ -14,8 +14,12 @@ InputImageNormalizationLayer::InputImageNormalizationLayer(int rows, int cols, i
     num_samples_(0),
     mean_(rows, cols, depth) {}
 
+std::string InputImageNormalizationLayer::Name() const {
+  return "InputImageNormalizationLayer";
+}
+
 void InputImageNormalizationLayer::Print() const {
-  std::cout << "Input Image Normalization Layer" << std::endl;
+  std::cout << Name() << ":" << std::endl;
   mean_.Print();
 }
 

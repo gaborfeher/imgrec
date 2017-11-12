@@ -5,6 +5,10 @@
 
 L2ErrorLayer::L2ErrorLayer() {}
 
+std::string L2ErrorLayer::Name() const {
+  return "L2ErrorLayer";
+}
+
 void L2ErrorLayer::SetExpectedValue(const Matrix& expected_value) {
   expected_value_ = expected_value;
 }

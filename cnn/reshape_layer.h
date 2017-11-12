@@ -13,6 +13,7 @@ class access;
 class ReshapeLayer : public Layer {
  public:
   ReshapeLayer(int unit_rows, int unit_cols, int unit_depth);
+  virtual std::string Name() const;
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient); 
 

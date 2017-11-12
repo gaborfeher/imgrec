@@ -5,6 +5,10 @@
 
 SoftmaxErrorLayer::SoftmaxErrorLayer() {}
 
+std::string SoftmaxErrorLayer::Name() const {
+  return "SoftmaxErrorLayer";
+}
+
 void SoftmaxErrorLayer::SetExpectedValue(const Matrix& expected_value) {
   expected_value_ = expected_value;
 }

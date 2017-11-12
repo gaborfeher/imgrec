@@ -20,6 +20,7 @@ class InvertedDropoutLayer : public BiasLikeLayer {
       bool layered,
       float p,
       std::shared_ptr<Random> random);
+  virtual std::string Name() const;
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
 

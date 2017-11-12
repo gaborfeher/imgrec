@@ -8,10 +8,14 @@
 
 #include "linalg/matrix.h"
 
-ReshapeLayer::ReshapeLayer(int unit_rows, int unit_cols, int unit_depth) :
-    unit_rows_(unit_rows),
+ReshapeLayer::ReshapeLayer(int unit_rows, int unit_cols, int unit_depth)
+  : unit_rows_(unit_rows),
     unit_cols_(unit_cols),
     unit_depth_(unit_depth) {}
+
+std::string ReshapeLayer::Name() const {
+  return "ReshapeLayer";
+}
 
 void ReshapeLayer::Forward(const Matrix& input) {
   assert(input.rows() == unit_rows_);

@@ -18,6 +18,7 @@ class access;
 class FullyConnectedLayer : public Layer {
  public:
   FullyConnectedLayer(int input_size, int output_size);
+  virtual std::string Name() const;
   virtual void Print() const;
   virtual void Initialize(std::shared_ptr<Random> random);
   virtual void Forward(const Matrix& input);

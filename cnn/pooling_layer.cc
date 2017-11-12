@@ -12,8 +12,8 @@ PoolingLayer::PoolingLayer(int pool_rows, int pool_cols) :
     pool_rows_(pool_rows),
     pool_cols_(pool_cols) {}
 
-void PoolingLayer::Print() const {
-  std::cout << "Pooling Layer" << std::endl;
+std::string PoolingLayer::Name() const {
+  return "PoolingLayer";
 }
 
 void PoolingLayer::Forward(const Matrix& input) {

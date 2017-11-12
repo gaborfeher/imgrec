@@ -21,7 +21,8 @@ class Layer {
   Layer();
   virtual ~Layer() {}
 
-  virtual void Print() const {};
+  virtual std::string Name() const = 0;
+  virtual void Print() const;
   virtual void Initialize(std::shared_ptr<Random> /* generator */) {};
   virtual void Forward(const Matrix& input) = 0;
   virtual void Backward(const Matrix& output_gradient) = 0;

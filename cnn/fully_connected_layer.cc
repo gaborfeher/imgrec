@@ -15,8 +15,12 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) :
     output_size_(output_size),
     weights_(output_size, input_size_, 1) {}
 
+std::string FullyConnectedLayer::Name() const {
+  return "FullyConnectedLayer";
+}
+
 void FullyConnectedLayer::Print() const {
-  std::cout << "Fully Connected Layer:" << std::endl;
+  std::cout << Name() << ":" << std::endl;
   weights_.value.Print();
 }
 

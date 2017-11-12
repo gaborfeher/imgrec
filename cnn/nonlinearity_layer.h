@@ -26,6 +26,7 @@ class NonlinearityLayer : public Layer {
  public:
   explicit NonlinearityLayer(
       ::activation_functions::ActivationFunc activation);
+  virtual std::string Name() const;
   virtual void Forward(const Matrix& input);
   virtual void Backward(const Matrix& output_gradient);
 
