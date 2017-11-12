@@ -9,11 +9,13 @@
 #include <cereal/types/vector.hpp>
 
 LayerStack::LayerStack()
-    : phase_last_child_id_(-1),
-      logger_(std::make_shared<Logger>(0)) {}
+    : phase_last_child_id_(-1) {}
 
 void LayerStack::SetLogger(std::shared_ptr<Logger> logger) {
-  logger_ = logger;
+  Layer::SetLogger(logger);
+  for (std::shared_ptr<Layer> layer : layers_) {
+    layer->SetLogger(logger);
+  }
 }
 
 void LayerStack::AddLayer(std::shared_ptr<Layer> layer) {

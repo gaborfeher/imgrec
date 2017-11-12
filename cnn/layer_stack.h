@@ -12,8 +12,7 @@ class Random;
 class LayerStack : public Layer {
  public:
   LayerStack();
-
-  void SetLogger(std::shared_ptr<Logger> logger);
+  virtual void SetLogger(std::shared_ptr<Logger> logger);
   void AddLayer(std::shared_ptr<Layer> layer);
 
   // Like AddLayer, but creates a new layer object. The arguments
@@ -57,8 +56,6 @@ class LayerStack : public Layer {
   // we only need to run forward passes until the last child
   // returning true. (If all returned false this is disabled.)
   int phase_last_child_id_;
-
-  std::shared_ptr<Logger> logger_;
 };
 
 #endif  // _CNN_LAYER_STACK_H_

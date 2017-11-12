@@ -3,9 +3,12 @@
 #include <cassert>
 #include <iostream>
 
+#include "infra/logger.h"
+
 Layer::Layer() :
     phase_(NONE),
-    phase_sub_id_(-1) {}
+    phase_sub_id_(-1),
+    logger_(std::make_shared<Logger>(0)) {}
 
 void Layer::Print() const {
   std::cout << Name() << std::endl;
@@ -23,4 +26,8 @@ void Layer::EndPhase(Phase phase, int phase_sub_id) {
   assert(phase == phase_);
   phase_ = NONE;
   phase_sub_id_ = -1;
+}
+
+void Layer::SetLogger(std::shared_ptr<Logger> logger) {
+  logger_ = logger;
 }

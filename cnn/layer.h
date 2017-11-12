@@ -6,6 +6,7 @@
 #include "linalg/matrix.h"
 
 struct GradientInfo;
+class Logger;
 class Random;
 
 class Layer {
@@ -20,6 +21,7 @@ class Layer {
 
   Layer();
   virtual ~Layer() {}
+  virtual void SetLogger(std::shared_ptr<Logger> logger);
 
   virtual std::string Name() const = 0;
   virtual void Print() const;
@@ -49,6 +51,8 @@ class Layer {
   Matrix input_;
   Matrix output_;
   Matrix input_gradient_;
+
+  std::shared_ptr<Logger> logger_;
 
   // Override-able variants of BeginPhase and EndPhase. Use phase()
   // and phase_sub_id() inside them.

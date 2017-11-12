@@ -63,8 +63,8 @@ Logger::Logger(int log_level, const std::string& log_dir)
 }
 
 void Logger::LogTrainingStart(int num_params) {
-  training_clock_.Start();
   if (log_level_ >= 1) {
+    training_clock_.Start();
     std::cout << "Training model with " << num_params << " parameters" << std::endl;
     std::cout
         << "              \033[1;34m TRAIN AVERAGE \033[0m "
@@ -95,7 +95,9 @@ void Logger::LogTrainingEnd() {
 }
 
 void Logger::LogMinibatchStart() {
-  minibatch_clock_.Start();
+  if (log_level_ >= 1) {
+    minibatch_clock_.Start();
+  }
 }
 
 void Logger::LogMinibatchEnd(
@@ -257,14 +259,18 @@ void Logger::LogLayerStart(
     int id,
     const std::string& name,
     const std::string& op_kind) {
-  // If needed, then this creates a Clock with default constructor. The default constructor
-  // Start()s the clock. Resume()ing a Start()ed clock just restarts it.
-  layer_clocks_[GetClockId(id, name)][op_kind].Resume();
+  if (log_level_ >= 3) {
+    // If needed, then this creates a Clock with default constructor. The default constructor
+    // Start()s the clock. Resume()ing a Start()ed clock just restarts it.
+    layer_clocks_[GetClockId(id, name)][op_kind].Resume();
+  }
 }
 
 void Logger::LogLayerFinish(
     int id,
     const std::string& name,
     const std::string& op_kind) {
-  layer_clocks_[GetClockId(id, name)][op_kind].Stop();
+  if (log_level_ >= 3) {
+    layer_clocks_[GetClockId(id, name)][op_kind].Stop();
+  }
 }
