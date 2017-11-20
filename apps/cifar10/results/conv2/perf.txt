@@ -1,0 +1,31 @@
+[00]InputImageNormalizationLayer....:    1.72ms     0.24ms
+[01]ConvolutionalLayer..............:   30.06ms    70.63ms BW1:   21.41ms  BW2:   49.19ms 
+[02]BatchNormalizationLayer.........:   78.78ms   154.72ms
+[03]NonlinearityLayer...............:    6.04ms     7.74ms
+[04]ConvolutionalLayer..............:  108.19ms   219.56ms BW1:  104.44ms  BW2:  115.10ms 
+[05]BatchNormalizationLayer.........:   78.36ms   155.76ms
+[06]NonlinearityLayer...............:    5.97ms     7.63ms
+[07]ConvolutionalLayer..............:  107.93ms   219.63ms BW1:  104.16ms  BW2:  115.45ms 
+[08]BatchNormalizationLayer.........:   77.78ms   156.81ms
+[09]NonlinearityLayer...............:    5.92ms     9.42ms
+[10]ConvolutionalLayer..............:  810.65ms  1009.82ms BW1:  432.73ms  BW2:  577.05ms 
+[11]BatchNormalizationLayer.........:  117.69ms   220.09ms
+[12]NonlinearityLayer...............:   11.92ms    18.80ms
+[13]ConvolutionalLayer..............: 1855.99ms  3476.70ms BW1: 1495.56ms  BW2: 1981.11ms 
+[14]BatchNormalizationLayer.........:  117.98ms   218.67ms
+[15]NonlinearityLayer...............:   12.08ms    17.96ms
+[16]PoolingLayer....................:    8.19ms     5.86ms
+[17]ConvolutionalLayer..............:  427.74ms   699.25ms BW1:  346.61ms  BW2:  352.62ms 
+[18]BatchNormalizationLayer.........:   33.50ms    59.70ms
+[19]InvertedDropoutLayer............:   15.64ms     2.66ms
+[20]NonlinearityLayer...............:    2.38ms     4.66ms
+[21]PoolingLayer....................:    2.43ms     1.73ms
+[22]ConvolutionalLayer..............:   89.94ms   148.09ms BW1:   73.50ms  BW2:   74.57ms 
+[23]BatchNormalizationLayer.........:   13.49ms    25.56ms
+[24]InvertedDropoutLayer............:   12.59ms     0.85ms
+[25]NonlinearityLayer...............:    0.91ms     1.52ms
+[26]ReshapeLayer....................:    0.63ms     0.78ms
+[27]FullyConnectedLayer.............:    1.62ms     3.43ms
+[28]BatchNormalizationLayer.........:    0.62ms     0.92ms
+[29]NonlinearityLayer...............:    0.04ms     0.07ms
+[30]SoftmaxErrorLayer...............:    0.19ms     0.06ms

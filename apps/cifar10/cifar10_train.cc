@@ -172,7 +172,7 @@ void TrainConvolutional_1_Model() {
   Trainer trainer(
       stack,
       std::make_shared<Logger>(
-          2,
+          3,
           "apps/cifar10/results/conv1"));
   // model.Evaluate(*validation, &error, &accuracy);
   trainer.Train(

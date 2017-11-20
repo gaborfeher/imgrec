@@ -58,10 +58,12 @@ Logger::Logger(int log_level, const std::string& log_dir)
     : log_level_(log_level),
       log_dir_(log_dir),
       summary_log_(std::make_shared<std::ofstream>(log_dir + "/summary.txt")),
-      detail_log_(std::make_shared<std::ofstream>(log_dir + "/details.txt")) {
+      detail_log_(std::make_shared<std::ofstream>(log_dir + "/details.txt")),
+      perf_log_(std::make_shared<std::ofstream>(log_dir + "/perf.txt")) {
   std::cout << "Log files:" << std::endl;
   std::cout << log_dir + "/summary.txt" << std::endl;
   std::cout << log_dir + "/details.txt" << std::endl;
+  std::cout << log_dir + "/perf.txt" << std::endl;
 }
 
 void Logger::LogTrainingStart(int num_params) {
@@ -102,6 +104,31 @@ void Logger::LogMinibatchStart() {
   }
 }
 
+void Logger::LogPerf(std::shared_ptr<std::ostream> log) {
+  for (std::map<std::string, std::map<std::string, Clock>>::value_type item : layer_clocks_) {
+    std::string pad = std::string(
+        std::max(0, 36 - static_cast<int>(item.first.size())),
+        '.');
+    *log
+        << std::fixed
+        << item.first << pad << ":"
+        << std::setprecision(2)
+        << std::setw(8)
+        << item.second["FW"].AverageSeconds() * 1000 << "ms "
+        << std::setw(8)
+        << item.second["BW"].AverageSeconds() * 1000 << "ms";
+    for (std::map<std::string, Clock>::value_type sub_item : item.second) {
+      if (sub_item.first != "FW" && sub_item.first != "BW") {
+        *log
+            << " " << sub_item.first << ":"
+            << std::setw(8)
+            << sub_item.second.AverageSeconds() * 1000 << "ms ";
+      }
+    }
+    *log << std::endl;
+  }
+}
+
 void Logger::LogMinibatchEnd(
     int epoch, int batch,
     float error,
@@ -123,28 +150,13 @@ void Logger::LogMinibatchEnd(
         << std::endl;
   }
   if (log_level_ >= 3) {
-    for (std::map<std::string, std::map<std::string, Clock>>::value_type item : layer_clocks_) {
-      std::string pad = std::string(
-          std::max(0, 36 - static_cast<int>(item.first.size())),
-          '.');
-      *detail_log_
-          << std::fixed
-          << item.first << pad << ":"
-          << std::setprecision(2)
-          << std::setw(8)
-          << item.second["FW"].AverageSeconds() * 1000 << "ms "
-          << std::setw(8)
-          << item.second["BW"].AverageSeconds() * 1000 << "ms";
-      for (std::map<std::string, Clock>::value_type sub_item : item.second) {
-        if (sub_item.first != "FW" && sub_item.first != "BW") {
-          *detail_log_
-              << " " << sub_item.first << ":"
-              << std::setw(8)
-              << sub_item.second.AverageSeconds() * 1000 << "ms ";
-        }
-      }
-      *detail_log_ << std::endl;
-    }
+    LogPerf(detail_log_);
+  }
+}
+
+void Logger::LogEpochEnd(int epoch) {
+  if (epoch == 0 && log_level_ >= 3) {
+    LogPerf(perf_log_);
   }
 }
 

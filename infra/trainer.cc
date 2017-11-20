@@ -61,6 +61,7 @@ void Trainer::Train(
           error_->GetError() / data_set.MiniBatchSize(),
           error_->GetAccuracy());
     }
+    logger_->LogEpochEnd(i);
     logger_->LogEpochAverage(
         i,
         total_error / data_set.NumBatches() / data_set.MiniBatchSize(),

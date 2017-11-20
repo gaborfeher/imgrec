@@ -54,6 +54,7 @@ class Logger {
   void LogLayerSectionStart(const std::string& op_kind);
   void LogLayerSectionEnd(const std::string& op_kind);
 
+  void LogEpochEnd(int epoch);
   void LogEpochAverage(
       int epoch,
       float error,
@@ -75,10 +76,12 @@ class Logger {
   std::string log_dir_;
   std::shared_ptr<std::ofstream> summary_log_;
   std::shared_ptr<std::ofstream> detail_log_;
+  std::shared_ptr<std::ofstream> perf_log_;
 
   void PrintBigPass(
       const std::string& color_code,
       float error, float accuracy);
+  void LogPerf(std::shared_ptr<std::ostream> os);
 
   Clock training_clock_;
   Clock minibatch_clock_;
