@@ -19,9 +19,9 @@ TEST_OBJS := $(addprefix bin/,$(subst .cc,.o,$(TEST_SOURCES)))
 # PHONY targets
 #######
 
-.PHONY: clean clean_all test matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
+.PHONY: clean clean_all test matrix_test matrix_perf_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
 
-test: matrix_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
+test: matrix_test matrix_perf_test fully_connected_layer_test error_layer_test convolutional_layer_test batch_normalization_layer_test input_image_normalization_layer_test bias_layer_test pooling_layer_test inverted_dropout_layer_test
 
 clean:
 	rm -Rf bin
@@ -32,6 +32,9 @@ clean_all: clean
 	rm -Rf apps/cifar10/downloaded_deps
 
 matrix_test: bin/linalg/matrix_test
+	$<
+
+matrix_perf_test: bin/linalg/matrix_perf_test
 	$<
 
 fully_connected_layer_test: bin/cnn/fully_connected_layer_test
@@ -151,6 +154,12 @@ bin/core.a: \
 #######
 
 bin/linalg/matrix_test: bin/linalg/matrix_test.o \
+		bin/linalg/matrix.cu.o \
+		bin/googletest/gtest_main.a \
+		bin/test.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CXXLINKFLAGS) $^ -o $@
+
+bin/linalg/matrix_perf_test: bin/linalg/matrix_perf_test.o \
 		bin/linalg/matrix.cu.o \
 		bin/googletest/gtest_main.a \
 		bin/test.a
