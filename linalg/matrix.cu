@@ -900,7 +900,7 @@ Matrix Matrix::Convolution(
   int a_row_shift = c_row_padding - a_row_padding + b_row_padding;
   int a_col_shift = c_col_padding - a_col_padding + b_col_padding;
 
-  dim3 threads_per_block(1, 1, 32);
+  dim3 threads_per_block(min(8, c.rows()), min(16, c.cols()), 1);
   dim3 blocks = CalculateBlocks(c, threads_per_block);
   MatrixConvolution<<<blocks, threads_per_block>>>(
       layers_per_image,

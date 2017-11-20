@@ -1,30 +1,30 @@
-[00]InputImageNormalizationLayer....:    1.71ms     0.47ms
-[01]ConvolutionalLayer..............:   13.59ms    61.91ms BW1:   10.80ms  BW2:   51.08ms 
-[02]BatchNormalizationLayer.........:   58.94ms   125.20ms
-[03]NonlinearityLayer...............:    3.09ms     4.35ms
-[04]ConvolutionalLayer..............:   28.21ms    76.35ms BW1:   27.45ms  BW2:   48.88ms 
-[05]BatchNormalizationLayer.........:   58.77ms   124.23ms
-[06]NonlinearityLayer...............:    3.03ms     4.36ms
-[07]ConvolutionalLayer..............:   27.31ms    75.43ms BW1:   26.54ms  BW2:   48.88ms 
-[08]BatchNormalizationLayer.........:   58.60ms   125.11ms
-[09]NonlinearityLayer...............:    3.18ms     4.38ms
-[10]ConvolutionalLayer..............:  240.74ms   270.00ms BW1:  118.21ms  BW2:  151.77ms 
-[11]BatchNormalizationLayer.........:   97.39ms   186.25ms
-[12]NonlinearityLayer...............:    8.78ms    14.40ms
-[13]ConvolutionalLayer..............:  755.08ms  1580.71ms BW1:  681.59ms  BW2:  899.09ms 
-[14]BatchNormalizationLayer.........:   97.32ms   186.61ms
-[15]NonlinearityLayer...............:    9.06ms    13.86ms
-[16]PoolingLayer....................:    6.20ms     4.91ms
-[17]ConvolutionalLayer..............:  174.02ms   321.52ms BW1:  157.21ms  BW2:  164.28ms 
-[18]BatchNormalizationLayer.........:   27.11ms    52.62ms
-[19]NonlinearityLayer...............:    2.55ms     3.68ms
-[20]PoolingLayer....................:    1.90ms     1.68ms
-[21]ConvolutionalLayer..............:   37.26ms    68.65ms BW1:   33.98ms  BW2:   34.65ms 
-[22]BatchNormalizationLayer.........:   12.73ms    24.44ms
-[23]InvertedDropoutLayer............:   13.28ms     0.75ms
-[24]NonlinearityLayer...............:    0.83ms     1.35ms
-[25]ReshapeLayer....................:    0.56ms     0.71ms
-[26]FullyConnectedLayer.............:    1.27ms     2.91ms
-[27]BatchNormalizationLayer.........:    0.61ms     0.92ms
+[00]InputImageNormalizationLayer....:    1.73ms     0.27ms
+[01]ConvolutionalLayer..............:   10.42ms    62.62ms BW1:   10.17ms  BW2:   52.43ms 
+[02]BatchNormalizationLayer.........:   58.25ms   124.78ms
+[03]NonlinearityLayer...............:    3.08ms     4.15ms
+[04]ConvolutionalLayer..............:   26.04ms    78.30ms BW1:   25.60ms  BW2:   52.69ms 
+[05]BatchNormalizationLayer.........:   58.51ms   125.04ms
+[06]NonlinearityLayer...............:    3.14ms     4.28ms
+[07]ConvolutionalLayer..............:   25.84ms    78.39ms BW1:   25.70ms  BW2:   52.66ms 
+[08]BatchNormalizationLayer.........:   58.43ms   126.17ms
+[09]NonlinearityLayer...............:    3.12ms     4.42ms
+[10]ConvolutionalLayer..............:  115.29ms   307.37ms BW1:  120.72ms  BW2:  186.63ms 
+[11]BatchNormalizationLayer.........:   98.20ms   186.84ms
+[12]NonlinearityLayer...............:    8.90ms    12.73ms
+[13]ConvolutionalLayer..............:  346.14ms   826.56ms BW1:  345.22ms  BW2:  481.31ms 
+[14]BatchNormalizationLayer.........:   97.90ms   186.84ms
+[15]NonlinearityLayer...............:    9.15ms    13.49ms
+[16]PoolingLayer....................:    6.21ms     4.31ms
+[17]ConvolutionalLayer..............:   79.91ms   182.39ms BW1:   78.94ms  BW2:  103.43ms 
+[18]BatchNormalizationLayer.........:   27.19ms    52.41ms
+[19]NonlinearityLayer...............:    2.54ms     3.57ms
+[20]PoolingLayer....................:    1.97ms     1.48ms
+[21]ConvolutionalLayer..............:   23.21ms    42.63ms BW1:   23.21ms  BW2:   19.40ms 
+[22]BatchNormalizationLayer.........:   12.85ms    24.42ms
+[23]InvertedDropoutLayer............:   13.36ms     0.77ms
+[24]NonlinearityLayer...............:    0.88ms     1.39ms
+[25]ReshapeLayer....................:    0.58ms     0.78ms
+[26]FullyConnectedLayer.............:    1.27ms     2.85ms
+[27]BatchNormalizationLayer.........:    0.64ms     0.98ms
 [28]NonlinearityLayer...............:    0.04ms     0.07ms
-[29]SoftmaxErrorLayer...............:    0.19ms     0.06ms
+[29]SoftmaxErrorLayer...............:    0.15ms     0.06ms
