@@ -1,31 +1,31 @@
-[00]InputImageNormalizationLayer....:    1.65ms     0.22ms
-[01]ConvolutionalLayer..............:   20.04ms    72.82ms BW1:   20.18ms  BW2:   52.62ms 
-[02]BatchNormalizationLayer.........:   77.84ms   155.43ms
-[03]NonlinearityLayer...............:    6.08ms     7.92ms
-[04]ConvolutionalLayer..............:   99.59ms   219.93ms BW1:   99.24ms  BW2:  120.66ms 
-[05]BatchNormalizationLayer.........:   78.10ms   155.71ms
-[06]NonlinearityLayer...............:    5.91ms     7.74ms
-[07]ConvolutionalLayer..............:   99.27ms   219.96ms BW1:   99.26ms  BW2:  120.67ms 
-[08]BatchNormalizationLayer.........:   78.27ms   156.30ms
-[09]NonlinearityLayer...............:    6.00ms     9.38ms
-[10]ConvolutionalLayer..............:  305.66ms   760.15ms BW1:  312.95ms  BW2:  447.17ms 
-[11]BatchNormalizationLayer.........:  117.66ms   218.11ms
-[12]NonlinearityLayer...............:   11.72ms    16.31ms
-[13]ConvolutionalLayer..............:  613.77ms  1464.96ms BW1:  615.16ms  BW2:  849.77ms 
-[14]BatchNormalizationLayer.........:  117.44ms   217.61ms
-[15]NonlinearityLayer...............:   12.18ms    17.94ms
-[16]PoolingLayer....................:    8.37ms     5.70ms
-[17]ConvolutionalLayer..............:  141.94ms   325.20ms BW1:  140.95ms  BW2:  184.22ms 
-[18]BatchNormalizationLayer.........:   32.89ms    60.12ms
-[19]InvertedDropoutLayer............:   15.43ms     2.72ms
-[20]NonlinearityLayer...............:    2.41ms     4.75ms
-[21]PoolingLayer....................:    2.39ms     1.76ms
-[22]ConvolutionalLayer..............:   35.55ms    67.39ms BW1:   35.38ms  BW2:   31.99ms 
-[23]BatchNormalizationLayer.........:   13.64ms    25.72ms
-[24]InvertedDropoutLayer............:   12.64ms     0.86ms
-[25]NonlinearityLayer...............:    1.01ms     1.58ms
-[26]ReshapeLayer....................:    0.64ms     0.84ms
-[27]FullyConnectedLayer.............:    1.61ms     3.42ms
-[28]BatchNormalizationLayer.........:    0.61ms     0.93ms
+[00]InputImageNormalizationLayer....:    1.71ms     0.49ms
+[01]ConvolutionalLayer..............:   19.84ms    64.90ms BW1:   20.02ms  BW2:   44.86ms 
+[02]BatchNormalizationLayer.........:   77.94ms   156.26ms
+[03]NonlinearityLayer...............:    5.93ms     8.23ms
+[04]ConvolutionalLayer..............:   98.28ms   215.97ms BW1:   97.79ms  BW2:  118.15ms 
+[05]BatchNormalizationLayer.........:   78.49ms   155.95ms
+[06]NonlinearityLayer...............:    6.03ms     7.91ms
+[07]ConvolutionalLayer..............:   98.25ms   216.51ms BW1:   98.37ms  BW2:  118.11ms 
+[08]BatchNormalizationLayer.........:   78.27ms   157.12ms
+[09]NonlinearityLayer...............:    5.97ms     9.39ms
+[10]ConvolutionalLayer..............:  260.51ms   581.54ms BW1:  260.72ms  BW2:  320.79ms 
+[11]BatchNormalizationLayer.........:  117.91ms   217.92ms
+[12]NonlinearityLayer...............:   11.90ms    16.12ms
+[13]ConvolutionalLayer..............:  516.83ms  1158.12ms BW1:  517.76ms  BW2:  640.33ms 
+[14]BatchNormalizationLayer.........:  117.30ms   217.87ms
+[15]NonlinearityLayer...............:   12.16ms    17.86ms
+[16]PoolingLayer....................:    8.20ms     5.56ms
+[17]ConvolutionalLayer..............:  129.07ms   281.25ms BW1:  127.99ms  BW2:  153.23ms 
+[18]BatchNormalizationLayer.........:   32.81ms    59.84ms
+[19]InvertedDropoutLayer............:   15.52ms     2.67ms
+[20]NonlinearityLayer...............:    2.34ms     4.75ms
+[21]PoolingLayer....................:    2.44ms     1.65ms
+[22]ConvolutionalLayer..............:   33.14ms    68.39ms BW1:   32.71ms  BW2:   35.66ms 
+[23]BatchNormalizationLayer.........:   13.64ms    26.06ms
+[24]InvertedDropoutLayer............:   12.70ms     0.86ms
+[25]NonlinearityLayer...............:    0.94ms     1.55ms
+[26]ReshapeLayer....................:    0.65ms     0.79ms
+[27]FullyConnectedLayer.............:    1.63ms     3.46ms
+[28]BatchNormalizationLayer.........:    0.64ms     0.96ms
 [29]NonlinearityLayer...............:    0.04ms     0.07ms
-[30]SoftmaxErrorLayer...............:    0.15ms     0.06ms
+[30]SoftmaxErrorLayer...............:    0.23ms     0.06ms

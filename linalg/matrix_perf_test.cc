@@ -6,6 +6,17 @@
 #include "linalg/matrix.h"
 #include "linalg/matrix_test_util.h"
 
+// Caution: the below tests are working with un-initialized matrix
+// contents. (It's okay because the content doesn't matter here.)
+
+TEST(MatrixPerfTest, WarmUp) {
+  // Batch of 400 images, 32 incoming, 32 outgoing layers.
+  Matrix a(32, 32, 400 * 32);
+  Matrix b(5, 5, 32 * 32);
+  Matrix::Convolution(32, a, false, b, true);
+  Matrix::Convolution(32, a, true, b, false);
+}
+
 TEST(MatrixPerfTest, Convolution_Fw_NoPadding) {
   // Batch of 400 images, 32 incoming, 32 outgoing layers.
   Matrix a(32, 32, 400 * 32);
