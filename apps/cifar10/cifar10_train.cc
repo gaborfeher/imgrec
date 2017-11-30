@@ -388,15 +388,31 @@ void TrainConvolutional_32_Model() {
       validation.get());  // evaluate on validation set after each epoch
 }
 
-int main() {
-  TrainSingleLayerFCModel();
-  TrainTwoLayerFCModel(false, false);
-  TrainTwoLayerFCModel(true, false);
-  TrainTwoLayerFCModel(false, true);
-  TrainTwoLayerFCModel(true, true);
-  TrainConvolutional_1_Model();
-  TrainConvolutional_2_Model();
-  TrainConvolutional_32_Model();
-  TrainConvolutional_31_Model();
+int main(int argc, char* argv[]) {
+  std::string choice = "conv3.1";
+  if (argc == 2) {
+    choice = argv[1];
+  }
+  if (choice == "fc1") {
+    TrainSingleLayerFCModel();
+  } else if (choice == "fc2nodrop") {
+    TrainTwoLayerFCModel(false, false);
+  } else if (choice == "fc2drop") {
+    TrainTwoLayerFCModel(true, false);
+  } else if (choice == "fc3nodrop") {
+    TrainTwoLayerFCModel(false, true);
+  } else if (choice == "fc3drop") {
+    TrainTwoLayerFCModel(true, true);
+  } else if (choice == "conv1") {
+    TrainConvolutional_1_Model();
+  } else if (choice == "conv2") {
+    TrainConvolutional_2_Model();
+  } else if (choice == "conv3.1") {
+    TrainConvolutional_31_Model();
+  } else if (choice == "conv3.2") {
+    TrainConvolutional_32_Model();
+  } else {
+    std::cerr << "Unknown model choice: " << choice << std::endl;
+  }
   return 0;
 }
